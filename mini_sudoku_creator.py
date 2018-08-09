@@ -9,13 +9,13 @@ import pprint
 # todo: consider adding unit testing.
 
 
-GRID_SIDE_LENGTH = 100
+GRID_SIDE_LENGTH = 5
 
 
-def create_grid():
+def create_grid(side_length):
     grid_rows = []
-    for i in range(GRID_SIDE_LENGTH):
-        blank_row = ['' for j in range(GRID_SIDE_LENGTH)]
+    for i in range(side_length):
+        blank_row = ['' for j in range(side_length)]
         grid_rows.append(blank_row)
     return grid_rows
 
@@ -36,6 +36,7 @@ def get_possible_cells():
 
 def choose_random_number(array):
     number = random.choice(array)
+    assert number != None
     return number
 
 
@@ -51,17 +52,15 @@ def insert_numbers_into_grid(grid):
     for row in grid:
         for cell in row:
             cell_position = row.index(cell)
-            row_values = row
-            column_values = get_column_values(grid, cell_position)
-            cell_value = get_cell_value_that_fits(row_values, column_values)
-            assert cell_value != None # todo: find the None bug
+            columns = get_column_values(grid, cell_position)
+            cell_value = get_cell_value_that_fits(row, columns)
             row[cell_position] = cell_value
 
 
 def engine():
-    grid = create_grid()
+    grid = create_grid(GRID_SIDE_LENGTH)
     insert_numbers_into_grid(grid)
-    pprint.pprint(grid)
+    #pprint.pprint(grid)
 
 
 engine()
