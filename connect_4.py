@@ -75,6 +75,8 @@ def place_counter(player_token, row, column):
     board[row][column] = player_token
 
 
+# Generate test functions to speed checking functionality. E.g., generate completed test board
+
 # Engine
 board = generate_board(8)
 pprint.pprint(board)
