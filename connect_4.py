@@ -9,13 +9,12 @@ def is_sequence_present(seq, sublist):
     return sublist in (seq[i:i+n] for i in range(len(seq) + 1 - n))
 
 
-
 def horizontal_four_check(seq, segment):
     return is_sequence_present(seq, segment)
 
 
-def vertical_four_check(seq, cell_position, sublist, board):
-    column = [sublist[cell_position] for sublist in board]
+def vertical_four_check(seq, column, col, board):
+    column = [row[column] for row in board]
     return is_sequence_present(seq, column)
 
 
@@ -48,27 +47,17 @@ def get_player_1_token():
     print(f'Thanks player 1. Your token is {player_1_token}')
 
 
-
 def get_player_2_token():
     player_2_token = str(input('Please choose your token player 2'))
     print(f'Thanks player 2. Your token is {player_2_token}')
     return player_2_token
 
 
-
-# todo: show the board with numbered row and column displays
-def show_board(board):
+def show_board(board): # todo: show the board with numbered row and column displays
     pprint.pprint(board)
 
 
-def update_board_following_player_action(row, column, player_token):
-    board[row][column] = player_token
-
-
-
-# todo: add regex to allow for less strict user row and col input below
-
-def place_counter(player_number, player_token):
+def choose_position_to_place_counter(player_number):# todo: add regex to allow for less strict user row and col input below
     try:
         command = str(input(
             f"Player {str(player_number)}, " +
@@ -76,25 +65,34 @@ def place_counter(player_number, player_token):
             "1 3"
         ))
         row, column = command.split()
-        update_board_following_player_action(int(row), int(column), player_token)
+        return (int(row), int(column))
     except ValueError as e: # todo: manage IndexError where player enter value outside board
         print(f"Please re-enter row and column ({e}")
-        place_counter(player_number, player_token)
+        choose_position_to_place_counter(player_number)
+
+
+def place_counter(player_token, row, column):
+    board[row][column] = player_token
 
 
 # Engine
 board = generate_board(8)
 pprint.pprint(board)
 #player_1_token = get_player_1_token()
-player_1_token = 'X'
+p1_token = 'X'
+p1_win_seq = p1_token * 4
 #player_2_token = get_player_2_token()
-player_2_token = 'O'
+p2_token = 'O'
 while True:
-    place_counter(1, player_1_token)
+    y, x  = choose_position_to_place_counter(1)
+    place_counter(p1_token, x, y)
     show_board(board)
-    place_counter(2, player_2_token)
+    horizontal_four_check(p1_win_seq, board[x])
+    #vertical_four_check(player_1_token * 4, (), sublist, board)
+    x, y = choose_position_to_place_counter(2)
+    place_counter(p2_token, x, y)
     show_board(board)
-# todo: add checking for game over
+#
 
 
 
