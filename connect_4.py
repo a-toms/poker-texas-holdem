@@ -2,7 +2,8 @@
 # connect_4.py
 
 import pprint, re
-
+import logging
+logging.basicConfig(level=logging.INFO)
 
 def is_sequence_present(seq, sublist):
     n = len(sublist)
@@ -59,16 +60,15 @@ def show_board(board): # todo: show the board with numbered row and column displ
 
 def choose_position_to_place_counter(player_number):# todo: add regex to allow for less strict user row and col input below
     try:
-        command = str(input(
-            f"Player {str(player_number)}, " +
-            "please state the row and column to place your token. E.g., " +
-            "1 3"
-        ))
+        # command = str(input(
+        #     f"Player {str(player_number)} state the row and column to place your token"
+        # ))
+        command = '0 0'
         row, column = command.split()
         return (int(row), int(column))
     except ValueError as e: # todo: manage IndexError where player enter value outside board
         print(f"Please re-enter row and column ({e}")
-        choose_position_to_place_counter(player_number)
+        return choose_position_to_place_counter(player_number)
 
 
 def place_counter(player_token, row, column):
@@ -82,18 +82,19 @@ board = generate_board(8)
 pprint.pprint(board)
 #player_1_token = get_player_1_token()
 p1_token = 'X'
-p1_win_seq = p1_token * 4
+p1_win_seq = ['X', 'X', 'X', 'X']
 #player_2_token = get_player_2_token()
 p2_token = 'O'
 while True:
-    y, x  = choose_position_to_place_counter(1)
+    x, y = choose_position_to_place_counter(1)
     place_counter(p1_token, x, y)
     show_board(board)
     horizontal_four_check(p1_win_seq, board[x])
+    print(board[x])
     #vertical_four_check(player_1_token * 4, (), sublist, board)
-    x, y = choose_position_to_place_counter(2)
-    place_counter(p2_token, x, y)
-    show_board(board)
+    #x, y = choose_position_to_place_counter(2)
+    #place_counter(p2_token, x, y)
+    #how_board(board)
 #
 
 
