@@ -1,9 +1,10 @@
 #! python3
 # connect_4.py
 
-import pprint, re
+import pprint
 import logging
 logging.basicConfig(level=logging.INFO)
+
 
 def is_sequence_present(seq, sublist):
     n = len(sublist)
@@ -14,7 +15,7 @@ def horizontal_four_check(seq, segment):
     return is_sequence_present(seq, segment)
 
 
-def vertical_four_check(seq, column, col, board):
+def vertical_four_check(seq, column, board):
     column = [row[column] for row in board]
     return is_sequence_present(seq, column)
 
@@ -45,6 +46,7 @@ def generate_board(size):
 
 def get_player_1_token():
     player_1_token = str(input('Please choose your token player 1'))
+    player_1_token = 'X'
     print(f'Thanks player 1. Your token is {player_1_token}')
 
 
@@ -71,39 +73,34 @@ def choose_position_to_place_counter(player_number):# todo: add regex to allow f
         return choose_position_to_place_counter(player_number)
 
 
-def place_counter(player_token, row, column):
+def place_counter(board, player_token, row, column):
     board[row][column] = player_token
 
 
 # Generate test functions to speed checking functionality. E.g., generate completed test board
 
-# Engine
-board = generate_board(8)
-pprint.pprint(board)
-#player_1_token = get_player_1_token()
-p1_token = 'X'
-p1_win_seq = ['X', 'X', 'X', 'X']
-#player_2_token = get_player_2_token()
-p2_token = 'O'
-while True:
-    x, y = choose_position_to_place_counter(1)
-    place_counter(p1_token, x, y)
-    show_board(board)
-    horizontal_four_check(p1_win_seq, board[x])
-    print(board[x])
-    #vertical_four_check(player_1_token * 4, (), sublist, board)
-    #x, y = choose_position_to_place_counter(2)
-    #place_counter(p2_token, x, y)
-    #how_board(board)
-#
+def engine():
+    board = generate_board(8)
+    pprint.pprint(board)
+    #player_1_token = get_player_1_token()
+    p1_token = 'X'
+    p1_win_seq = ['X', 'X', 'X', 'X']
+    #player_2_token = get_player_2_token()
+    p2_token = 'O'
+    while True:
+        x, y = choose_position_to_place_counter(1)
+        place_counter(board, p1_token, x, y)
+        show_board(board)
+        horizontal_four_check(p1_win_seq, board[x])
+        print(board[x])
+        #vertical_four_check(player_1_token * 4, (), sublist, board)
+        #x, y = choose_position_to_place_counter(2)
+        #place_counter(p2_token, x, y)
+        #how_board(board)
 
 
-
-
-
-
-segment = ['x', 'x']
-sequence = ['o', '-', 'x', 'x', 'o']
-print(is_sequence_present(sequence, segment))
+    segment = ['x', 'x']
+    sequence = ['o', '-', 'x', 'x', 'o']
+    print(is_sequence_present(sequence, segment))
 
 
