@@ -6,18 +6,18 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 
-def is_sequence_present(seq, sublist):
+def is_sublist_in_sequence(seq, sublist):
     n = len(sublist)
     return sublist in (seq[i:i+n] for i in range(len(seq) + 1 - n))
 
 
 def horizontal_four_check(seq, segment):
-    return is_sequence_present(seq, segment)
+    return is_sublist_in_sequence(seq, segment)
 
 
 def vertical_four_check(seq, column, board):
     column = [row[column] for row in board]
-    return is_sequence_present(seq, column)
+    return is_sublist_in_sequence(seq, column)
 
 
 def negative_diagonal_four_check(board_p, board, sublist_p): # todo: improve argument names
@@ -27,7 +27,7 @@ def negative_diagonal_four_check(board_p, board, sublist_p): # todo: improve arg
             negative_diagonal.append(board[board_p + i][sublist_p + i])
         except IndexError:
             pass
-    return is_sequence_present(seq, negative_diagonal)
+    return is_sublist_in_sequence(seq, negative_diagonal)
 
 
 def positive_diagonal_four_check(board_p, board, sublist_p): # todo: improve argument names
@@ -37,7 +37,7 @@ def positive_diagonal_four_check(board_p, board, sublist_p): # todo: improve arg
             positive_diagonal.append(board[board_p + i][sublist_p + i])
         except IndexError:
             pass
-    return is_sequence_present(seq, positive_diagonal)
+    return is_sublist_in_sequence(seq, positive_diagonal)
 
 
 def generate_board(size):
@@ -60,12 +60,11 @@ def show_board(board): # todo: show the board with numbered row and column displ
     pprint.pprint(board)
 
 
-def choose_position_to_place_counter(player_number):# todo: add regex to allow for less strict user row and col input below
+def choose_position_to_place_counter(player_number): # todo: add regex to allow for less strict user row and col input below
     try:
-        # command = str(input(
-        #     f"Player {str(player_number)} state the row and column to place your token"
-        # ))
-        command = '0 0'
+        command = str(input(
+            f"Player {str(player_number)}, please state the row and column" +
+            "to place your token"))
         row, column = command.split()
         return (int(row), int(column))
     except ValueError as e: # todo: manage IndexError where player enter value outside board
@@ -77,30 +76,31 @@ def place_counter(board, player_token, row, column):
     board[row][column] = player_token
 
 
-# Generate test functions to speed checking functionality. E.g., generate completed test board
 
 def engine():
     board = generate_board(8)
     pprint.pprint(board)
     #player_1_token = get_player_1_token()
     p1_token = 'X'
-    p1_win_seq = ['X', 'X', 'X', 'X']
+    p1_win_seq = [p1_token for i in range(4)]
     #player_2_token = get_player_2_token()
     p2_token = 'O'
-    while True:
+    is_game_complete = False
+    while is_game_complete == False:
         x, y = choose_position_to_place_counter(1)
         place_counter(board, p1_token, x, y)
         show_board(board)
-        horizontal_four_check(p1_win_seq, board[x])
+        is_game_complete = horizontal_four_check(board[x], p1_win_seq)
+
         print(board[x])
         #vertical_four_check(player_1_token * 4, (), sublist, board)
         #x, y = choose_position_to_place_counter(2)
         #place_counter(p2_token, x, y)
         #how_board(board)
-
+    print('Player won')
 
     segment = ['x', 'x']
     sequence = ['o', '-', 'x', 'x', 'o']
-    print(is_sequence_present(sequence, segment))
+    print(is_sublist_in_sequence(sequence, segment))
 
 
