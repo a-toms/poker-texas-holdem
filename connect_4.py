@@ -5,6 +5,8 @@ import pprint
 import logging
 logging.basicConfig(level=logging.INFO)
 
+BLANK_BOARD_VALUE = '-'
+
 
 def is_sublist_in_sequence(seq, sublist):
     n = len(sublist)
@@ -20,24 +22,27 @@ def vertical_four_check(seq, column, board):
     return is_sublist_in_sequence(seq, column)
 
 
-def negative_diagonal_four_check(board_p, board, sublist_p): # todo: improve argument names
+def negative_diagonal_four_check(row, column, board, win_sequence): # todo: improve argument names
     negative_diagonal = []
-    for i in range(-3, 3):
+    for i in range(-3, 4):
+        position = board[row + i][column + i]
+        logging.info('Cell position = %s' % position)
         try:
-            negative_diagonal.append(board[board_p + i][sublist_p + i])
+            negative_diagonal.append((position))
         except IndexError:
             pass
-    return is_sublist_in_sequence(seq, negative_diagonal)
+    logging.info('negative_diagonal = %s' % negative_diagonal)
+    return is_sublist_in_sequence(negative_diagonal, win_sequence)
 
 
 def positive_diagonal_four_check(board_p, board, sublist_p): # todo: improve argument names
     positive_diagonal = []
-    for i in range(-3, 3):
+    for i in range(-3, 4):
         try:
             positive_diagonal.append(board[board_p + i][sublist_p + i])
         except IndexError:
             pass
-    return is_sublist_in_sequence(seq, positive_diagonal)
+    return is_sublist_in_sequence(positive_diagonal, win_sequence)
 
 
 def generate_board(size):
@@ -60,16 +65,20 @@ def show_board(board): # todo: show the board with numbered row and column displ
     pprint.pprint(board)
 
 
-def choose_position_to_place_counter(player_number): # todo: add regex to allow for less strict user row and col input below
-    try:
+def choose_position_to_place_counter(player_number, board):
+    while True:
         command = str(input(
             f"Player {str(player_number)}, please state the row and column" +
             "to place your token"))
-        row, column = command.split()
-        return (int(row), int(column))
-    except ValueError as e: # todo: manage IndexError where player enter value outside board
-        print(f"Please re-enter row and column ({e}")
-        return choose_position_to_place_counter(player_number)
+        row, column = map(int, command.split())
+        if board[row][column] != BLANK_BOARD_VALUE:
+            print("That position is occupied. " +
+                  "Please enter a different row and column")
+            continue
+        elif ValueError:
+            continue
+        else:
+            return (int(row), int(column))
 
 
 def place_counter(board, player_token, row, column):
@@ -87,11 +96,11 @@ def engine():
     p2_token = 'O'
     is_game_complete = False
     while is_game_complete == False:
-        x, y = choose_position_to_place_counter(1)
+        x, y = choose_position_to_place_counter(1, board)
         place_counter(board, p1_token, x, y)
         show_board(board)
         is_game_complete = horizontal_four_check(board[x], p1_win_seq)
-
+        is_game_complete = negative_diagonal_four_check(x, y, board, p1_win_seq)
         print(board[x])
         #vertical_four_check(player_1_token * 4, (), sublist, board)
         #x, y = choose_position_to_place_counter(2)
@@ -104,3 +113,4 @@ def engine():
     print(is_sublist_in_sequence(sequence, segment))
 
 
+engine()

@@ -1,7 +1,8 @@
 import unittest
 import connect_4
 import pprint
-
+import logging
+logging.basicConfig(level=logging.INFO)
 
 class SimpleTest(unittest.TestCase):
 
@@ -27,10 +28,12 @@ class SimpleTest(unittest.TestCase):
             ))
 
     def test_negative_diagonal_check(self):
-        for i in range(-4, 4):
+        for i in range(-4, 2):
             connect_4.place_counter(self.test_board, self.test_token, i, i)
         pprint.pprint(self.test_board) # todo: test negative diagonal that I generated above
-        connect_4.negative_diagonal_four_check(board_p, board, sublist_p)
+        test_win_sequence = self.return_win_sequence()
+        self.assertTrue(connect_4.negative_diagonal_four_check(
+            4, 4, self.test_board, test_win_sequence))
 
 
 
