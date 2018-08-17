@@ -22,7 +22,7 @@ def vertical_four_check(seq, column, board):
     return is_sublist_in_sequence(seq, column)
 
 
-def negative_diagonal_four_check(row, column, board, win_sequence): # todo: improve argument names
+def negative_diagonal_four_check(row, column, board, win_sequence):
     negative_diagonal = []
     for i in range(-3, 4):
         position = board[row + i][column + i]
@@ -71,14 +71,16 @@ def choose_position_to_place_counter(player_number, board):
             f"Player {str(player_number)}, please state the row and column" +
             "to place your token"))
         row, column = map(int, command.split())
-        if board[row][column] != BLANK_BOARD_VALUE:
-            print("That position is occupied. " +
-                  "Please enter a different row and column")
-            continue
-        elif ValueError:
-            continue
-        else:
-            return (int(row), int(column))
+        try:
+            if board[row][column] != BLANK_BOARD_VALUE:
+                print("That position is occupied. " +
+                      "Please enter a different row and column")
+                continue
+            else:
+                return (int(row), int(column))
+        except (ValueError, IndexError) as e:
+            print(f"The program suffered an error: {e}. " +
+                  f"Please re-enter the row and column")
 
 
 def place_counter(board, player_token, row, column):
@@ -113,4 +115,7 @@ def engine():
     print(is_sublist_in_sequence(sequence, segment))
 
 
-engine()
+# engine()
+
+
+# After MVP, consider how to use classes to greater effect to run the game.

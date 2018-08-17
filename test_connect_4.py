@@ -30,11 +30,13 @@ class SimpleTest(unittest.TestCase):
     def test_negative_diagonal_check(self):
         for i in range(-4, 2):
             connect_4.place_counter(self.test_board, self.test_token, i, i)
-        pprint.pprint(self.test_board) # todo: test negative diagonal that I generated above
+        pprint.pprint(self.test_board)
         test_win_sequence = self.return_win_sequence()
         self.assertTrue(connect_4.negative_diagonal_four_check(
             4, 4, self.test_board, test_win_sequence))
 
+
+# todo: write tests for the positive diagonal check and the vertical check
 
 
 
