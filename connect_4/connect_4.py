@@ -3,7 +3,7 @@
 
 import pprint
 import logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 BLANK_BOARD_VALUE = '-'
 
@@ -56,9 +56,8 @@ def generate_board(size):
 
 def get_player_1_token():
     player_1_token = str(input('Please choose your token player 1'))
-    player_1_token = 'X'
     print(f'Thanks player 1. Your token is {player_1_token}')
-
+    return player_1_token
 
 def get_player_2_token():
     player_2_token = str(input('Please choose your token player 2'))
@@ -70,11 +69,11 @@ def show_board(board):  # todo: show the board with numbered row and column disp
     pprint.pprint(board)
 
 
-def choose_position_to_place_counter(player_number, board):
+def choose_position_to_place_counter(player, board):
     while True:
         try:
             command = str(input(
-                f"Player {str(player_number)}, please state the row and column" +
+                f"{player}, please state the row and column " +
                 "to place your token"))
             row, column = map(int, command.split())
             if board[row][column] != BLANK_BOARD_VALUE:
@@ -92,27 +91,45 @@ def place_counter(board, player_token, row, column):
     board[row][column] = player_token
 
 
-def engine():  # todo: build game!
+def check_for_winner(x, y, board, player):
+    if horizontal_four_check(player['win_seq'], board[x]) is True:
+        return player
+    if negative_diagonal_four_check(x, y, board, player['win_seq']) is True:
+        return player
+    if vertical_four_check(board, y, player['win_seq']) is True:
+        return player
+    if positive_diagonal_four_check(x, y, board, player['win_seq']) is True:
+        return player
+    else:
+        return False
+
+
+def game_loop(players, board):
+    winning_player = False
+    while winning_player is False:
+        for player in players:
+            x, y = choose_position_to_place_counter(player['name'], board)
+            place_counter(board, player['token'], x, y)
+            show_board(board)
+            winning_player = check_for_winner(x, y, board, player)
+    return winning_player
+
+
+def engine():  # todo: simplify this
     board = generate_board(8)
     show_board(board)
-    # player_1_token = get_player_1_token()
-    p1_token = 'X'
-    p1_win_seq = [p1_token for i in range(4)]
-    # player_2_token = get_player_2_token()
-    p2_token = 'O'
-    while True:
-        x, y = choose_position_to_place_counter(1, board)
-        place_counter(board, p1_token, x, y)
-        show_board(board)
-        if horizontal_four_check(p1_win_seq, board[x]) is True:
-            break
-        if negative_diagonal_four_check(x, y, board, p1_win_seq) is True:
-            break
-        if vertical_four_check(board, y, p1_win_seq) is True:
-            break
-        if positive_diagonal_four_check(x, y, board, p1_win_seq) is True:
-            break
-    print('Player won')
+    p1_token = get_player_1_token()
+    p1_win_seq = [p1_token] * 4
+    logging.info(p1_win_seq)
+    p2_token = get_player_2_token()
+    p2_win_seq = [p2_token] * 4
+    logging.info(p2_win_seq)
+    players = [
+        {'name':'player 1', 'token': p1_token, 'win_seq': p1_win_seq},
+        {'name': 'player 2', 'token': p2_token, 'win_seq': p2_win_seq}
+    ]
+    winning_player = game_loop(players, board)
+    print(f'{winning_player} won')
 
 
 engine()

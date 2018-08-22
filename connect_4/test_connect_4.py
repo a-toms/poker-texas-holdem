@@ -10,7 +10,7 @@ class TestSetup(unittest.TestCase):
     test_token = 'T'
 
     def generate_win_sequence(self):
-        return [self.test_token for i in range(4)]
+        return [self.test_token] * 4
 
     def test_board_creation(self):
         n = 10
@@ -28,7 +28,8 @@ class TestHorizontalAndVerticalGameSuccess(TestSetup):
             connect_4.place_counter(self.test_board, self.test_token, row, i)
         self.assertTrue(
             connect_4.horizontal_four_check(
-                test_win_sequence, self.test_board[row]))
+                test_win_sequence, self.test_board[row])
+        )
 
     def test_vertical_check(self):
         test_win_sequence = self.generate_win_sequence()
@@ -38,7 +39,8 @@ class TestHorizontalAndVerticalGameSuccess(TestSetup):
                 self.test_board, self.test_token, i, column)
         self.assertTrue(
             connect_4.vertical_four_check(
-                self.test_board, column, test_win_sequence))
+                self.test_board, column, test_win_sequence)
+        )
 
 
 class TestNegativeDiagonalGameSuccess(TestSetup):
@@ -53,7 +55,7 @@ class TestNegativeDiagonalGameSuccess(TestSetup):
 
 class TestPositiveDiagonalGameSuccess(unittest.TestCase):
     def generate_win_sequence(self):
-        return [self.test_token for i in range(4)]
+        return [self.test_token] * 4
     test_board = connect_4.generate_board(8)
     test_token = 'T'
     def test_positive_diagonal_check(self):
