@@ -4,7 +4,7 @@
 import logging
 logging.basicConfig(
     filename='connect_4.log', format='%(asctime)s %(message)s',
-    level=logging.INFO,
+    level=logging.WARNING,
     filemode = 'w'
 )
 
@@ -84,8 +84,12 @@ def positive_diagonal_check(board, win_sequence):
             board_x, board_y = start_position
             try:
                 positive_diagonal.append(board[board_x + i][board_y + i])
+                logging.info(f'Positive diagonal = {positive_diagonal}. ' +
+                             f'The token {board[board_x + i][board_y + i]} ' +
+                             f'is from from x = {board_x + i} y = {board_y + i}'
+                             )
             except IndexError:
-                positive_diagonal.append('-')
+                positive_diagonal.append('Blank')
             if is_shorter_sequence_in_longer_sequence(
                     win_sequence, positive_diagonal) is True:
                 return True
