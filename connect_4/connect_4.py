@@ -166,8 +166,7 @@ def engine():
         {'name': 'Player 2', 'token': p2_token, 'win_seq': p2_win_seq}
     ]
     winning_player = game_loop(players, board)
-    print()
-    print(f"{winning_player['name']} won the game!")
+    print(f"\n{winning_player['name']} won the game!")
 
 
 engine()
