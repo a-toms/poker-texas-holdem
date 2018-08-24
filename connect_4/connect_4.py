@@ -4,38 +4,15 @@
 import logging
 logging.basicConfig(
     filename='connect_4.log', format='%(asctime)s %(message)s',
-    level=logging.WARNING,
-    filemode = 'w'
+    level=logging.WARNING, filemode='w'
 )
 
 
 def is_shorter_sequence_in_longer_sequence(shorter_sequence, longer_sequence):
-    """Check if shorter sequence is in a longer sequence"""
+    """Check if shorter sequence is in a longer sequence."""
     n = len(shorter_sequence)
     return shorter_sequence in (
         longer_sequence[i:i+n] for i in range(len(longer_sequence) + 1 - n))
-
-
-def vertical_check(longer_sequence, win_sequence):
-    """Check row for four consecutive player tokens."""
-    logging.info(f'{longer_sequence} entered vertical four check')
-    return is_shorter_sequence_in_longer_sequence(
-        win_sequence, longer_sequence)
-
-
-def horizontal_check(board, win_sequence):
-    """Check columns in the board for four consecutive player tokens."""
-    for i in range(len(board)):
-        horizontal_values = []
-        for j in range(len(board)):
-            try:
-                horizontal_values.append(board[j][i])
-            except IndexError:
-                pass
-        logging.info(f'horizontal row values = {horizontal_values}')
-        if is_shorter_sequence_in_longer_sequence(
-                win_sequence, horizontal_values):
-            return True
 
 
 def generate_board(size):
@@ -44,20 +21,6 @@ def generate_board(size):
     for i in range(size):
         board.append([])
     return board
-
-
-def get_player_1_token():
-    """Assign player 1 game token."""
-    player_1_token = str(input('Please enter one character to be your token player 1'))
-    print(f'Thanks player 1. Your token is {player_1_token}')
-    return player_1_token
-
-
-def get_player_2_token():
-    """Assign player 2 game token."""
-    player_2_token = str(input('Please choose one character to be your token player 2'))
-    print(f'Thanks player 2. Your token is {player_2_token}')
-    return player_2_token
 
 
 def show_board(board):
@@ -71,8 +34,66 @@ def show_board(board):
         print()
 
 
+def choose_position_to_place_counter(player, board):
+    """Get player integer input that fits on the board."""
+    input_error_message = "The position is out of the games's bounds. "
+    while True:
+        column = input(
+            f"{player}, please state the column to place your token\n")
+        if column.isdigit() is False:
+            print(input_error_message)
+        elif int(column) > (len(board) - 1):
+            print(input_error_message)
+        else:
+            return int(column)
+
+
+def place_counter(board, player_token, column):
+    board[column].append(player_token)
+
+
+def check_for_winner(x, board, player):
+    """Run the checks to determine if a player has won the game."""
+    if vertical_check(board[x], player['win_seq']) is True:
+        logging.info('vertical win')
+        return player
+    if horizontal_check(board, player['win_seq']) is True:
+        logging.info('horizontal win')
+        return player
+    if negative_diagonal_check(board, player['win_seq']) is True:
+        logging.info('negative diagonal win')
+        return player
+    if positive_diagonal_check(board, player['win_seq']) is True:
+        logging.info('positive diagonal win')
+        return player
+    else:
+        return False
+
+
+def vertical_check(longer_sequence, win_sequence):
+    """Check vertical board values for four consecutive player tokens."""
+    logging.info(f'{longer_sequence} entered vertical four check')
+    return is_shorter_sequence_in_longer_sequence(
+        win_sequence, longer_sequence)
+
+
+def horizontal_check(board, win_sequence):
+    """Check horizontal board values for four consecutive player tokens."""
+    for i in range(len(board)):
+        horizontal_values = []
+        for j in range(len(board)):
+            try:
+                horizontal_values.append(board[j][i])
+            except IndexError:
+                pass
+        logging.info(f'horizontal row values = {horizontal_values}')
+        if is_shorter_sequence_in_longer_sequence(
+                win_sequence, horizontal_values):
+            return True
+
+
 def positive_diagonal_check(board, win_sequence):
-    """Check positive diagonal lines for four consecutive player tokens.
+    """Check positive diagonal board values for four consecutive player tokens.
     Each start position shows the x and y board starting position of the
     diagonal line to check for consecutive player tokens."""
     start_positions = [
@@ -96,9 +117,9 @@ def positive_diagonal_check(board, win_sequence):
 
 
 def negative_diagonal_check(board, win_sequence):
-    """Check negative diagonal lines for four consecutive player tokens.
+    """Check negative diagonal board values for four consecutive player tokens.
     Each start position shows the x and y board starting position of the
-    diagonal line to check for consecutive player tokens"""
+    diagonal line to check for consecutive player tokens."""
     start_positions = [
         [0, 3], [0, 4], [0, 5], [0, 6], [0, 7], [1, 7], [2, 7], [3, 7], [4, 7]
     ]
@@ -119,42 +140,6 @@ def negative_diagonal_check(board, win_sequence):
                 return True
 
 
-def choose_position_to_place_counter(player, board):
-    """Get player integer input that fits on the board."""
-    input_error_message = "The position is out of the games's bounds. "
-    while True:
-        column = input(
-            f"{player}, please state the column to place your token\n")
-        if column.isdigit() is False:
-            print(input_error_message)
-        elif int(column) > (len(board) - 1):
-            print(input_error_message)
-        else:
-            return int(column)
-
-
-def place_counter(board, player_token, column):
-    board[column].append(player_token)
-
-
-def check_for_winner(x, board, player):
-    """Combines the checks to determine if a player has won the game"""
-    if horizontal_check(board, player['win_seq']) is True:
-        logging.info('horizontal win')
-        return player
-    if vertical_check(board[x], player['win_seq']) is True:
-        logging.info('vertical win')
-        return player
-    if negative_diagonal_check(board, player['win_seq']) is True:
-        logging.info('negative diagonal win')
-        return player
-    if positive_diagonal_check(board, player['win_seq']) is True:
-        logging.info('positive diagonal win')
-        return player
-    else:
-        return False
-
-
 def game_loop(players, board):
     """Run the game until a player wins the game."""
     winning_player = False
@@ -172,10 +157,8 @@ def game_loop(players, board):
 def engine():
     board = generate_board(8)
     show_board(board)
-    #p1_token = get_player_1_token()
     p1_token = 'X'
     p1_win_seq = [p1_token] * 4
-    #p2_token = get_player_2_token()
     p2_token = 'O'
     p2_win_seq = [p2_token] * 4
     players = [
