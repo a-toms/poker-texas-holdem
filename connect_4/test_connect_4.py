@@ -12,12 +12,17 @@ class TestSetup(unittest.TestCase):
     def generate_win_sequence(self):
         return [self.test_token] * 4
 
-    def test_board_creation(self):
-        n = 10
-        board = connect_4.generate_board(n)
-        self.assertEqual(len(board), n)
-        self.assertEqual(len(board[0]), n)
 
+test_board = [
+    ['o', 'o', '-', '-', '-'],
+    ['x', 'x', '-', '-', 'o', 'X','o', '-'],
+    ['x', 'o', 'x', 'o', '-', '-', '-', 'x'],
+    ['x', 'o', '-', 'x', '1', '-', '-', 'o'],
+    ['x', 'x', 'u', '1', '*', 'o','o', '-'],
+    ['x', 'o', '1', 'o', '-', 'o', 'o', 'x'],
+    ['x', '1', '-', '*', 'o', '-', '-', 'o'],
+    ['x', 'o', '-', '-', '*', 'x','o', '3']
+]
 
 class TestHorizontalAndVerticalGameSuccess(TestSetup):
 
@@ -27,7 +32,7 @@ class TestHorizontalAndVerticalGameSuccess(TestSetup):
         for i in range(4):
             connect_4.place_counter(self.test_board, self.test_token, row, i)
         self.assertTrue(
-            connect_4.horizontal_four_check(
+            connect_4.horizontal_focheck(
                 test_win_sequence, self.test_board[row])
         )
 
