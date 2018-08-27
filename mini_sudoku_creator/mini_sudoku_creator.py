@@ -84,8 +84,9 @@ test_grid = [
 
 def test_rows_for_duplication(grid): # Working
     for counter, row in enumerate(grid):
-        print(f'row {counter} {assert_duplicates_not_present(row)}')
-
+        logging(f'row {counter} {assert_duplicates_not_present(row)}')
+        if assert_duplicates_not_present(row) is False:
+            return False
 
 def convert_columns_to_rows(grid):
     columns = []
@@ -100,16 +101,23 @@ def convert_columns_to_rows(grid):
     return columns
 
 
-def test_columns_for_duplication(grid): #Working
+def test_columns_for_duplication(grid): # Working
     test_rows_for_duplication(convert_columns_to_rows(grid))
 
-def test_for_none(grid): #Working
+
+def test_for_none(grid): # Working
     for counter, row in enumerate(grid):
-        print(f'row {counter} None present = {None not in row}')
+        logging.info(f'row {counter} None not present = {None not in row}')
+        if None in row:
+            return False
 
 
 def test_the_grid(grid):
     test_for_none(grid)
+    test_rows_for_duplication(grid)
+    test_columns_for_duplication(grid)
+
+
 
 
 
