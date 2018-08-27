@@ -3,7 +3,10 @@
 
 import random
 import pprint
+import copy
+from contextlib import suppress
 import logging
+
 logging.basicConfig(level=logging.INFO)
 
 # todo: refine script to remove None outputs
@@ -12,75 +15,104 @@ logging.basicConfig(level=logging.INFO)
 
 GRID_SIDE_LENGTH = 5
 
+def create_grid():
+    grid = []
+    for i in range(GRID_SIDE_LENGTH):
+        row = []
+        grid.append(row)
+    return grid
+
+# def assert_number_not_repeated_in_column(n, row, grid):
+#     test_row = copy.deepcopy(row)
+#     test_row.append(n)
+#     n_position = test_row.index(n)
+#     logging.info(f'{n_position}')
+#     with suppress(IndexError):
+#         columns = []
+#         for i in range(GRID_SIDE_LENGTH):
+#             columns.append(grid[i][n_position])
+#     print(columns)
+
+
+def assert_duplicates_not_present(sequence):
+    return bool(len(sequence) == len(set(sequence)))
+
+
+def assert_none_not_in_sequence(sequence):
+    return None not in sequence
+
+
+# def check_number_fits(n, row, grid):
+#     """Check chosen number fits with existing grid numbers."""
+#     if assert_duplicates_not_present(row) is not True:
+#         return False
+#     # if assert_number_not_repeated_in_column(n, row, grid) is not True:
+#     #     return False
+#     if assert_none_not_in_sequence(row) is not True:
+#         return False
+#     else:
+#         return True
+
+
+def add_numbers(grid):
+    for row in grid:
+        possible_values = get_possible_values()
+        while len(row) != GRID_SIDE_LENGTH:
+            choice = random.choice(possible_values)
+            row.append(choice)
+            # if check passes
+            possible_values.remove(choice)
+            # else: def row[-1] continue
+    logging.info(pprint.pprint(grid))
+
 
 def get_possible_values():
-    cells = [i for i in range(GRID_SIDE_LENGTH)]
-    return cells
+    values = [i for i in range(GRID_SIDE_LENGTH)]
+    return values
 
 
+#add_numbers(create_grid())
+
+test_grid = [
+    [1, 0, 3, 1, 1],
+    [1, 1, 1, 3, 2],
+    [3, 2, 0, 2, 9],
+    [2, 1, 4, 0, 3],
+    [3, 0, 2, 4, 8]
+]
 
 
-def create_grid():
-    grid = {}
-    for i in range(GRID_SIDE_LENGTH):
-        possible_values = get_possible_values()
-        row = []
-        for j in range(GRID_SIDE_LENGTH):
-            cell = random.choice(possible_values)
-            possible_values.remove(cell)
-            row.append(cell)
-            logging.info(cell)
-
-        get_column_values(grid)
-
-        if check_for_none(row) == True:
-            cell = random.choice(possible_values)
-            possible_values.remove(cell)
-            row.append(cell)
-            logging.info(cell)
-            grid[i - 1] = row
-        else:
-            grid[i] = row
+def test_rows_for_duplication(grid): # Working
+    for counter, row in enumerate(grid):
+        print(f'row {counter} {assert_duplicates_not_present(row)}')
 
 
-    pprint.pprint(grid)
-
-
-
-
-
-def check_for_none(array):
-    if None in array:
-        return True
-    else:
-        return False
-
-
-def get_column_values(dict):
+def convert_columns_to_rows(grid):
     columns = []
-    for i in range(GRID_SIDE_LENGTH):
-        inner_col = []
-        for j in range(GRID_SIDE_LENGTH):
-            inner_col.append(dict[i][j])
-        columns.append(inner_col)
-    logging.info(columns)
+    try:
+        for i in range(GRID_SIDE_LENGTH):
+            column = []
+            for j in range(GRID_SIDE_LENGTH):
+                column.append(grid[j][i])
+            columns.append(column)
+    except IndexError:
+        pass
+    return columns
+
+
+def test_columns_for_duplication(grid): #Working
+    test_rows_for_duplication(convert_columns_to_rows(grid))
+
+def test_for_none(grid): Working
+    for counter, row in enumerate(grid):
+        print(f'row {counter} None present = {None not in row}')
+
+
+def test_the_grid(grid):
+    test_for_none(grid)
 
 
 
-def get_cell_value_that_fits():
-    possible_cell_values = get_possible_values()
-    possible_cell_values -= set(column_values)
-    return choose_random_number(list(possible_cell_values))
 
 
-
-
-
-''' todo: backtracking'''
-
-def engine():
-    grid = create_grid()
-
-
-
-engine()
+test_the_grid(test_grid)
