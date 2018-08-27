@@ -103,7 +103,7 @@ def convert_columns_to_rows(grid):
 def test_columns_for_duplication(grid): #Working
     test_rows_for_duplication(convert_columns_to_rows(grid))
 
-def test_for_none(grid): Working
+def test_for_none(grid): #Working
     for counter, row in enumerate(grid):
         print(f'row {counter} None present = {None not in row}')
 
