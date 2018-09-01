@@ -120,14 +120,22 @@ def build_grid():
     """create the empty grid and add correct numbers that follow the rules"""
     start_time = time.time()
     complete_grid = add_numbers(create_empty_grid())
-    seconds_taken = time.time() - start_time
+    seconds_taken = round(time.time() - start_time, 4)
     print("--- %s seconds ---" % seconds_taken)
-    return complete_grid
+    return seconds_taken
 
 
-for i in range(9):
-    GRID_SIDE_LENGTH = i
-    build_grid()
+def time_the_program(upper_grid_size_length):
+    """time how long the program takes to find a correct grid for all of the
+    grid sizes up to upper_grid_size_length"""
+    assert upper_grid_size_length is not int
+    time_taken = {}
+    for i in range(upper_grid_size_length):
+        global GRID_SIDE_LENGTH
+        GRID_SIDE_LENGTH = i
+        seconds_taken = build_grid()
+        time_taken[f'Time taken for grid side length {i}'] = seconds_taken
+    pprint.pprint(time_taken)
 
-# Todo: test the difference in speeds as I increase the grid side length. Use time.time
 
+time_the_program(10)
