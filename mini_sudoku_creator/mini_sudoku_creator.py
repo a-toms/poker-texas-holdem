@@ -4,11 +4,11 @@
 import random
 import pprint
 import logging
-
+import time
 logging.basicConfig(level=logging.WARNING)
 
 
-GRID_SIDE_LENGTH = 7
+
 
 
 def create_empty_grid():
@@ -112,15 +112,22 @@ def add_numbers(grid):
                 continue
     print('Complete Grid:')
     pprint.pprint(grid)
+    return grid
+
 
 
 def build_grid():
     """create the empty grid and add correct numbers that follow the rules"""
-    add_numbers(create_empty_grid())
+    start_time = time.time()
+    complete_grid = add_numbers(create_empty_grid())
+    seconds_taken = time.time() - start_time
+    print("--- %s seconds ---" % seconds_taken)
+    return complete_grid
 
 
-build_grid()
-
+for i in range(9):
+    GRID_SIDE_LENGTH = i
+    build_grid()
 
 # Todo: test the difference in speeds as I increase the grid side length. Use time.time
 

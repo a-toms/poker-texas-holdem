@@ -20,8 +20,8 @@ board = {
 }
 
 
-
-def main(): # todo: write the below functions
+# todo: write the below functions
+def main():
     game_status = 'incomplete'
     while game_status is 'incomplete':
         for player in players:
