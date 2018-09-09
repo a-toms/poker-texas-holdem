@@ -7,14 +7,12 @@ import logging
 import time
 logging.basicConfig(level=logging.WARNING)
 
-
-
-
+GRID_SIDE_LENGTH = 5
 
 def create_empty_grid():
-    """Create outline grid of empty lists"""
+
     grid = []
-    for i in range(GRID_SIDE_LENGTH):
+    for _ in range(GRID_SIDE_LENGTH):
         row = []
         grid.append(row)
     return grid
@@ -42,7 +40,6 @@ def no_duplicates_in_grid_rows(grid):
 
 
 def no_duplicates_in_grid_columns(grid):
-    """check if there are duplicates in the grid's columns"""
     columns = convert_grid_columns_to_rows(grid)
     for col in columns:
         if assert_no_duplicates_present(col) == False:
@@ -115,14 +112,14 @@ def add_numbers(grid):
     return grid
 
 
-
 def build_grid():
-    """create the empty grid and add correct numbers that follow the rules"""
+    """create the empty grid and insert the numbers that follow the rules"""
     start_time = time.time()
     complete_grid = add_numbers(create_empty_grid())
     seconds_taken = round(time.time() - start_time, 4)
     print("--- %s seconds ---" % seconds_taken)
     return seconds_taken
+"""todo: write additional test and refactor here."""
 
 
 def time_the_program(upper_grid_size_length):
@@ -138,4 +135,5 @@ def time_the_program(upper_grid_size_length):
     pprint.pprint(time_taken)
 
 
-time_the_program(10)
+if __name__ == '__main__':
+    time_the_program(3)
