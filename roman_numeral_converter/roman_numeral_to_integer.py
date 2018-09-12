@@ -7,8 +7,8 @@ def convert_roman_numeral_into_separated_numbers(roman):
     }
     numbers = []
     for x in list(roman):
-        number = numerals_and_values[x]
-        numbers.append(number)
+        value = numerals_and_values[x]
+        numbers.append(value)
     return numbers
 
 
@@ -23,8 +23,8 @@ def separated_numbers_to_int(roman):
                 total += x
         except IndexError:
             total += x
-    print(total)
     return total
 
 
 integer = separated_numbers_to_int('MCMLXXIV')
+print(integer)
