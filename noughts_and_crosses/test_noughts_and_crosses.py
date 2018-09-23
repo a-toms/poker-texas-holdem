@@ -49,19 +49,41 @@ def test_computer_one_move_win():
         '-', 'O', 'X',
         'X', '-', 'O'
     ]
-    assert COMPUTER_MOVE.get_computer_one_move_win(
+    assert COMPUTER_MOVE.look_for_computer_one_move_win(
         computer_one_move_win_board, 'X') == 3
     no_one_move_win_board = [
         'X', '-', '-',
         '-', '-', 'X',
         '-', '-', 'O'
     ]
-    assert COMPUTER_MOVE.get_computer_one_move_win(
+    assert COMPUTER_MOVE.look_for_computer_one_move_win(
         no_one_move_win_board, 'X') is False
     human_one_move_win_board = [
-        'X', '-', '-',
-        'O', 'O', '-',
+        'X', '-', 'O',
+        '-', '-', 'O',
         'X', '-', '-'
     ]
-    assert COMPUTER_MOVE.get_human_one_move_win(
-        human_one_move_win_board, 'O') == 5
+    assert COMPUTER_MOVE.look_for_move_to_block_human_win(
+        human_one_move_win_board, 'O') == 8
+    fork_move_possible = [
+        'O', 'X', '-',
+        '-', 'O', '-',
+        '-', '-', 'X'
+    ]
+    assert COMPUTER_MOVE.look_for_computer_fork_move(
+        fork_move_possible, 'O') is True
+    fork_move_possible2 = [
+        'X', 'O', '-',
+        '-', 'X', '-',
+        '-', '-', 'O'
+    ]
+    assert COMPUTER_MOVE.look_for_computer_fork_move(
+        fork_move_possible2, 'X') is True
+    fork_move_impossible = [
+        'X', '-', '-',
+        '-', '-', '-',
+        '-', '-', 'O'
+    ]
+    assert COMPUTER_MOVE.look_for_computer_fork_move(
+        fork_move_impossible, 'O') is False
+

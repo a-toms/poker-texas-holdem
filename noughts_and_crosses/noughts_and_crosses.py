@@ -35,7 +35,6 @@ class IsGameComplete:
             self.positive_diagonal_win, self.negative_diagonal_win
         )
         for win_check in win_checks:
-            logging.info(f'win_check = {win_check}')
             if win_check(board, game_token) is True:
                 return True
         else:
@@ -51,8 +50,10 @@ class GetComputerMove:
             board[position] = token
         return board
 
-    def get_computer_one_move_win(self, board, computer_token):
-        for position in range(8):
+    def look_for_computer_one_move_win(self, board, computer_token):
+        """TODO: Refactor the repetition in these moves,
+        e.g., 'for position in range(9) is repeated."""
+        for position in range(9):
             duplicate_board = copy.deepcopy(board)
             duplicate_board = self.place_token_if_no_token_present(
                 duplicate_board, position, computer_token)
@@ -61,8 +62,8 @@ class GetComputerMove:
         else:
             return False
 
-    def get_human_one_move_win(self, board, human_token):
-        for position in range(8):
+    def look_for_move_to_block_human_win(self, board, human_token):
+        for position in range(9):
             duplicate_board = copy.deepcopy(board)
             duplicate_board = self.place_token_if_no_token_present(
                 duplicate_board, position, human_token)
@@ -71,7 +72,24 @@ class GetComputerMove:
         else:
             return False
 
-
+    def look_for_computer_fork_move(self, board, computer_token):
+        """Test if a move would give two ways of winning."""
+        """Todo: refactoring is necessary. 
+        THis is becoming too complex. Refactoring is necessary
+        Restructure game in accordance with the guide in https://mblogscode.wordpress.com/2016/06/03/python-naughts-crossestic-tac-toe-coding-unbeatable-ai/"""
+        for i in range(9):
+            duplicate_board = copy.deepcopy(board)
+            if duplicate_board[i] == '-':
+                duplicate_board[i] = computer_token
+            winning_moves = 0
+            for j in range(9):
+                duplicate_board2 = copy.deepcopy(duplicate_board)
+                if duplicate_board2[j] == '-':
+                    duplicate_board2[j] = computer_token
+                if WIN_CHECKER.run_win_checks(duplicate_board2, computer_token):
+                    winning_moves += 1
+                print(duplicate_board2)
+            return winning_moves >= 2
 
 
 
