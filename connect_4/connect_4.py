@@ -1,11 +1,11 @@
 #! python3
 # connect_4.py
 
+
 import logging
 logging.basicConfig(
-    filename='connect_4.log', format='%(asctime)s %(message)s',
-    level=logging.WARNING, filemode='w'
-)
+    filename='connect_4.txt', format='%(asctime)s %(message)s',
+    level=logging.DEBUG, filemode='w')
 
 
 def is_shorter_sequence_in_longer_sequence(shorter_sequence, longer_sequence):
@@ -169,5 +169,5 @@ def engine():
     print()
     print(f"{winning_player['name']} won the game!")
 
-
-engine()
+if __name__ == "__main__":
+    engine()

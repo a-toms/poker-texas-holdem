@@ -26,5 +26,5 @@ def separated_numbers_to_int(roman):
     return total
 
 
-integer = separated_numbers_to_int('MCMLXXIV')
+integer = separated_numbers_to_int('XLV')
 print(integer)

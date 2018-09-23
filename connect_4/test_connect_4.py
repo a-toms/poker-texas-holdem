@@ -1,3 +1,7 @@
+# Run unit tests with: python -m unittest discover <test_directory>
+#  or
+# python -m unittest discover -s <directory> -p '*_test.py'
+
 import unittest
 import connect_4
 import logging
@@ -5,24 +9,12 @@ logging.basicConfig(level=logging.INFO)
 
 
 class TestSetup(unittest.TestCase):
-
     test_board = connect_4.generate_board(8)
     test_token = 'T'
 
     def generate_win_sequence(self):
         return [self.test_token] * 4
 
-
-test_board = [
-    ['o', 'o', '-', '-', '-'],
-    ['x', 'x', '-', '-', 'o', 'X','o', '-'],
-    ['x', 'o', 'x', 'o', '-', '-', '-', 'x'],
-    ['x', 'o', '-', 'x', '1', '-', '-', 'o'],
-    ['x', 'x', 'u', '1', '*', 'o','o', '-'],
-    ['x', 'o', '1', 'o', '-', 'o', 'o', 'x'],
-    ['x', '1', '-', '*', 'o', '-', '-', 'o'],
-    ['x', 'o', '-', '-', '*', 'x','o', '3']
-]
 
 class TestHorizontalAndVerticalGameSuccess(TestSetup):
 
@@ -32,7 +24,7 @@ class TestHorizontalAndVerticalGameSuccess(TestSetup):
         for i in range(4):
             connect_4.place_counter(self.test_board, self.test_token, row, i)
         self.assertTrue(
-            connect_4.horizontal_focheck(
+            connect_4.horizontal_four_check(
                 test_win_sequence, self.test_board[row])
         )
 

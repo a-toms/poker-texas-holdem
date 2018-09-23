@@ -5,7 +5,7 @@ import random
 import pprint
 import logging
 import time
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.DEBUG)
 
 GRID_SIDE_LENGTH = 5
 
@@ -136,4 +136,4 @@ def time_the_program(upper_grid_size_length):
 
 
 if __name__ == '__main__':
-    time_the_program(3)
+    time_the_program(10)
