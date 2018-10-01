@@ -77,6 +77,7 @@ class GetComputerMove:
         """Todo: refactoring is necessary. 
         THis is becoming too complex. Refactoring is necessary
         Restructure game in accordance with the guide in https://mblogscode.wordpress.com/2016/06/03/python-naughts-crossestic-tac-toe-coding-unbeatable-ai/"""
+        # Re-write tests accordingly.
         for i in range(9):
             duplicate_board = copy.deepcopy(board)
             if duplicate_board[i] == '-':

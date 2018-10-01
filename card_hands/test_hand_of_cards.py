@@ -20,7 +20,7 @@ def test_get_pairs():
         (3, 'S'), (9, 'D')
     ]
     assert len(hand_ranker.get_pairs(test_hand_pair)) == 1
-    assert hand_ranker.get_pairs(test_hand_no_pair) == None
+    assert hand_ranker.get_pairs(test_hand_no_pair) is None
 
 
 def test_get_two_pairs():
@@ -34,7 +34,7 @@ def test_get_two_pairs():
         (3, 'S'), (4, 'D')
     ]
     assert len(hand_ranker.get_two_pairs(test_hand_two_pairs)) == 2
-    assert hand_ranker.get_two_pairs(test_hand_no_two_pairs) == None
+    assert hand_ranker.get_two_pairs(test_hand_no_two_pairs) is None
 
 
 def test_three_of_a_kind():
@@ -48,7 +48,7 @@ def test_three_of_a_kind():
         (3, 'S'), (10, 'D')
     ]
     assert len(hand_ranker.get_three_of_a_kind(test_hand_triples)) == 3
-    assert hand_ranker.get_three_of_a_kind(test_hand_no_triples) == None
+    assert hand_ranker.get_three_of_a_kind(test_hand_no_triples) is None
 
 
 def test_four_of_a_kind():
@@ -62,7 +62,7 @@ def test_four_of_a_kind():
         (10, 'H'), (10, 'D')
     ]
     assert len(hand_ranker.get_four_of_a_kind(test_hand_quads)) == 4
-    assert hand_ranker.get_four_of_a_kind(test_hand_no_quads) == None
+    assert hand_ranker.get_four_of_a_kind(test_hand_no_quads) is None
 
 
 def test_full_house():
@@ -91,6 +91,7 @@ def test_straight():
 
 
 def test_flush():
+    hand_ranker = GetHandRankings()
     test_flush = [
         (10, 'C'), (2, 'C'), (5, 'C'),
         (3, 'C'), (1, 'C')
@@ -99,6 +100,8 @@ def test_flush():
         (10, 'C'), (4, 'C'), (10, 'S'),
         (8, 'C'), (3, 'C')
     ]
+    assert hand_ranker.get_flush(test_flush) == ('C')
+    assert hand_ranker.get_flush(test_no_flush) is None
 
 def test_straight_flush():
     test_straight_flush = [

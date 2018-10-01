@@ -59,13 +59,20 @@ class GetHandRankings:
             if self.get_pairs(hand):
                 return tuple(card_numbers)
 
-    # TODO: Cont
-    def get_straight(self, hand): # Note that aces, i.e., 1s, are high and low
-        pass
 
+    def get_straight(self, hand): # Note that aces, i.e., 1s, are high and low
+        card_numbers = [card[0] for card in hand]
+        card_numbers.sort()
+        # TODO: Cont
 
     def get_flush(self, hand):
+        card_suites = tuple([card[1] for card in hand])
+        if len(set(card_suites)) == 1:
+            return (card_suites[1])
+
+    def get_straight_flush(self, hand):
         pass
+
 
 
 
