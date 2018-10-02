@@ -67,7 +67,7 @@ class GetHandRankings:
 
     def get_ace_high_straight(self, hand):
         """Add high ace (with card number 14) to sorted card numbers,
-        delete the first card number, and check for a straight"""
+        delete the first card number, and then check for a straight"""
         card_numbers = [card[0] for card in hand]
         card_numbers.sort()
         card_numbers.append(14)
