@@ -60,27 +60,27 @@ class GetHandRankings:
                 return tuple(card_numbers)
 
     def get_straight(self, hand): # Todo: Write tests here
-        card_numbers = [card[0] for card in hand]
-        card_numbers.sort()
-        if card_numbers[-1] - card_numbers[0] == 5:
-            return card_numbers
+        card_numbers = sorted([card[0] for card in hand])
+        high_card_number, low_card_number = card_numbers[-1], card_numbers[0]
+        if high_card_number - low_card_number == 4:
+            return tuple(card_numbers)
+
 
     def get_ace_high_straight(self, hand):
-        """Add high ace (with card number 14) to sorted card numbers,
+        """Add high ace (with card number 13) to sorted card numbers,
         delete the first card number, and then check for a straight"""
-        card_numbers = [card[0] for card in hand]
-        card_numbers.sort()
-        card_numbers.append(14)
+        card_numbers = sorted([card[0] for card in hand])
+        card_numbers.append(13)
         del card_numbers[0]
-        if card_numbers[-1] - card_numbers[0] == 5:
-            return card_numbers
+        if card_numbers[-1] - card_numbers[0] == 4:
+            return tuple(card_numbers)
 
     def get_flush(self, hand):
         card_suites = tuple([card[1] for card in hand])
         if len(set(card_suites)) == 1:
             return (card_suites[1])
 
-    def get_straight_flush(self, hand):
+    def get_straight_flush(self, hand): #Todo: Finish ranking and rank hand f
         pass
 
 

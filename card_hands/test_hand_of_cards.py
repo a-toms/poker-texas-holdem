@@ -80,14 +80,28 @@ def test_full_house():
 
 
 def test_straight():
+    hand_ranker = GetHandRankings()
     test_straight = [
-        (1, 'C'), (2, 'D'), (3, 'S'),
-        (4, 'H'), (5, 'D')
+        (5, 'C'), (3, 'D'), (2, 'S'),
+        (4, 'H'), (1, 'D')
     ]
     test_no_straight = [
-        (10, 'C'), (2, 'C'), (10, 'S'),
-        (3, 'H'), (1, 'D')
+        (10, 'C'), (7, 'C'), (10, 'S'),
+        (9, 'H'), (1, 'D')
     ]
+    test_ace_high_straight = [
+        (1, 'C'), (11, 'D'), (12, 'S'),
+        (9, 'H'), (10, 'D')
+    ]
+    test_no_ace_high_straight = [
+        (10, 'C'), (8, 'C'), (9, 'S'),
+        (11, 'H'), (1, 'D')
+    ]
+    assert hand_ranker.get_straight(test_straight) == (1, 2, 3, 4, 5)
+    assert hand_ranker.get_straight(test_no_straight) is None
+    assert hand_ranker.get_ace_high_straight(
+        test_ace_high_straight) == (9, 10, 11, 12, 13)
+    assert hand_ranker.get_ace_high_straight(test_no_ace_high_straight) is None
 
 
 def test_flush():
