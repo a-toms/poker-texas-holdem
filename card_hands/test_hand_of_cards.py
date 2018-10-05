@@ -89,6 +89,8 @@ def test_straight():
         (10, 'C'), (7, 'C'), (10, 'S'),
         (9, 'H'), (1, 'D')
     ]
+    assert hand_ranker.get_straight_with_no_ace_high(test_straight) == (1, 2, 3, 4, 5)
+    assert hand_ranker.get_straight_with_no_ace_high(test_no_straight) is None
     test_ace_high_straight = [
         (1, 'C'), (11, 'D'), (12, 'S'),
         (9, 'H'), (10, 'D')
@@ -97,12 +99,14 @@ def test_straight():
         (10, 'C'), (8, 'C'), (9, 'S'),
         (11, 'H'), (1, 'D')
     ]
-    assert hand_ranker.get_straight(test_straight) == (1, 2, 3, 4, 5)
-    assert hand_ranker.get_straight(test_no_straight) is None
     assert hand_ranker.get_ace_high_straight(
         test_ace_high_straight) == (9, 10, 11, 12, 13)
     assert hand_ranker.get_ace_high_straight(test_no_ace_high_straight) is None
-
+    assert hand_ranker.get_straights(
+        test_ace_high_straight) == (9, 10, 11, 12, 13)
+    assert hand_ranker.get_straights(
+        test_straight) == (1, 2, 3, 4, 5)
+    assert hand_ranker.get_straights(test_no_straight) is None
 
 def test_flush():
     hand_ranker = GetHandRankings()
