@@ -31,12 +31,18 @@ class GetHandRanks:
         for card_number in card_numbers:
             if card_numbers.count(card_number) == number_of_cards_in_a_pair:
                 pairs += (card_number,)
+        print(pairs)
         if pairs != ():
+            print(tuple(set(pairs)))
             return tuple(set(pairs))
 
     def get_two_pairs(self, hand):
-        if len(set(self.get_pairs(hand))) == 2:
-            return set(self.get_pairs(hand))
+        try:
+            if len(set(self.get_pairs(hand))) == 2:
+                return set(self.get_pairs(hand))
+        except TypeError: # This excepts where hand is None because no pair
+            pass
+
 
     def get_three_of_a_kind(self, hand):
         card_numbers = [card[0] for card in hand]
@@ -116,9 +122,11 @@ class ClassifyHand(GetHandRanks):
         for f, rank_number in self.hand_ranks.items():
             if f(self, hand):
                 return rank_number[0]
+            else:
+                pass
 
     def describe_hand(self, rank, hand):
-        pass
+        pass # To write later
 
 
     def show_winning_hand(self, hands):

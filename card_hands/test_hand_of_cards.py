@@ -12,38 +12,38 @@ def test_no_duplicates():
 def test_get_high_card():
     hand_getter = GetHandRanks()
     assert hand_getter.get_high_card(ExampleHands.test_high_card) == (
-        1, 2, 3, 4
+        1, 2, 3, 4, 7
     )
 
 
 def test_get_pairs():
     hand_getter = GetHandRanks()
-    assert len(hand_getter.get_pairs(ExampleHands.test_hand_pair)) == 1
-    assert hand_getter.get_pairs(ExampleHands.test_hand_no_pair) is None
+    assert len(hand_getter.get_pairs(ExampleHands.test_pair)) == 1
+    assert hand_getter.get_pairs(ExampleHands.test_no_pair) is None
 
 
 def test_get_two_pairs():
     hand_getter = GetHandRanks()
     assert len(hand_getter.get_two_pairs(
-        ExampleHands.test_hand_two_pairs)) == 2
+        ExampleHands.test_two_pairs)) == 2
     assert hand_getter.get_two_pairs(
-        ExampleHands.test_hand_no_two_pairs) is None
+        ExampleHands.test_no_two_pairs) is None
 
 
 def test_three_of_a_kind():
     hand_getter = GetHandRanks()
     assert len(hand_getter.get_three_of_a_kind(
-        ExampleHands.test_hand_triples)) == 3
+        ExampleHands.test_triples)) == 3
     assert hand_getter.get_three_of_a_kind(
-        ExampleHands.test_hand_no_triples) is None
+        ExampleHands.test_no_triples) is None
 
 
 def test_four_of_a_kind():
     hand_getter = GetHandRanks()
     assert len(hand_getter.get_four_of_a_kind(
-        ExampleHands.test_hand_quads)) == 4
+        ExampleHands.test_quads)) == 4
     assert hand_getter.get_four_of_a_kind(
-        ExampleHands.test_hand_no_quads) is None
+        ExampleHands.test_no_quads) is None
 
 
 def test_full_house():
@@ -92,29 +92,29 @@ def test_straight_flush():
 class ExampleHands:
     test_high_card = [
         (1, 'C'), (2, 'C'), (4, 'S'),
-        (3, 'S'), (4, 'D')
+        (3, 'S'), (7, 'D')
     ]
-    test_hand_pair = [
+    test_pair = [
         (1, 'C'), (2, 'C'), (4, 'S'),
         (3, 'S'), (4, 'D')
     ]
-    test_hand_no_pair = [
+    test_no_pair = [
         (1, 'C'), (10, 'C'), (4, 'S'),
         (3, 'S'), (9, 'D')
     ]
-    test_hand_two_pairs = [
+    test_two_pairs = [
         (1, 'C'), (2, 'C'), (4, 'S'),
         (2, 'S'), (4, 'D')
     ]
-    test_hand_no_two_pairs = [
+    test_no_two_pairs = [
         (2, 'C'), (10, 'C'), (4, 'S'),
         (3, 'S'), (4, 'D')
     ]
-    test_hand_no_triples = [
+    test_no_triples = [
         (10, 'C'), (2, 'C'), (10, 'S'),
         (3, 'S'), (9, 'D')
     ]
-    test_hand_triples = [
+    test_triples = [
         (10, 'C'), (2, 'C'), (10, 'S'),
         (3, 'S'), (10, 'D')
     ]
@@ -154,11 +154,11 @@ class ExampleHands:
         (10, 'C'), (2, 'C'), (10, 'S'),
         (10, 'H'), (1, 'D')
     ]
-    test_hand_no_quads = [
+    test_no_quads = [
         (10, 'C'), (2, 'C'), (10, 'S'),
         (8, 'H'), (10, 'D')
     ]
-    test_hand_quads = [
+    test_quads = [
         (10, 'C'), (2, 'C'), (10, 'S'),
         (10, 'H'), (10, 'D')
     ]
@@ -173,20 +173,34 @@ class ExampleHands:
 
 
 def test_classify_hand():
+    """Check that rank numbers are correctly output for each hand"""
     hand_classifier = ClassifyHand()
     hand_and_rank = {
-        9: "straight_flush",
-        8: "four of a kind",
-        7: "full house",
-        6: "flush",
-        5: "straight",
-        4: "three of a kind",
-        3: "two pairs",
-        2: "pair",
-        1: "high card"
+        'straight flush': 9,
+        'four of a kind': 8,
+        'full house': 7,
+        'flush': 6,
+        'straight': 5,
+        'three of a kind': 4,
+        'two pairs': 3,
+        'pair': 2,
+        'high card': 1
     }
-    print(hand_and_rank[6])
     assert hand_classifier.rank_hand(
-        ExampleHands.test_flush) == hand_and_rank["flush"]
-
-
+        ExampleHands.test_straight_flush) == hand_and_rank['straight flush']
+    assert hand_classifier.rank_hand(
+        ExampleHands.test_quads) == hand_and_rank['four of a kind']
+    assert hand_classifier.rank_hand(
+        ExampleHands.test_full_house) == hand_and_rank['full house']
+    assert hand_classifier.rank_hand(
+        ExampleHands.test_flush) == hand_and_rank['flush']
+    assert hand_classifier.rank_hand(
+        ExampleHands.test_straight) == hand_and_rank['straight']
+    assert hand_classifier.rank_hand(
+        ExampleHands.test_triples) == hand_and_rank['three of a kind']
+    assert hand_classifier.rank_hand(
+        ExampleHands.test_two_pairs) == hand_and_rank['two pairs']
+    assert hand_classifier.rank_hand(
+        ExampleHands.test_pair) == hand_and_rank['pair']
+    assert hand_classifier.rank_hand(
+        ExampleHands.test_high_card) == hand_and_rank['high card']
