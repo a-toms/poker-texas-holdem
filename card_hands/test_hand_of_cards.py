@@ -1,4 +1,4 @@
-from hand_of_cards import GetCards, GetHandRankings
+from hand_of_cards import GetCards, GetHandRanks, ClassifyHand
 
 
 def test_no_duplicates():
@@ -9,8 +9,91 @@ def test_no_duplicates():
     assert len(test_array_1) == len(test_array_2)
 
 
+def test_get_high_card():
+    hand_getter = GetHandRanks()
+    assert hand_getter.get_high_card(ExampleHands.test_high_card) == (
+        1, 2, 3, 4
+    )
+
+
 def test_get_pairs():
-    hand_ranker = GetHandRankings()
+    hand_getter = GetHandRanks()
+    assert len(hand_getter.get_pairs(ExampleHands.test_hand_pair)) == 1
+    assert hand_getter.get_pairs(ExampleHands.test_hand_no_pair) is None
+
+
+def test_get_two_pairs():
+    hand_getter = GetHandRanks()
+    assert len(hand_getter.get_two_pairs(
+        ExampleHands.test_hand_two_pairs)) == 2
+    assert hand_getter.get_two_pairs(
+        ExampleHands.test_hand_no_two_pairs) is None
+
+
+def test_three_of_a_kind():
+    hand_getter = GetHandRanks()
+    assert len(hand_getter.get_three_of_a_kind(
+        ExampleHands.test_hand_triples)) == 3
+    assert hand_getter.get_three_of_a_kind(
+        ExampleHands.test_hand_no_triples) is None
+
+
+def test_four_of_a_kind():
+    hand_getter = GetHandRanks()
+    assert len(hand_getter.get_four_of_a_kind(
+        ExampleHands.test_hand_quads)) == 4
+    assert hand_getter.get_four_of_a_kind(
+        ExampleHands.test_hand_no_quads) is None
+
+
+def test_full_house():
+    hand_getter = GetHandRanks()
+    assert hand_getter.get_full_house(
+        ExampleHands.test_full_house) == (10, 10, 10, 8, 8)
+    assert hand_getter.get_full_house(
+        ExampleHands.test_no_full_house) is None
+
+
+def test_straight():
+    hand_getter = GetHandRanks()
+    assert hand_getter.get_straight_with_no_ace_high(
+        ExampleHands.test_straight) == (1, 2, 3, 4, 5)
+    assert hand_getter.get_straight_with_no_ace_high(
+        ExampleHands.test_no_straight) is None
+    assert hand_getter.get_ace_high_straight(
+        ExampleHands.test_ace_high_straight) == (9, 10, 11, 12, 13)
+    assert hand_getter.get_ace_high_straight(
+        ExampleHands.test_no_ace_high_straight) is None
+    assert hand_getter.get_straights(
+        ExampleHands.test_ace_high_straight) == (9, 10, 11, 12, 13)
+    assert hand_getter.get_straights(
+        ExampleHands.test_straight) == (1, 2, 3, 4, 5)
+    assert hand_getter.get_straights(ExampleHands.test_no_straight) is None
+    assert hand_getter.get_straights(ExampleHands.test_no_straight2) is None
+
+
+def test_flush():
+    hand_getter = GetHandRanks()
+    assert hand_getter.get_flush(ExampleHands.test_flush) == 'C'
+    assert hand_getter.get_flush(ExampleHands.test_no_flush) is None
+
+
+def test_straight_flush():
+    hand_getter = GetHandRanks()
+    assert hand_getter.get_straight_flush(
+        ExampleHands.test_straight_flush) == [
+            (1, 'C'), (2, 'C'), (3, 'C'),
+            (4, 'C'), (5, 'C')
+    ]
+    assert hand_getter.get_straight_flush(
+        ExampleHands.test_no_straight_flush) is None
+
+
+class ExampleHands:
+    test_high_card = [
+        (1, 'C'), (2, 'C'), (4, 'S'),
+        (3, 'S'), (4, 'D')
+    ]
     test_hand_pair = [
         (1, 'C'), (2, 'C'), (4, 'S'),
         (3, 'S'), (4, 'D')
@@ -19,12 +102,6 @@ def test_get_pairs():
         (1, 'C'), (10, 'C'), (4, 'S'),
         (3, 'S'), (9, 'D')
     ]
-    assert len(hand_ranker.get_pairs(test_hand_pair)) == 1
-    assert hand_ranker.get_pairs(test_hand_no_pair) is None
-
-
-def test_get_two_pairs():
-    hand_ranker = GetHandRankings()
     test_hand_two_pairs = [
         (1, 'C'), (2, 'C'), (4, 'S'),
         (2, 'S'), (4, 'D')
@@ -33,12 +110,6 @@ def test_get_two_pairs():
         (2, 'C'), (10, 'C'), (4, 'S'),
         (3, 'S'), (4, 'D')
     ]
-    assert len(hand_ranker.get_two_pairs(test_hand_two_pairs)) == 2
-    assert hand_ranker.get_two_pairs(test_hand_no_two_pairs) is None
-
-
-def test_three_of_a_kind():
-    hand_ranker = GetHandRankings()
     test_hand_no_triples = [
         (10, 'C'), (2, 'C'), (10, 'S'),
         (3, 'S'), (9, 'D')
@@ -47,40 +118,6 @@ def test_three_of_a_kind():
         (10, 'C'), (2, 'C'), (10, 'S'),
         (3, 'S'), (10, 'D')
     ]
-    assert len(hand_ranker.get_three_of_a_kind(test_hand_triples)) == 3
-    assert hand_ranker.get_three_of_a_kind(test_hand_no_triples) is None
-
-
-def test_four_of_a_kind():
-    hand_ranker = GetHandRankings()
-    test_hand_no_quads = [
-        (10, 'C'), (2, 'C'), (10, 'S'),
-        (8, 'H'), (10, 'D')
-    ]
-    test_hand_quads = [
-        (10, 'C'), (2, 'C'), (10, 'S'),
-        (10, 'H'), (10, 'D')
-    ]
-    assert len(hand_ranker.get_four_of_a_kind(test_hand_quads)) == 4
-    assert hand_ranker.get_four_of_a_kind(test_hand_no_quads) is None
-
-
-def test_full_house():
-    hand_ranker = GetHandRankings()
-    test_full_house = [
-        (10, 'C'), (10, 'D'), (10, 'S'),
-        (8, 'H'), (8, 'D')
-    ]
-    test_no_full_house = [
-        (10, 'C'), (2, 'C'), (10, 'S'),
-        (10, 'H'), (1, 'D')
-    ]
-    assert hand_ranker.get_full_house(test_full_house) == (10, 10, 10, 8, 8)
-    assert hand_ranker.get_full_house(test_no_full_house) is None
-
-
-def test_straight():
-    hand_ranker = GetHandRankings()
     test_straight = [
         (5, 'C'), (3, 'D'), (2, 'S'),
         (4, 'H'), (1, 'D')
@@ -89,8 +126,10 @@ def test_straight():
         (10, 'C'), (7, 'C'), (10, 'S'),
         (9, 'H'), (1, 'D')
     ]
-    assert hand_ranker.get_straight_with_no_ace_high(test_straight) == (1, 2, 3, 4, 5)
-    assert hand_ranker.get_straight_with_no_ace_high(test_no_straight) is None
+    test_no_straight2 = [
+        (5, 'C'), (3, 'D'), (3, 'S'),
+        (4, 'H'), (1, 'D')
+    ]
     test_ace_high_straight = [
         (1, 'C'), (11, 'D'), (12, 'S'),
         (9, 'H'), (10, 'D')
@@ -99,17 +138,6 @@ def test_straight():
         (10, 'C'), (8, 'C'), (9, 'S'),
         (11, 'H'), (1, 'D')
     ]
-    assert hand_ranker.get_ace_high_straight(
-        test_ace_high_straight) == (9, 10, 11, 12, 13)
-    assert hand_ranker.get_ace_high_straight(test_no_ace_high_straight) is None
-    assert hand_ranker.get_straights(
-        test_ace_high_straight) == (9, 10, 11, 12, 13)
-    assert hand_ranker.get_straights(
-        test_straight) == (1, 2, 3, 4, 5)
-    assert hand_ranker.get_straights(test_no_straight) is None
-
-def test_flush():
-    hand_ranker = GetHandRankings()
     test_flush = [
         (10, 'C'), (2, 'C'), (5, 'C'),
         (3, 'C'), (1, 'C')
@@ -118,10 +146,22 @@ def test_flush():
         (10, 'C'), (4, 'C'), (10, 'S'),
         (8, 'C'), (3, 'C')
     ]
-    assert hand_ranker.get_flush(test_flush) == ('C')
-    assert hand_ranker.get_flush(test_no_flush) is None
-
-def test_straight_flush():
+    test_full_house = [
+        (10, 'C'), (10, 'D'), (10, 'S'),
+        (8, 'H'), (8, 'D')
+    ]
+    test_no_full_house = [
+        (10, 'C'), (2, 'C'), (10, 'S'),
+        (10, 'H'), (1, 'D')
+    ]
+    test_hand_no_quads = [
+        (10, 'C'), (2, 'C'), (10, 'S'),
+        (8, 'H'), (10, 'D')
+    ]
+    test_hand_quads = [
+        (10, 'C'), (2, 'C'), (10, 'S'),
+        (10, 'H'), (10, 'D')
+    ]
     test_straight_flush = [
         (1, 'C'), (2, 'C'), (5, 'C'),
         (3, 'C'), (4, 'C')
@@ -130,3 +170,23 @@ def test_straight_flush():
         (10, 'C'), (2, 'C'), (5, 'C'),
         (3, 'C'), (1, 'C')
     ]
+
+
+def test_classify_hand():
+    hand_classifier = ClassifyHand()
+    hand_and_rank = {
+        9: "straight_flush",
+        8: "four of a kind",
+        7: "full house",
+        6: "flush",
+        5: "straight",
+        4: "three of a kind",
+        3: "two pairs",
+        2: "pair",
+        1: "high card"
+    }
+    print(hand_and_rank[6])
+    assert hand_classifier.rank_hand(
+        ExampleHands.test_flush) == hand_and_rank["flush"]
+
+

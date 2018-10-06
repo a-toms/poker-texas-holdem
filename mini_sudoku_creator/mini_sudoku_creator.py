@@ -5,7 +5,7 @@ import random
 import pprint
 import logging
 import time
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.WARNING)
 
 GRID_SIDE_LENGTH = 5
 
