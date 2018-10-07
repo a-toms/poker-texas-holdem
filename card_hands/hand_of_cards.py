@@ -103,7 +103,6 @@ class GetHandRanks:
             return sorted(hand)
 
 
-
 class ClassifyHand(GetHandRanks):
 
     hand_ranks = {
@@ -119,23 +118,26 @@ class ClassifyHand(GetHandRanks):
     }
 
     def rank_hand(self, hand):
-        for f, rank_number in self.hand_ranks.items():
+        for f, rank in self.hand_ranks.items():
             if f(self, hand):
-                return rank_number[0]
-            else:
-                pass
-
-    def describe_hand(self, rank, hand):
-        pass # To write later
+                print(rank)
+                return rank  # rank_number[1] returns card description
 
 
-    def show_winning_hand(self, hands):
-        pass
+    def compare_hands_to_find_winner(self, hands):
+        # Get eahc hand and assign it a rank
+        ranked_hands = ()
+        for hand in hands:
+            rank = self.rank_hand(hand)
+            ranked_hands.append(hand, rank)
+        # Compare the hands' ranks
+
     # Compare multiple hands and show the winner
     # Compare hand ranks
     # If same hand rank, look for highest card
     # If same highest card, look for second highest card, and so on.
     # If no winner, declare tie
+    pass
 
 
 
@@ -148,13 +150,7 @@ class ClassifyHand(GetHandRanks):
 if __name__ == "__main__":
     new_hand = GetCards()
     new_hand.pick_hand_of_cards(52)
-    test_hand = [
-        (4, 'C'), (2, 'C'), (5, 'S'),
-        (2, 'S'), (4, 'D')
-    ]
-    hand_ranker = GetHandRanks()
-    results = hand_ranker.get_two_pairs(test_hand)
-    print(results)
+    print(new_hand.hand)
 
 
 
