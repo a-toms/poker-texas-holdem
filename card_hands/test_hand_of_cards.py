@@ -131,11 +131,11 @@ class ExampleHands:
         (4, 'H'), (1, 'D')
     ]
     test_ace_high_straight = [
-        (1, 'C'), (11, 'D'), (12, 'S'),
+        (14, 'C'), (11, 'D'), (12, 'S'),
         (10, 'H'), (13, 'D')
     ]
     test_no_ace_high_straight = [
-        (10, 'C'), (8, 'C'), (9, 'S'),
+        (10, 'C'), (13, 'C'), (12, 'S'),
         (11, 'H'), (1, 'D')
     ]
     test_flush = [

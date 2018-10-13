@@ -64,13 +64,10 @@ class GetHandRanks:
             print("Pass")
             return tuple(card_numbers)
 
-    def get_straight_without_low_ace(self, hand): #RENAME THIS TO GET LOW ACE
-        """TODO: Makes aces 14 by default. Change tests"""
+    def get_straight_without_low_ace(self, hand):
         card_numbers = list(set(sorted([card[0] for card in hand])))
-        del card_numbers[0]
-        card_numbers.append(14)
         high_card, low_card = card_numbers[-1], card_numbers[0]
-        if (len(card_numbers) == 5) and (high_card - low_card == 4):
+        if len(card_numbers) == 5 and high_card - low_card == 4:
             return tuple(card_numbers)
 
     def get_straights(self, hand):
