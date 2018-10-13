@@ -56,16 +56,16 @@ def test_full_house():
 
 def test_straight():
     hand_getter = GetHandRanks()
-    assert hand_getter.get_straight_with_no_ace_high(
+    assert hand_getter.get_straight_with_low_ace(
         ExampleHands.test_straight) == (1, 2, 3, 4, 5)
-    assert hand_getter.get_straight_with_no_ace_high(
+    assert hand_getter.get_straight_with_low_ace(
         ExampleHands.test_no_straight) is None
-    assert hand_getter.get_ace_high_straight(
-        ExampleHands.test_ace_high_straight) == (9, 10, 11, 12, 13)
-    assert hand_getter.get_ace_high_straight(
+    assert hand_getter.get_straight_without_low_ace(
+        ExampleHands.test_ace_high_straight) == (10, 11, 12, 13, 14)
+    assert hand_getter.get_straight_without_low_ace(
         ExampleHands.test_no_ace_high_straight) is None
     assert hand_getter.get_straights(
-        ExampleHands.test_ace_high_straight) == (9, 10, 11, 12, 13)
+        ExampleHands.test_ace_high_straight) == (10, 11, 12, 13, 14)
     assert hand_getter.get_straights(
         ExampleHands.test_straight) == (1, 2, 3, 4, 5)
     assert hand_getter.get_straights(ExampleHands.test_no_straight) is None
@@ -132,7 +132,7 @@ class ExampleHands:
     ]
     test_ace_high_straight = [
         (1, 'C'), (11, 'D'), (12, 'S'),
-        (9, 'H'), (10, 'D')
+        (10, 'H'), (13, 'D')
     ]
     test_no_ace_high_straight = [
         (10, 'C'), (8, 'C'), (9, 'S'),
@@ -170,6 +170,30 @@ class ExampleHands:
         (10, 'C'), (2, 'C'), (5, 'C'),
         (3, 'C'), (1, 'C')
     ]
+    sample_hands = [
+        test_high_card,
+        test_pair,
+        test_two_pairs,
+        test_triples,
+        test_straight,
+        test_ace_high_straight,
+        test_flush,
+        test_full_house,
+        test_quads,
+        test_straight_flush
+    ]
+    sample_ranked_hands = [
+        (1, test_high_card),
+        (2, test_pair),
+        (3, test_two_pairs),
+        (4, test_triples),
+        (5, test_straight),
+        (5, test_ace_high_straight),
+        (6, test_flush),
+        (7, test_full_house),
+        (8, test_quads),
+        (9, test_straight_flush)
+    ]
 
 
 def test_classify_hand():
@@ -187,20 +211,34 @@ def test_classify_hand():
         'high card': 1
     }
     assert hand_classifier.rank_hand(
-        ExampleHands.test_straight_flush)[0] == hand_and_rank['straight flush']
+        ExampleHands.test_straight_flush) == hand_and_rank['straight flush']
     assert hand_classifier.rank_hand(
-        ExampleHands.test_quads)[0] == hand_and_rank['four of a kind']
+        ExampleHands.test_quads) == hand_and_rank['four of a kind']
     assert hand_classifier.rank_hand(
-        ExampleHands.test_full_house)[0] == hand_and_rank['full house']
+        ExampleHands.test_full_house) == hand_and_rank['full house']
     assert hand_classifier.rank_hand(
-        ExampleHands.test_flush)[0] == hand_and_rank['flush']
+        ExampleHands.test_flush) == hand_and_rank['flush']
     assert hand_classifier.rank_hand(
-        ExampleHands.test_straight)[0] == hand_and_rank['straight']
+        ExampleHands.test_straight) == hand_and_rank['straight']
     assert hand_classifier.rank_hand(
-        ExampleHands.test_triples)[0] == hand_and_rank['three of a kind']
+        ExampleHands.test_triples) == hand_and_rank['three of a kind']
     assert hand_classifier.rank_hand(
-        ExampleHands.test_two_pairs)[0] == hand_and_rank['two pairs']
+        ExampleHands.test_two_pairs) == hand_and_rank['two pairs']
     assert hand_classifier.rank_hand(
-        ExampleHands.test_pair)[0] == hand_and_rank['pair']
+        ExampleHands.test_pair) == hand_and_rank['pair']
     assert hand_classifier.rank_hand(
-        ExampleHands.test_high_card)[0] == hand_and_rank['high card']
+        ExampleHands.test_high_card) == hand_and_rank['high card']
+
+
+def test_ranks_hands():
+    hand_classifier = ClassifyHand()
+    examples = ExampleHands()
+    assert hand_classifier.rank_hands(
+        examples.sample_hands) == examples.sample_ranked_hands
+
+
+def test_get_highest_rank():
+    hand_classifier = ClassifyHand()
+    examples = ExampleHands()
+    assert hand_classifier.get_highest_rank(
+        examples.sample_ranked_hands) == 9

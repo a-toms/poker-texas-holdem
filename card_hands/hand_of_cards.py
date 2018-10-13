@@ -1,12 +1,13 @@
 import random
-
+import logging
+logging.basicConfig(level=logging.INFO)
 
 class GetCards:
     hand = []
     suites = ('H', 'D', 'S', 'C')
 
     def pick_card(self):
-        card_number = random.randint(1, 13)
+        card_number = random.randint(2, 14) # Aces are 14
         suite = random.choice(self.suites)
         if (card_number, suite) in self.hand:
             self.pick_card()
@@ -31,9 +32,7 @@ class GetHandRanks:
         for card_number in card_numbers:
             if card_numbers.count(card_number) == number_of_cards_in_a_pair:
                 pairs += (card_number,)
-        print(pairs)
         if pairs != ():
-            print(tuple(set(pairs)))
             return tuple(set(pairs))
 
     def get_two_pairs(self, hand):
@@ -53,26 +52,31 @@ class GetHandRanks:
         if triples != ():
             return triples
 
-    def get_straight_with_no_ace_high(self, hand):
-        card_numbers = list(set(sorted([card[0] for card in hand])))
+    def get_straight_with_low_ace(self, hand):
+        low_ace, high_ace = 1, 14
+        card_numbers = set([card[0] for card in hand])
+        print(f"Before {card_numbers}")
+        card_numbers = [low_ace if n == high_ace else n for n in card_numbers]
+        card_numbers.sort()
+        print(f"After {card_numbers}")
         high_card, low_card = card_numbers[-1], card_numbers[0]
-        if (len(card_numbers) == 5) and (high_card - low_card == 4):
+        if len(card_numbers) == 5 and high_card - low_card == 4:
+            print("Pass")
             return tuple(card_numbers)
 
-    def get_ace_high_straight(self, hand):
-        """Add high ace (with card number 13) to sorted card numbers,
-        delete the first card number, and then check for a straight"""
+    def get_straight_without_low_ace(self, hand): #RENAME THIS TO GET LOW ACE
+        """TODO: Makes aces 14 by default. Change tests"""
         card_numbers = list(set(sorted([card[0] for card in hand])))
-        card_numbers.append(13)
         del card_numbers[0]
+        card_numbers.append(14)
         high_card, low_card = card_numbers[-1], card_numbers[0]
         if (len(card_numbers) == 5) and (high_card - low_card == 4):
             return tuple(card_numbers)
 
     def get_straights(self, hand):
         straight_functions = (
-            self.get_straight_with_no_ace_high,
-            self.get_ace_high_straight
+            self.get_straight_with_low_ace,
+            self.get_straight_without_low_ace
         )
         for f in straight_functions:
             if f(hand):
@@ -105,36 +109,63 @@ class GetHandRanks:
 
 class ClassifyHand(GetHandRanks):
 
+    ranked_hands = []
+
     hand_ranks = {
-        GetHandRanks.get_straight_flush: (9, "straight_flush"),
-        GetHandRanks.get_four_of_a_kind: (8, "four of a kind"),
-        GetHandRanks.get_full_house: (7, "full house"),
-        GetHandRanks.get_flush: (6, "flush"),
-        GetHandRanks.get_straights: (5, "straight"),
-        GetHandRanks.get_three_of_a_kind: (4, "three of a kind"),
-        GetHandRanks.get_two_pairs: (3, "two pairs"),
-        GetHandRanks.get_pairs: (2, "pair"),
-        GetHandRanks.get_high_card: (1, "high card")
+        GetHandRanks.get_straight_flush: 9,
+        GetHandRanks.get_four_of_a_kind: 8,
+        GetHandRanks.get_full_house: 7,
+        GetHandRanks.get_flush: 6,
+        GetHandRanks.get_straights: 5,
+        GetHandRanks.get_three_of_a_kind: 4,
+        GetHandRanks.get_two_pairs: 3,
+        GetHandRanks.get_pairs: 2,
+        GetHandRanks.get_high_card: 1
     }
 
     def rank_hand(self, hand):
         for f, rank in self.hand_ranks.items():
             if f(self, hand):
-                print(rank)
-                return rank  # rank_number[1] returns card description
+                return rank
 
-
-    def compare_hands_to_find_winner(self, hands):
-        # Get eahc hand and assign it a rank
-        ranked_hands = ()
+    def rank_hands(self, hands):
+        # Get each hand and assign it a rank
+        ranked_hands = []
         for hand in hands:
-            rank = self.rank_hand(hand)
-            ranked_hands.append(hand, rank)
-        # Compare the hands' ranks
+            rank = self.rank_hand(sorted(hand))
+            ranked_hands.append((rank, hand))
+        return ranked_hands
+
+
+    def get_highest_rank(self, ranked_hands):
+        highest_rank = 0
+        for ranked_hand in ranked_hands:
+            if ranked_hand[0] > highest_rank:
+                highest_rank = ranked_hand[0]
+        return highest_rank
+
+    def get_winner_from_same_ranked_hands(self, ranked_hands):
+        # todo: Cont writing. Refactor this slightly later
+        """Find the winning hand/s by distinguishing between the
+        cards in the highest rank"""
+        highest_rank = self.get_highest_rank(ranked_hands)
+        hands_with_highest_rank = []
+        for ranked_hand in ranked_hands:
+            if ranked_hand[0] == highest_rank:
+                card_numbers = [card[1][0] for card in ranked_hand]
+                hands_with_highest_rank.append(sorted(card_numbers))
+
+        # Note Full house special case
+
+
+
+
+
+
 
     # Compare multiple hands and show the winner
     # Compare hand ranks
-    # If same hand rank, look for highest card
+    # If same hand rank, look for highest card, i.e.,
     # If same highest card, look for second highest card, and so on.
     # If no winner, declare tie
     pass
