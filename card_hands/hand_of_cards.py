@@ -55,13 +55,12 @@ class GetHandRanks:
     def get_straight_with_low_ace(self, hand):
         low_ace, high_ace = 1, 14
         card_numbers = set([card[0] for card in hand])
-        print(f"Before {card_numbers}")
+        logging.info(f"Before {card_numbers}")
         card_numbers = [low_ace if n == high_ace else n for n in card_numbers]
         card_numbers.sort()
-        print(f"After {card_numbers}")
+        logging.info(f"After {card_numbers}")
         high_card, low_card = card_numbers[-1], card_numbers[0]
         if len(card_numbers) == 5 and high_card - low_card == 4:
-            print("Pass")
             return tuple(card_numbers)
 
     def get_straight_without_low_ace(self, hand):
@@ -141,16 +140,25 @@ class ClassifyHand(GetHandRanks):
                 highest_rank = ranked_hand[0]
         return highest_rank
 
-    def get_winner_from_same_ranked_hands(self, ranked_hands):
-        # todo: Cont writing. Refactor this slightly later
-        """Find the winning hand/s by distinguishing between the
-        cards in the highest rank"""
+    def get_hands_with_the_highest_rank(self, ranked_hands):
         highest_rank = self.get_highest_rank(ranked_hands)
         hands_with_highest_rank = []
         for ranked_hand in ranked_hands:
             if ranked_hand[0] == highest_rank:
-                card_numbers = [card[1][0] for card in ranked_hand]
-                hands_with_highest_rank.append(sorted(card_numbers))
+                hand_card_numbers = self.get_card_numbers_from_ranked_hand(
+                    ranked_hand)
+                hands_with_highest_rank.append(hand_card_numbers)
+        print(hands_with_highest_rank)
+        self.fail()
+        return hands_with_highest_rank
+
+    def get_card_numbers_from_ranked_hand(self, ranked_hand):
+        print(ranked_hand)
+        card_numbers = [card[0] for card in ranked_hand[1]]
+        card_numbers.sort(reverse=True)
+        return card_numbers
+
+# Todo: Return the winner from the hands_with_the_highest_rank
 
         # Note Full house special case
 

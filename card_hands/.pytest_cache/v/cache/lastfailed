@@ -1,1 +1,3 @@
-{}
+{
+  "test_hand_of_cards.py::test_get_hands_with_the_highest_rank": true
+}
