@@ -1,4 +1,4 @@
-from hand_of_cards import GetCards, GetHandRanks, ClassifyHand
+from hand_of_cards import GetCards, GetHandRanks, ClassifyHand, FindBestHand
 
 
 def test_no_duplicates():
@@ -246,53 +246,49 @@ def test_classify_hand():
 
 
 def test_ranks_hands():
-    hand_classifier = ClassifyHand()
-    examples = ExampleHands()
-    assert hand_classifier.rank_hands(
-        examples.sample_hands) == examples.all_ranked_hands
+    assert ClassifyHand().rank_hands(
+        ExampleHands().sample_hands) == ExampleHands().all_ranked_hands
 
 
 def test_get_highest_rank():
-    hand_classifier = ClassifyHand()
-    examples = ExampleHands()
-    assert hand_classifier.get_highest_rank(
-        examples.all_ranked_hands) == 9
+    assert FindBestHand().get_highest_rank(
+        ExampleHands().all_ranked_hands) == 9
 
-
-def test_get_hands_with_the_highest_rank():
-    hand_classifier = ClassifyHand()
-    examples = ExampleHands()
-    assert len(hand_classifier.get_hands_with_the_highest_rank(
-        examples.high_card_ranked_hands)) == 5
-    assert len(hand_classifier.get_hands_with_the_highest_rank(
-        examples.full_house_ranked_hands)) == 2
-    assert len(hand_classifier.get_hands_with_the_highest_rank(
-        examples.all_ranked_hands)) == 1
 
 def test_get_card_numbers_sorted_by_frequency_and_size():
-    hand_classifier = ClassifyHand()
     card_numbers1 = [3, 5, 3, 12, 12]
     card_numbers2 = [14, 14, 2, 2, 2]
-    assert hand_classifier.sort_by_frequency_and_size(
+    assert FindBestHand().sort_by_frequency_and_size(
         card_numbers1) == [12, 12, 3, 3, 5]
-    assert hand_classifier.sort_by_frequency_and_size(
+    assert FindBestHand().sort_by_frequency_and_size(
         card_numbers2) == [2, 2, 2, 14, 14]
 
-def test_get_hands_with_the_highest_rank():
-    #     # 3H, 3C, 4S, 14C and 8H on the board. 5 players
+
+def test1_get_card_numbers_from_highest_ranked_cards():
+    #     3H, 3C, 4S, 14C and 8H on the board. 5 players
     #     board = [(3, 'H'), (3, 'C'), (4, 'S'), (14, 'C'), (8, 'H')]
-    #     (3, [(, 'H'), (12, 'C'), (8, 'H'), (3, 'S'), (3, 'C')]),  # pocket 2s
-    #     (2, [(12, 'H'), (12, 'C'), (6, 'S'), (7, 'C'), (8, 'H'), ]),  # 2D, 6H
-    #     (2, [(12, 'H'), (12, 'C'), (10, 'D'), (9, 'D'), (8, 'H')]),  # 14D, 4D
-    #     (7, [(12, 'H'), (12, 'C'), (12, 'D'), (8, 'C'), (8, 'H')]),  # 12D , 8C
-    #     (7, [(11, 'H'), (12, 'C'), (12, 'S'), (7, 'C'), (7, 'S')])  # 12S, 7S
-    # ]
-    pass
+    test_ranked_hand = [
+        (3, [(2, 'H'), (2, 'C'), (3, 'H'), (14, 'C'), (3, 'C')]),  # pocket 2s
+        (2, [(3, 'H'), (3, 'C'), (6, 'H'), (14, 'C'), (8, 'H')]),  # 2D, 6H
+        (3, [(3, 'H'), (4, 'D'), (4, 'S'), (14, 'C'), (14, 'D')]),  # 14D, 4D
+        (3, [(3, 'H'), (3, 'C'), (8, 'C'), (14, 'C'), (8, 'H')]),  # 12D , 8C
+        (2, [(3, 'H'), (3, 'C'), (12, 'S'), (14, 'C'), (8, 'H')])  # 12S, 7S
+    ]
+    print(FindBestHand().get_card_numbers_from_highest_ranked_cards(
+        test_ranked_hand))
+    assert FindBestHand().get_card_numbers_from_highest_ranked_cards(
+        test_ranked_hand) == [
+        [3, 3, 2, 2, 14], [14, 14, 4, 4, 3], [8, 8, 3, 3, 14]
+    ]
 
 
-
-
-
+def test2_get_card_numbers_from_highest_ranked_cards():
+    assert len(FindBestHand().get_card_numbers_from_highest_ranked_cards(
+        ExampleHands().high_card_ranked_hands)) == 5
+    assert len(FindBestHand().get_card_numbers_from_highest_ranked_cards(
+        ExampleHands().full_house_ranked_hands)) == 2
+    assert len(FindBestHand().get_card_numbers_from_highest_ranked_cards(
+        ExampleHands().all_ranked_hands)) == 1
 
 
 #def test_get_winner_from_same_ranked_hands():

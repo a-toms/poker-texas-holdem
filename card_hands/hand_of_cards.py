@@ -53,6 +53,7 @@ class GetHandRanks:
             return triples
 
     def get_straight_with_low_ace(self, hand):
+        """Check if a straight exists if the ace is treated as a low ace."""
         low_ace, high_ace = 1, 14
         card_numbers = set([card[0] for card in hand])
         card_numbers = [low_ace if n == high_ace else n for n in card_numbers]
@@ -129,6 +130,9 @@ class ClassifyHand(GetHandRanks):
             ranked_hands.append((rank, hand))
         return ranked_hands
 
+
+class FindBestHand:
+
     def get_highest_rank(self, ranked_hands):
         """Find the highest rank from several hands."""
         highest_rank = 0
@@ -137,8 +141,9 @@ class ClassifyHand(GetHandRanks):
                 highest_rank = ranked_hand[0]
         return highest_rank
 
-    def get_hands_with_the_highest_rank(self, ranked_hands):
-        """Return only the hands with the highest rank."""
+
+    def get_card_numbers_from_highest_ranked_cards(self, ranked_hands):
+        """Return card numbers from only the hands with the highest rank."""
         highest_rank = self.get_highest_rank(ranked_hands)
         hands_with_highest_rank = []
         for ranked_hand in ranked_hands:
@@ -148,11 +153,13 @@ class ClassifyHand(GetHandRanks):
                 hands_with_highest_rank.append(hand_card_numbers)
         return hands_with_highest_rank
 
+
     def get_card_numbers_from_ranked_hand(self, ranked_hand):
         """Convert a ranked hand to the hand's card numbers."""
         card_numbers = [card[0] for card in ranked_hand[1]]
         card_numbers = self.sort_by_frequency_and_size(card_numbers)
         return card_numbers
+
 
     def sort_by_frequency_and_size(self, card_numbers):
         card_numbers.sort(reverse=True)  # Ascending size
@@ -161,13 +168,30 @@ class ClassifyHand(GetHandRanks):
         return card_numbers
 
 
+    def find_highest_card_numbers(self, card_numbers):
+        #
+        pass
+
+
+
+
+
+""" Will require a method to match the highest card numbers to the particular
+player. I like that the current methods will find the best hand in a 
+player-neutral manner. The player-hand-matching method should be discrete"""
+
+        
+
+
+
+
 
     # Compare multiple hands and show the winner
     # Compare hand ranks
     # If same hand rank, look for highest card, i.e.,
     # If same highest card, look for second highest card, and so on.
     # If no winner, declare tie
-    pass
+
 
 
 
