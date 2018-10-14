@@ -271,15 +271,26 @@ def test_get_hands_with_the_highest_rank():
 
 def test_get_card_numbers_sorted_by_frequency_and_size():
     hand_classifier = ClassifyHand()
-    card_numbers = [3, 5, 3, 12, 12]
+    card_numbers1 = [3, 5, 3, 12, 12]
+    card_numbers2 = [14, 14, 2, 2, 2]
     assert hand_classifier.sort_by_frequency_and_size(
-        card_numbers) == [12, 12, 3, 3, 5]
+        card_numbers1) == [12, 12, 3, 3, 5]
+    assert hand_classifier.sort_by_frequency_and_size(
+        card_numbers2) == [2, 2, 2, 14, 14]
 
-def test_get():
-    three_of_a_kind_ranked_hand = [
-        (4, [(12, 'H'), (12, 'C'), (3, 'H'), (12, 'S'), (4, 'C')]),  # pocket 3s
-    ]
+def test_get_hands_with_the_highest_rank():
+    #     # 3H, 3C, 4S, 14C and 8H on the board. 5 players
+    #     board = [(3, 'H'), (3, 'C'), (4, 'S'), (14, 'C'), (8, 'H')]
+    #     (3, [(, 'H'), (12, 'C'), (8, 'H'), (3, 'S'), (3, 'C')]),  # pocket 2s
+    #     (2, [(12, 'H'), (12, 'C'), (6, 'S'), (7, 'C'), (8, 'H'), ]),  # 2D, 6H
+    #     (2, [(12, 'H'), (12, 'C'), (10, 'D'), (9, 'D'), (8, 'H')]),  # 14D, 4D
+    #     (7, [(12, 'H'), (12, 'C'), (12, 'D'), (8, 'C'), (8, 'H')]),  # 12D , 8C
+    #     (7, [(11, 'H'), (12, 'C'), (12, 'S'), (7, 'C'), (7, 'S')])  # 12S, 7S
+    # ]
     pass
+
+
+
 
 
 

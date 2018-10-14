@@ -1,14 +1,14 @@
 import random
 import logging
 logging.basicConfig(level=logging.INFO)
-from collections import Counter
+
 
 class GetCards:
     hand = []
     suites = ('H', 'D', 'S', 'C')
 
     def pick_card(self):
-        card_number = random.randint(2, 14) # Aces are 14
+        card_number = random.randint(2, 14)  # Aces are 14
         suite = random.choice(self.suites)
         if (card_number, suite) in self.hand:
             self.pick_card()
@@ -40,9 +40,8 @@ class GetHandRanks:
         try:
             if len(set(self.get_pairs(hand))) == 2:
                 return set(self.get_pairs(hand))
-        except TypeError: # This excepts where hand is None because no pair
+        except TypeError:  # This excepts where hand is None because no pair
             pass
-
 
     def get_three_of_a_kind(self, hand):
         card_numbers = [card[0] for card in hand]
@@ -56,10 +55,8 @@ class GetHandRanks:
     def get_straight_with_low_ace(self, hand):
         low_ace, high_ace = 1, 14
         card_numbers = set([card[0] for card in hand])
-        logging.info(f"Before {card_numbers}")
         card_numbers = [low_ace if n == high_ace else n for n in card_numbers]
         card_numbers.sort()
-        logging.info(f"After {card_numbers}")
         high_card, low_card = card_numbers[-1], card_numbers[0]
         if len(card_numbers) == 5 and high_card - low_card == 4:
             return tuple(card_numbers)
@@ -107,7 +104,6 @@ class GetHandRanks:
 class ClassifyHand(GetHandRanks):
 
     ranked_hands = []
-
     hand_ranks = {
         GetHandRanks.get_straight_flush: 9,
         GetHandRanks.get_four_of_a_kind: 8,
@@ -126,7 +122,7 @@ class ClassifyHand(GetHandRanks):
                 return rank
 
     def rank_hands(self, hands):
-        # Get each hand and assign it a rank
+        """Get each hand and assign it a rank."""
         ranked_hands = []
         for hand in hands:
             rank = self.rank_hand(sorted(hand))
@@ -134,39 +130,34 @@ class ClassifyHand(GetHandRanks):
         return ranked_hands
 
     def get_highest_rank(self, ranked_hands):
+        """Find the highest rank from several hands."""
         highest_rank = 0
         for ranked_hand in ranked_hands:
-            print(ranked_hands)
             if ranked_hand[0] > highest_rank:
                 highest_rank = ranked_hand[0]
-        print(ranked_hand[0])
         return highest_rank
 
     def get_hands_with_the_highest_rank(self, ranked_hands):
+        """Return only the hands with the highest rank."""
         highest_rank = self.get_highest_rank(ranked_hands)
-        print(f"highest_rank = {highest_rank}")
         hands_with_highest_rank = []
         for ranked_hand in ranked_hands:
             if ranked_hand[0] == highest_rank:
                 hand_card_numbers = self.get_card_numbers_from_ranked_hand(
                     ranked_hand)
                 hands_with_highest_rank.append(hand_card_numbers)
-        print(f"hands_with_highest_rank = {hands_with_highest_rank}")
         return hands_with_highest_rank
 
     def get_card_numbers_from_ranked_hand(self, ranked_hand):
+        """Convert a ranked hand to the hand's card numbers."""
         card_numbers = [card[0] for card in ranked_hand[1]]
-        print(f"card_numbers 1 = {card_numbers}")
         card_numbers = self.sort_by_frequency_and_size(card_numbers)
-        print(f"card_numbers 2 = {card_numbers}")
         return card_numbers
 
     def sort_by_frequency_and_size(self, card_numbers):
         card_numbers.sort(reverse=True)  # Ascending size
-        print(card_numbers)
         card_numbers = sorted(
             card_numbers, key=lambda n: card_numbers.count(n), reverse=True)  # Ascending frequency
-        print(card_numbers)
         return card_numbers
 
 
@@ -180,7 +171,34 @@ class ClassifyHand(GetHandRanks):
 
 
 
+"""Game mechanics:
 
+    1. Represent the board and pocket cards
+    Have a board representation that the player can access, e.g.,
+    board = [(3, 'H'), (3, 'C'), (4, 'S'), (14, 'C'), (8, 'H')], and
+    deal pocket cards to each player, e.g.,
+    hand = [(3, 'S'), (3, 'D').
+    
+    2. Find the best hand that the player can form. 
+    
+    Do this by running get_hand_rank for each permutation that the player can 
+    form with his pocket cards. Note that the player may be able to form 
+    multiple top ranking hands using 1 of his pocket cards. For example, if he
+    has (4, 'D'), (3,'D') and the board cards are all 'D', he could form a 
+    flush with either card. The highest flush that he can make may involve him
+    using 1, 2, or none of his pocket cards. 
+    
+    Accordingly, find the best hand that the player can form by:
+        - ranking all the hands that he can form using the hand_ranking func
+        - finding the best hand from the hands that he can form. If there is a 
+          tie in the best hands that he can form, pick one of them arbitrarily.
+    
+    I note that finding the individual's best hand is very similar to finding 
+    the best hand among multiple players.
+    
+    
+    
+    """
 
 
 
