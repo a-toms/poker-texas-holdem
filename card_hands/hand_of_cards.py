@@ -168,8 +168,8 @@ class FindBestHand:
         return card_numbers
 
 
-    def find_highest_card_numbers(self, card_numbers):
-        #
+    def find_highest_card(self, card_numbers):
+        # example input = [[6, 6, 6, 6, 2], [6, 6, 6, 6, 3], [6, 6, 6, 6, 1]]
         pass
 
 
