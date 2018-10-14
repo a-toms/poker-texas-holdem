@@ -182,7 +182,7 @@ class ExampleHands:
         test_quads,
         test_straight_flush
     ]
-    sample_ranked_hands = [
+    all_ranked_hands = [
         (1, test_high_card),
         (2, test_pair),
         (3, test_two_pairs),
@@ -194,12 +194,20 @@ class ExampleHands:
         (8, test_quads),
         (9, test_straight_flush)
     ]
-    sample_of_high_card_hands = [
-        (1, [(12, 'H'), (10, 'C'), (3, 'C'), (4, 'S'), (2, 'H')]), #
+    high_card_ranked_hands = [
+        (1, [(12, 'H'), (10, 'C'), (3, 'C'), (4, 'S'), (2, 'H')]),
         (1, [(12, 'C'), (9, 'C'), (7, 'S'), (5, 'C'), (6, 'H'), ]),
         (1, [(12, 'D'), (2, 'C'), (7, 'D'), (4, 'D'), (8, 'C')]),
         (1, [(12, 'S'), (2, 'S'), (7, 'C'), (4, 'H'), (8, 'H')]),
         (1, [(11, 'D'), (2, 'D'), (7, 'H'), (4, 'C'), (8, 'S')]),
+    ]
+    full_house_ranked_hands = [
+        # 12H, 12C, 6S, 7C and 8H on the board. 5 players
+        (3, [(12, 'H'), (12, 'C'), (8, 'H'), (3, 'S'), (3, 'C')]),  # pocket 3s
+        (2, [(12, 'H'), (12, 'C'), (6, 'S'), (7, 'C'), (8, 'H'), ]),  # 2D, 3H
+        (2, [(12, 'H'), (12, 'C'), (10, 'D'), (9, 'D'), (8, 'H')]),  # 10D, 9D
+        (7, [(12, 'H'), (12, 'C'), (12, 'D'), (8, 'C'), (8, 'H')]),  # 12D , 8C
+        (7, [(11, 'H'), (12, 'C'), (12, 'S'), (7, 'C'), (7, 'S')])  # 12S, 7S
     ]
 
 
@@ -241,20 +249,38 @@ def test_ranks_hands():
     hand_classifier = ClassifyHand()
     examples = ExampleHands()
     assert hand_classifier.rank_hands(
-        examples.sample_hands) == examples.sample_ranked_hands
+        examples.sample_hands) == examples.all_ranked_hands
 
 
 def test_get_highest_rank():
     hand_classifier = ClassifyHand()
     examples = ExampleHands()
     assert hand_classifier.get_highest_rank(
-        examples.sample_ranked_hands) == 9
+        examples.all_ranked_hands) == 9
+
 
 def test_get_hands_with_the_highest_rank():
     hand_classifier = ClassifyHand()
     examples = ExampleHands()
     assert len(hand_classifier.get_hands_with_the_highest_rank(
-        examples.sample_of_high_card_hands)) == 5
+        examples.high_card_ranked_hands)) == 5
+    assert len(hand_classifier.get_hands_with_the_highest_rank(
+        examples.full_house_ranked_hands)) == 2
+    assert len(hand_classifier.get_hands_with_the_highest_rank(
+        examples.all_ranked_hands)) == 1
+
+def test_get_card_numbers_sorted_by_frequency_and_size():
+    hand_classifier = ClassifyHand()
+    card_numbers = [3, 5, 3, 12, 12]
+    assert hand_classifier.sort_by_frequency_and_size(
+        card_numbers) == [12, 12, 3, 3, 5]
+
+def test_get():
+    three_of_a_kind_ranked_hand = [
+        (4, [(12, 'H'), (12, 'C'), (3, 'H'), (12, 'S'), (4, 'C')]),  # pocket 3s
+    ]
+    pass
+
 
 
 

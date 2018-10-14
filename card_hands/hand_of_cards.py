@@ -1,6 +1,7 @@
 import random
 import logging
 logging.basicConfig(level=logging.INFO)
+from collections import Counter
 
 class GetCards:
     hand = []
@@ -132,39 +133,41 @@ class ClassifyHand(GetHandRanks):
             ranked_hands.append((rank, hand))
         return ranked_hands
 
-
     def get_highest_rank(self, ranked_hands):
         highest_rank = 0
         for ranked_hand in ranked_hands:
+            print(ranked_hands)
             if ranked_hand[0] > highest_rank:
                 highest_rank = ranked_hand[0]
+        print(ranked_hand[0])
         return highest_rank
 
     def get_hands_with_the_highest_rank(self, ranked_hands):
         highest_rank = self.get_highest_rank(ranked_hands)
+        print(f"highest_rank = {highest_rank}")
         hands_with_highest_rank = []
         for ranked_hand in ranked_hands:
             if ranked_hand[0] == highest_rank:
                 hand_card_numbers = self.get_card_numbers_from_ranked_hand(
                     ranked_hand)
                 hands_with_highest_rank.append(hand_card_numbers)
-        print(hands_with_highest_rank)
-        self.fail()
+        print(f"hands_with_highest_rank = {hands_with_highest_rank}")
         return hands_with_highest_rank
 
     def get_card_numbers_from_ranked_hand(self, ranked_hand):
-        print(ranked_hand)
         card_numbers = [card[0] for card in ranked_hand[1]]
-        card_numbers.sort(reverse=True)
+        print(f"card_numbers 1 = {card_numbers}")
+        card_numbers = self.sort_by_frequency_and_size(card_numbers)
+        print(f"card_numbers 2 = {card_numbers}")
         return card_numbers
 
-# Todo: Return the winner from the hands_with_the_highest_rank
-
-        # Note Full house special case
-
-
-
-
+    def sort_by_frequency_and_size(self, card_numbers):
+        card_numbers.sort(reverse=True)  # Ascending size
+        print(card_numbers)
+        card_numbers = sorted(
+            card_numbers, key=lambda n: card_numbers.count(n), reverse=True)  # Ascending frequency
+        print(card_numbers)
+        return card_numbers
 
 
 

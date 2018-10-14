@@ -1,3 +1,4 @@
 {
-  "test_hand_of_cards.py::test_get_hands_with_the_highest_rank": true
+  "test_hand_of_cards.py": true,
+  "test_hand_of_cards.py::test_get_card_numbers_sorted_by_frequency_and_size": true
 }

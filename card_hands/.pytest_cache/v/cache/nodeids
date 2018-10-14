@@ -1,16 +1,1 @@
-[
-  "test_hand_of_cards.py::test_no_duplicates",
-  "test_hand_of_cards.py::test_get_high_card",
-  "test_hand_of_cards.py::test_get_pairs",
-  "test_hand_of_cards.py::test_get_two_pairs",
-  "test_hand_of_cards.py::test_three_of_a_kind",
-  "test_hand_of_cards.py::test_four_of_a_kind",
-  "test_hand_of_cards.py::test_full_house",
-  "test_hand_of_cards.py::test_straight",
-  "test_hand_of_cards.py::test_flush",
-  "test_hand_of_cards.py::test_straight_flush",
-  "test_hand_of_cards.py::test_classify_hand",
-  "test_hand_of_cards.py::test_ranks_hands",
-  "test_hand_of_cards.py::test_get_highest_rank",
-  "test_hand_of_cards.py::test_get_hands_with_the_highest_rank"
-]
+[]
