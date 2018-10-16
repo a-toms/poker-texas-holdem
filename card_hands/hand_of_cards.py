@@ -133,6 +133,7 @@ class ClassifyHand(GetHandRanks):
 
 class FindBestHand:
 
+
     def get_highest_rank(self, ranked_hands):
         """Find the highest rank from several hands."""
         highest_rank = 0
@@ -148,29 +149,38 @@ class FindBestHand:
         hands_with_highest_rank = []
         for ranked_hand in ranked_hands:
             if ranked_hand[0] == highest_rank:
-                hand_card_numbers = self.get_card_numbers_from_ranked_hand(
-                    ranked_hand)
-                hands_with_highest_rank.append(hand_card_numbers)
+                hands_with_highest_rank.append(
+                    self.get_card_numbers_from_ranked_hand(ranked_hand))
         return hands_with_highest_rank
 
 
     def get_card_numbers_from_ranked_hand(self, ranked_hand):
         """Convert a ranked hand to the hand's card numbers."""
-        card_numbers = [card[0] for card in ranked_hand[1]]
+        card_numbers = [card[0] for card in ranked_hand[1]] # Todo: Refactor to use sort
         card_numbers = self.sort_by_frequency_and_size(card_numbers)
         return card_numbers
 
 
     def sort_by_frequency_and_size(self, card_numbers):
-        card_numbers.sort(reverse=True)  # Ascending size
+        card_numbers.sort(reverse=True)  # Descending size
         card_numbers = sorted(
-            card_numbers, key=lambda n: card_numbers.count(n), reverse=True)  # Ascending frequency
+            card_numbers, key=lambda n: card_numbers.count(n), reverse=True)  # Descending frequency
         return card_numbers
 
 
-    def find_highest_card(self, card_numbers):
-        # example input = [[6, 6, 6, 6, 2], [6, 6, 6, 6, 3], [6, 6, 6, 6, 1]]
-        pass
+    def get_highest_card(self, card_numbers):
+        return self.sort_by_frequency_and_size(card_numbers)[0]
+
+    def get_winner_from_ranked_hands(self, ranked_hands): #TODO: CONT
+        best_hand = self.get_card_numbers_from_highest_ranked_cards(
+            ranked_hands)
+
+
+
+
+
+
+
 
 
 
@@ -186,15 +196,6 @@ player-neutral manner. The player-hand-matching method should be discrete"""
 
 
 
-    # Compare multiple hands and show the winner
-    # Compare hand ranks
-    # If same hand rank, look for highest card, i.e.,
-    # If same highest card, look for second highest card, and so on.
-    # If no winner, declare tie
-
-
-
-
 """Game mechanics:
 
     1. Represent the board and pocket cards
@@ -205,7 +206,7 @@ player-neutral manner. The player-hand-matching method should be discrete"""
     
     2. Find the best hand that the player can form. 
     
-    Do this by running get_hand_rank for each permutation that the player can 
+    Do this by running get_hand_rank for each permutation*1 that the player can 
     form with his pocket cards. Note that the player may be able to form 
     multiple top ranking hands using 1 of his pocket cards. For example, if he
     has (4, 'D'), (3,'D') and the board cards are all 'D', he could form a 
@@ -220,6 +221,7 @@ player-neutral manner. The player-hand-matching method should be discrete"""
     I note that finding the individual's best hand is very similar to finding 
     the best hand among multiple players.
     
+    *1 Use itertools.permutations
     
     
     """

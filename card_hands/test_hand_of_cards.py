@@ -281,7 +281,6 @@ def test1_get_card_numbers_from_highest_ranked_cards():
         [3, 3, 2, 2, 14], [14, 14, 4, 4, 3], [8, 8, 3, 3, 14]
     ]
 
-
 def test2_get_card_numbers_from_highest_ranked_cards():
     assert len(FindBestHand().get_card_numbers_from_highest_ranked_cards(
         ExampleHands().high_card_ranked_hands)) == 5
@@ -291,4 +290,9 @@ def test2_get_card_numbers_from_highest_ranked_cards():
         ExampleHands().all_ranked_hands)) == 1
 
 
-#def test_get_winner_from_same_ranked_hands():
+def test_get_winner_from_same_ranked_hands():
+    two_pairs = [[3, 3, 2, 2, 14], [14, 14, 4, 4, 3], [8, 8, 3, 3, 14]]
+    best_of_two_pairs = [14, 14, 4, 4, 3]
+    assert FindBestHand().get_highest_card(two_pairs) == best_of_two_pairs
+
+

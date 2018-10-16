@@ -13,5 +13,7 @@
   "test_hand_of_cards.py::test_ranks_hands",
   "test_hand_of_cards.py::test_get_highest_rank",
   "test_hand_of_cards.py::test_get_card_numbers_sorted_by_frequency_and_size",
-  "test_hand_of_cards.py::test_get_hands_with_the_highest_rank"
+  "test_hand_of_cards.py::test1_get_card_numbers_from_highest_ranked_cards",
+  "test_hand_of_cards.py::test2_get_card_numbers_from_highest_ranked_cards",
+  "test_hand_of_cards.py::test_get_winner_from_same_ranked_hands"
 ]
