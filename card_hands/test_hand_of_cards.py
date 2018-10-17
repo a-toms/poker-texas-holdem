@@ -4,8 +4,8 @@ from hand_of_cards import GetCards, GetHandRanks, ClassifyHand, FindBestHand
 def test_no_duplicates():
     new_hand = GetCards()
     new_hand.pick_hand_of_cards(52)
-    test_array_1 = new_hand.hand
-    test_array_2 = set(new_hand.hand)
+    test_array_1 = new_hand.dealt_cards
+    test_array_2 = set(new_hand.dealt_cards)
     assert len(test_array_1) == len(test_array_2)
 
 

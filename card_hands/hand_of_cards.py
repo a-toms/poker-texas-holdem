@@ -4,20 +4,22 @@ logging.basicConfig(level=logging.INFO)
 
 
 class GetCards:
-    hand = []
+    dealt_cards = []
     suites = ('H', 'D', 'S', 'C')
 
     def pick_card(self):
         card_number = random.randint(2, 14)  # Aces are 14
         suite = random.choice(self.suites)
-        if (card_number, suite) in self.hand:
+        if (card_number, suite) in self.dealt_cards:
             self.pick_card()
         else:
-            self.hand.append((card_number, suite))
+            self.dealt_cards.append((card_number, suite))
 
     def pick_hand_of_cards(self, number_of_hand_cards):
         for i in range(number_of_hand_cards):
             self.pick_card()
+
+
 
 
 class GetHandRanks:
@@ -167,13 +169,23 @@ class FindBestHand:
             card_numbers, key=lambda n: card_numbers.count(n), reverse=True)  # Descending frequency
         return card_numbers
 
-
     def get_highest_card(self, card_numbers):
         return self.sort_by_frequency_and_size(card_numbers)[0]
 
-    def get_winner_from_ranked_hands(self, ranked_hands): #TODO: CONT
-        best_hand = self.get_card_numbers_from_highest_ranked_cards(
+    def get_winner_from_ranked_hands(self, ranked_hands):
+        card_numbers = self.get_card_numbers_from_highest_ranked_cards(
             ranked_hands)
+        best_hand = self.get_highest_card(card_numbers)
+        return best_hand
+
+
+
+
+
+
+
+
+
 
 
 
@@ -227,13 +239,22 @@ player-neutral manner. The player-hand-matching method should be discrete"""
     """
 
 
-
-
-
 if __name__ == "__main__":
-    new_hand = GetCards()
-    new_hand.pick_hand_of_cards(52)
-    print(new_hand.hand)
+
+    """Current just testing how the classes fit together. Afterwards, tidy the below."""
+    new_round = GetCards()
+    new_round.pick_hand_of_cards(12)
+    player1_hand = new_round.dealt_cards[0:6] # Todo: change this dealing to remove magic numbers
+    player2_hand = new_round.dealt_cards[6:12]
+    print(f"player1_hand = {player1_hand}")
+    print(f"player2_hand = {player2_hand}")
+    ranked_hands = ClassifyHand().rank_hands((player1_hand, player2_hand))
+    print(ranked_hands)
+    best_hand = FindBestHand().get_winner_from_ranked_hands(ranked_hands)
+    print(best_hand)
+    # Todo: Say which player is the winner
+
+
 
 
 
