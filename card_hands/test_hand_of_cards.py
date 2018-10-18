@@ -3,10 +3,14 @@ from hand_of_cards import GetCards, GetHandRanks, ClassifyHand, FindBestHand
 
 def test_no_duplicates():
     new_hand = GetCards()
-    new_hand.pick_hand_of_cards(52)
+    #new_hand.deal_cards(52) """Todo: write an alternative test here"""
     test_array_1 = new_hand.dealt_cards
     test_array_2 = set(new_hand.dealt_cards)
     assert len(test_array_1) == len(test_array_2)
+
+def test_deal_cards_to_players():
+    assert len(tuple(GetCards().deal_cards_to_players(5))) == 5
+    assert len(tuple(GetCards().deal_cards_to_players(5))[0]) == 5
 
 
 def test_get_high_card():

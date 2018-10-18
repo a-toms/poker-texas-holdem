@@ -6,6 +6,7 @@ logging.basicConfig(level=logging.INFO)
 class GetCards:
     dealt_cards = []
     suites = ('H', 'D', 'S', 'C')
+    number_of_hand_cards = 5
 
     def pick_card(self):
         card_number = random.randint(2, 14)  # Aces are 14
@@ -14,10 +15,19 @@ class GetCards:
             self.pick_card()
         else:
             self.dealt_cards.append((card_number, suite))
+        return card_number, suite
 
-    def pick_hand_of_cards(self, number_of_hand_cards):
-        for i in range(number_of_hand_cards):
-            self.pick_card()
+    def deal_hand(self):
+        for i in range(self.number_of_hand_cards):
+            yield self.pick_card()
+
+    def deal_cards_to_players(self, number_of_players):
+        for i in range(number_of_players):
+            hand = tuple(self.deal_hand())
+            yield hand
+
+
+
 
 
 
@@ -243,15 +253,14 @@ if __name__ == "__main__":
 
     """Current just testing how the classes fit together. Afterwards, tidy the below."""
     new_round = GetCards()
-    new_round.pick_hand_of_cards(12)
-    player1_hand = new_round.dealt_cards[0:6] # Todo: change this dealing to remove magic numbers
-    player2_hand = new_round.dealt_cards[6:12]
-    print(f"player1_hand = {player1_hand}")
-    print(f"player2_hand = {player2_hand}")
-    ranked_hands = ClassifyHand().rank_hands((player1_hand, player2_hand))
+    player_hands = tuple(new_round.deal_cards_to_players(10))
+    for c, hand in enumerate(player_hands):
+        print(f"player {c} hand = {hand}")
+    ranked_hands = ClassifyHand().rank_hands(player_hands)
     print(ranked_hands)
     best_hand = FindBestHand().get_winner_from_ranked_hands(ranked_hands)
     print(best_hand)
+
     # Todo: Say which player is the winner
 
 
