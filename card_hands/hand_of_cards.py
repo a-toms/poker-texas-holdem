@@ -1,30 +1,43 @@
 import random
 import logging
 logging.basicConfig(level=logging.INFO)
+import itertools
 
 
-class GetCards:
+class Player:
+    money = 100
+
+
+class CreatePlayers(Player):
+
+    def __init__(self, number_of_players):
+        for i in range(1, number_of_players):
+            setattr(self, f'player{i}', Player())
+
+
+class DealCards:
     dealt_cards = []
-    suites = ('H', 'D', 'S', 'C')
-    number_of_hand_cards = 5
+    deck = list(itertools.product(range(2, 15), ('H', 'D', 'S', 'C')))
+
+    def __init__(self, n_of_players, n_of_pocket_cards):
+        self.number_of_players = n_of_players
+        self.number_of_pocket_cards = n_of_pocket_cards
 
     def pick_card(self):
-        card_number = random.randint(2, 14)  # Aces are 14
-        suite = random.choice(self.suites)
-        if (card_number, suite) in self.dealt_cards:
-            self.pick_card()
-        else:
-            self.dealt_cards.append((card_number, suite))
-        return card_number, suite
+        card = random.choice(self.deck)
+        self.deck.remove(card)
+        self.dealt_cards.append(card)
+        return card
 
-    def deal_hand(self):
-        for i in range(self.number_of_hand_cards):
-            yield self.pick_card()
 
-    def deal_cards_to_players(self, number_of_players):
-        for i in range(number_of_players):
-            hand = tuple(self.deal_hand())
-            yield hand
+    def deal_pocket_cards(self):
+        for i in range(self.number_of_players):
+            pocket_cards = [
+                self.pick_card() for i in range(self.number_of_pocket_cards)
+            ]
+            yield pocket_cards
+            # Todo: Link this to players
+
 
 
 
@@ -91,7 +104,8 @@ class GetHandRanks:
 
     def get_flush(self, hand):
         card_suites = tuple([card[1] for card in hand])
-        if len(set(card_suites)) == 1:
+        card_numbers = [card[0] for card in hand]
+        if len(card_numbers) == 5 and len(set(card_suites)) == 1:
             return card_suites[1]
 
     def get_full_house(self, hand):
@@ -144,8 +158,6 @@ class ClassifyHand(GetHandRanks):
 
 
 class FindBestHand:
-
-
     def get_highest_rank(self, ranked_hands):
         """Find the highest rank from several hands."""
         highest_rank = 0
@@ -168,7 +180,7 @@ class FindBestHand:
 
     def get_card_numbers_from_ranked_hand(self, ranked_hand):
         """Convert a ranked hand to the hand's card numbers."""
-        card_numbers = [card[0] for card in ranked_hand[1]] # Todo: Refactor to use sort
+        card_numbers = [card[0] for card in ranked_hand[1]]
         card_numbers = self.sort_by_frequency_and_size(card_numbers)
         return card_numbers
 
@@ -177,9 +189,11 @@ class FindBestHand:
         card_numbers.sort(reverse=True)  # Descending size
         card_numbers = sorted(
             card_numbers, key=lambda n: card_numbers.count(n), reverse=True)  # Descending frequency
+        """TODO: MUST REMOVE DUPLICATE CARD NUMBER GROUPS HERE"""
         return card_numbers
 
     def get_highest_card(self, card_numbers):
+        print(f"Ranked cards {self.sort_by_frequency_and_size(card_numbers)}")
         return self.sort_by_frequency_and_size(card_numbers)[0]
 
     def get_winner_from_ranked_hands(self, ranked_hands):
@@ -191,16 +205,24 @@ class FindBestHand:
 
 
 
+class GameRound:
+
+    highest_bet = 0
+    pot = 0
+    dealer_player = []
+    small_blind = 2
+    small_blind_player = []
+    big_blind = 4
+    big_blind_player = []
 
 
+    # def deal_pocket_cards
 
 
+    # def play_blinds -> Add to pot -> Add to highest_bet
 
 
-
-
-
-
+    # def ask_for_call_raise_check
 
 
 
@@ -212,11 +234,30 @@ class FindBestHand:
 player. I like that the current methods will find the best hand in a 
 player-neutral manner. The player-hand-matching method should be discrete"""
 
-        
 
 
 
+if __name__ == "__main__":
 
+    """Current just testing how the classes fit together. Afterwards, tidy the below."""
+    new_round = GetCards()
+    player_hands = tuple(new_round.deal_cards_for_players(10))
+    player_and_cards = dict()
+    #Create store player number and hand in dict
+    for c, hand in enumerate(player_hands):
+        player_and_cards[f'player {c}'] = hand
+        print(f"player {c} hand = {player_and_cards[f'player {c}']}")
+
+
+    ranked_hands = ClassifyHand().rank_hands(player_hands)
+    print(ranked_hands)
+    best_hand = FindBestHand().get_winner_from_ranked_hands(ranked_hands)
+    print(best_hand)
+    # Find which player has the best hand
+    # for k, v in player_and_cards:
+    #     card_numbers = FindBestHand().get_card_numbers_from_ranked_hand(hand)
+    #     if card_numbers == best_hand:
+    #         return
 
 """Game mechanics:
 
@@ -225,43 +266,28 @@ player-neutral manner. The player-hand-matching method should be discrete"""
     board = [(3, 'H'), (3, 'C'), (4, 'S'), (14, 'C'), (8, 'H')], and
     deal pocket cards to each player, e.g.,
     hand = [(3, 'S'), (3, 'D').
-    
+
     2. Find the best hand that the player can form. 
-    
+
     Do this by running get_hand_rank for each permutation*1 that the player can 
     form with his pocket cards. Note that the player may be able to form 
     multiple top ranking hands using 1 of his pocket cards. For example, if he
     has (4, 'D'), (3,'D') and the board cards are all 'D', he could form a 
     flush with either card. The highest flush that he can make may involve him
     using 1, 2, or none of his pocket cards. 
-    
+
     Accordingly, find the best hand that the player can form by:
         - ranking all the hands that he can form using the hand_ranking func
         - finding the best hand from the hands that he can form. If there is a 
           tie in the best hands that he can form, pick one of them arbitrarily.
-    
+
     I note that finding the individual's best hand is very similar to finding 
     the best hand among multiple players.
-    
+
     *1 Use itertools.permutations
-    
-    
+
+
     """
-
-
-if __name__ == "__main__":
-
-    """Current just testing how the classes fit together. Afterwards, tidy the below."""
-    new_round = GetCards()
-    player_hands = tuple(new_round.deal_cards_to_players(10))
-    for c, hand in enumerate(player_hands):
-        print(f"player {c} hand = {hand}")
-    ranked_hands = ClassifyHand().rank_hands(player_hands)
-    print(ranked_hands)
-    best_hand = FindBestHand().get_winner_from_ranked_hands(ranked_hands)
-    print(best_hand)
-
-    # Todo: Say which player is the winner
 
 
 

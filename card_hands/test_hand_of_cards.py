@@ -1,16 +1,50 @@
-from hand_of_cards import GetCards, GetHandRanks, ClassifyHand, FindBestHand
+from hand_of_cards import (
+    Player, CreatePlayers, DealCards, GetHandRanks, ClassifyHand, FindBestHand
+)
+
+def test_player():
+    pass
 
 
-def test_no_duplicates():
-    new_hand = GetCards()
-    #new_hand.deal_cards(52) """Todo: write an alternative test here"""
-    test_array_1 = new_hand.dealt_cards
-    test_array_2 = set(new_hand.dealt_cards)
-    assert len(test_array_1) == len(test_array_2)
+def test_create_players():
+    assert CreatePlayers(5).hasattr(play)
 
-def test_deal_cards_to_players():
-    assert len(tuple(GetCards().deal_cards_to_players(5))) == 5
-    assert len(tuple(GetCards().deal_cards_to_players(5))[0]) == 5
+
+def test_deck_generation_contains_52_cards():
+    players, pocket_cards = 1, 1
+    assert len(DealCards(players, pocket_cards).deck) == 52
+
+
+def test_deck_generation_contains_no_duplicate_cards():
+    players, pocket_cards = 5, 6
+    new_hand = DealCards(players, pocket_cards)
+    assert len(new_hand.deck) == len(set(new_hand.deck))
+
+
+def test_pick_card():
+    players, pocket_cards = 5, 6
+    card = DealCards(players, pocket_cards).pick_card()
+    suites = ('H', 'C', 'S', 'H')
+    numbers = [i for i in range(2, 15)]
+    assert card[0] in numbers, card[1] in suites
+
+
+def test_deal_pocket_cards():
+    pass # TODO: write test here
+
+
+
+
+# def test_deal_cards_to_players():
+#     new_hand = DealCards()
+#     new_hand.number_of_pocket_cards = 2
+#     print(new_hand.number_of_pocket_cards)
+#     assert len(tuple(
+#         new_hand.deal_cards_for_players(1))) == 5  # Five players
+#
+#     # assert len(tuple(
+#     #     new_hand.deal_cards_for_players(5))[0]) == 8  # 8 cards per player
+#     """Why is there a recursion error for the tests here?"""
 
 
 def test_get_high_card():
@@ -298,5 +332,7 @@ def test_get_winner_from_same_ranked_hands():
     two_pairs = [[3, 3, 2, 2, 14], [14, 14, 4, 4, 3], [8, 8, 3, 3, 14]]
     best_of_two_pairs = [14, 14, 4, 4, 3]
     assert FindBestHand().get_highest_card(two_pairs) == best_of_two_pairs
+
+
 
 
