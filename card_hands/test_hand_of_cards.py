@@ -1,6 +1,8 @@
 from hand_of_cards import (
-    Player, Players, CardDealer, GetHandRanks, ClassifyHand, FindBestHand
+    Player, Players, CardDealer, GetHandRanks, ClassifyHand, FindBestHand,
+    GameRound
 )
+
 
 def test_player():
     pass
@@ -300,12 +302,11 @@ def test1_get_card_numbers_from_highest_ranked_cards():
         (3, [(3, 'H'), (3, 'C'), (8, 'C'), (14, 'C'), (8, 'H')]),  # 12D , 8C
         (2, [(3, 'H'), (3, 'C'), (12, 'S'), (14, 'C'), (8, 'H')])  # 12S, 7S
     ]
-    print(FindBestHand().get_card_numbers_from_highest_ranked_cards(
-        test_ranked_hand))
     assert FindBestHand().get_card_numbers_from_highest_ranked_cards(
         test_ranked_hand) == [
         [3, 3, 2, 2, 14], [14, 14, 4, 4, 3], [8, 8, 3, 3, 14]
     ]
+
 
 def test2_get_card_numbers_from_highest_ranked_cards():
     assert len(FindBestHand().get_card_numbers_from_highest_ranked_cards(
@@ -317,10 +318,30 @@ def test2_get_card_numbers_from_highest_ranked_cards():
 
 
 def test_get_winner_from_same_ranked_hands():
-    two_pairs = [[3, 3, 2, 2, 14], [14, 14, 4, 4, 3], [8, 8, 3, 3, 14]]
-    best_of_two_pairs = [14, 14, 4, 4, 3]
+    two_pairs = [
+        (3, 3, 2, 2, 14), (14, 14, 4, 4, 3), (8, 8, 3, 3, 14), (8, 8, 3, 3, 14)
+    ]
+    best_of_two_pairs = (14, 14, 4, 4, 3)
     assert FindBestHand().get_highest_card(two_pairs) == best_of_two_pairs
 
 
+def test_game_round_instantiates_to_include_players_class_instantiation():
+    all_players = Players(6)
+    game_round = GameRound(all_players)
+    assert type(game_round.players_information.player1.money) is int
 
+
+def test_pay_blinds():
+    all_players = Players(3)
+    game_round = GameRound(all_players)
+    starting_player_money = 100
+    assert game_round.players_information.player3.money == starting_player_money
+    assert game_round.big_blind_player == 'player3'
+    assert game_round.players_information.player2.money == starting_player_money
+    assert game_round.small_blind_player == 'player2'
+    game_round.pay_blinds()
+    assert game_round.players_information.player3.money == starting_player_money - game_round.big_blind
+    assert game_round.players_information.player2.money == starting_player_money - game_round.small_blind
+    assert game_round.pot == game_round.big_blind + game_round.small_blind
+    assert game_round.highest_round_bet == game_round.big_blind
 

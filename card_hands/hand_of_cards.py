@@ -7,6 +7,7 @@ from collections import deque
 
 class Player:
     money = 100
+    amount_bet = 0
 
     def __init__(self, name):
         self.name = name
@@ -15,10 +16,8 @@ class Player:
 class Players(Player):
     """Use __dict__ to access the different players in Players"""
     def __init__(self, number_of_players):
-        for i in range(1, number_of_players):
+        for i in range(1, number_of_players + 1):
             setattr(self, f'player{i}', Player(f'player{i}'))
-
-
 
 
 class CardDealer:
@@ -184,16 +183,14 @@ class FindBestHand:
         card_numbers = self.sort_by_frequency_and_size(card_numbers)
         return card_numbers
 
-
     def sort_by_frequency_and_size(self, card_numbers):
-        card_numbers.sort(reverse=True)  # Descending size
+        card_numbers.sort(reverse=True)  # Descending card number size
         card_numbers = sorted(
-            card_numbers, key=lambda n: card_numbers.count(n), reverse=True)  # Descending frequency
-        """TODO: MUST REMOVE DUPLICATE CARD NUMBER GROUPS HERE"""
+            card_numbers, key=lambda n: card_numbers.count(n), reverse=True)  # Descending card number frequency
         return card_numbers
 
     def get_highest_card(self, card_numbers):
-        print(f"Ranked cards {self.sort_by_frequency_and_size(card_numbers)}")
+        card_numbers = list(set(card_numbers))
         return self.sort_by_frequency_and_size(card_numbers)[0]
 
     def get_winner_from_ranked_hands(self, ranked_hands):
@@ -203,61 +200,68 @@ class FindBestHand:
         return best_hand
 
 
-
-
-class GameRound(Players):
+class GameRound():
     """Player order represents the players' different positions in relation to
-    the dealer around the table"""
-    """Rotate the deque n steps to the right. If n is negative, rotate to the left."""
+    the dealer around the table. The initial pre-flop positions are rotated
+    after the pre-flop round."""
 
     highest_round_bet = 0
     pot = 0
-    small_blind = 2
-    big_blind = 4
-    pre_flop_playing_order = deque(
-        [player for player in Players.__dict__.keys()]
-    )
-    small_blind_player = pre_flop_playing_order[-2]
-    big_blind_player = pre_flop_playing_order[-1]
-    post_flop_playing_order = pre_flop_playing_order.rotate(2)
-    dealer = post_flop_playing_order[-1]
-
-    def adjust_player_order_after_round_end(self):
-        self.playing_order(rotate=1)
-
-    def play_blinds(self): -> Add to highest_bet Add to pot
+    small_blind = 20
+    big_blind = 40
 
 
+    def __init__(self, instantiated_players_class):
+        self.players_information = instantiated_players_class
+        self.playing_order = deque(
+            [player for player in self.players_information.__dict__.keys()]
+        )
+        self.small_blind_player = self.playing_order[-2]
+        self.big_blind_player = self.playing_order[-1]
+        self.dealer_player = self.playing_order[-3]
+
+
+    def rotate_player_order_after_round_end(self):
+        self.playing_order(rotate=2)
+
+    def pay_blinds(self):
+        self.players_information.__dict__[self.small_blind_player].money -= self.small_blind
+        self.players_information.__dict__[self.big_blind_player].money -= self.big_blind
+        self.pot += self.big_blind + self.small_blind
+        self.highest_round_bet = self.big_blind
 
     def ask_for_raise_call_fold(self):
-        for player in self.pre_flop_playing_order:
-            action = input(
-                f"""{player}, 
-                the highest bet of the round is{highest_round_bet}
+        for player in self.playing_order:
+            while True:
+                action = self.get_player_action(player)
+                if action.lower() is 'c':
+                    #self.players_information.player.money -=
+                    break
+                elif action.lower() is 'r':
+                    pass
+                    break
+                elif action.lower is 'f':
+                    pass
+                    break
+                else:
+                    print('Your action is unclear. Please re-enter\n')
+                    continue
 
-    
-        
-        
-    
 
-    
-    
-    
+    def get_player_action(self, player):
+        return input(
+            f"{player},\n" +
+            "the highest bet of the round so far is {highest_round_bet}." +
+            "Would you like to call (C), raise (R), or fold(F) ?")
+
+
+
+    def clear_bets_for_each_player_at_end_of_game_round(self):
+        pass
+
     
     # Remove any people that fold from the post_flop_playing_order
    
-   
-
-
-
-
-
-
-
-
-
-    
-
 
  
 def main():
