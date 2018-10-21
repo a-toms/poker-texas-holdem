@@ -1,6 +1,10 @@
 [
-  "test_hand_of_cards.py::test_no_duplicates",
-  "test_hand_of_cards.py::test_deal_cards_to_players",
+  "test_hand_of_cards.py::test_player",
+  "test_hand_of_cards.py::test_players_initialises_with_correct_number_of_players",
+  "test_hand_of_cards.py::test_deck_generation_contains_52_cards",
+  "test_hand_of_cards.py::test_deck_generation_contains_no_duplicate_cards",
+  "test_hand_of_cards.py::test_pick_card",
+  "test_hand_of_cards.py::test_deal_pocket_cards",
   "test_hand_of_cards.py::test_get_high_card",
   "test_hand_of_cards.py::test_get_pairs",
   "test_hand_of_cards.py::test_get_two_pairs",

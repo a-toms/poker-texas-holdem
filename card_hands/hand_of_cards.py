@@ -1,23 +1,30 @@
+import itertools
 import random
 import logging
 logging.basicConfig(level=logging.INFO)
-import itertools
+from collections import deque
 
 
 class Player:
     money = 100
 
+    def __init__(self, name):
+        self.name = name
 
-class CreatePlayers(Player):
 
+class Players(Player):
+    """Use __dict__ to access the different players in Players"""
     def __init__(self, number_of_players):
         for i in range(1, number_of_players):
-            setattr(self, f'player{i}', Player())
+            setattr(self, f'player{i}', Player(f'player{i}'))
 
 
-class DealCards:
+
+
+class CardDealer:
     dealt_cards = []
     deck = list(itertools.product(range(2, 15), ('H', 'D', 'S', 'C')))
+    pocket_cards = {}
 
     def __init__(self, n_of_players, n_of_pocket_cards):
         self.number_of_players = n_of_players
@@ -29,18 +36,11 @@ class DealCards:
         self.dealt_cards.append(card)
         return card
 
-
     def deal_pocket_cards(self):
-        for i in range(self.number_of_players):
-            pocket_cards = [
+        for i in range(1, self.number_of_players + 1):
+            self.pocket_cards[f'player{i}'] = [
                 self.pick_card() for i in range(self.number_of_pocket_cards)
             ]
-            yield pocket_cards
-            # Todo: Link this to players
-
-
-
-
 
 
 
@@ -205,26 +205,66 @@ class FindBestHand:
 
 
 
-class GameRound:
+class GameRound(Players):
+    """Player order represents the players' different positions in relation to
+    the dealer around the table"""
+    """Rotate the deque n steps to the right. If n is negative, rotate to the left."""
 
-    highest_bet = 0
+    highest_round_bet = 0
     pot = 0
-    dealer_player = []
     small_blind = 2
-    small_blind_player = []
     big_blind = 4
-    big_blind_player = []
+    pre_flop_playing_order = deque(
+        [player for player in Players.__dict__.keys()]
+    )
+    small_blind_player = pre_flop_playing_order[-2]
+    big_blind_player = pre_flop_playing_order[-1]
+    post_flop_playing_order = pre_flop_playing_order.rotate(2)
+    dealer = post_flop_playing_order[-1]
+
+    def adjust_player_order_after_round_end(self):
+        self.playing_order(rotate=1)
+
+    def play_blinds(self): -> Add to highest_bet Add to pot
 
 
-    # def deal_pocket_cards
+
+    def ask_for_raise_call_fold(self):
+        for player in self.pre_flop_playing_order:
+            action = input(
+                f"""{player}, 
+                the highest bet of the round is{highest_round_bet}
+
+    
+        
+        
+    
+
+    
+    
+    
+    
+    # Remove any people that fold from the post_flop_playing_order
+   
+   
 
 
-    # def play_blinds -> Add to pot -> Add to highest_bet
 
 
-    # def ask_for_call_raise_check
 
 
+
+
+
+    
+
+
+ 
+def main():
+    all_players = Players(5)
+    dealer = CardDealer(5, 2)
+    dealer.deal_pocket_cards()
+    print(dealer.pocket_cards)
 
 
 
@@ -238,26 +278,20 @@ player-neutral manner. The player-hand-matching method should be discrete"""
 
 
 if __name__ == "__main__":
-
-    """Current just testing how the classes fit together. Afterwards, tidy the below."""
-    new_round = GetCards()
-    player_hands = tuple(new_round.deal_cards_for_players(10))
-    player_and_cards = dict()
-    #Create store player number and hand in dict
-    for c, hand in enumerate(player_hands):
-        player_and_cards[f'player {c}'] = hand
-        print(f"player {c} hand = {player_and_cards[f'player {c}']}")
+    main()
 
 
-    ranked_hands = ClassifyHand().rank_hands(player_hands)
-    print(ranked_hands)
-    best_hand = FindBestHand().get_winner_from_ranked_hands(ranked_hands)
-    print(best_hand)
-    # Find which player has the best hand
-    # for k, v in player_and_cards:
-    #     card_numbers = FindBestHand().get_card_numbers_from_ranked_hand(hand)
-    #     if card_numbers == best_hand:
-    #         return
+
+
+    # ranked_hands = ClassifyHand().rank_hands(player_hands)
+    # print(ranked_hands)
+    # best_hand = FindBestHand().get_winner_from_ranked_hands(ranked_hands)
+    # print(best_hand)
+    # # Find which player has the best hand
+    # # for k, v in player_and_cards:
+    # #     card_numbers = FindBestHand().get_card_numbers_from_ranked_hand(hand)
+    # #     if card_numbers == best_hand:
+    # #         return
 
 """Game mechanics:
 

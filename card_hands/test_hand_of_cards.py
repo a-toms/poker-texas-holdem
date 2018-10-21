@@ -1,29 +1,31 @@
 from hand_of_cards import (
-    Player, CreatePlayers, DealCards, GetHandRanks, ClassifyHand, FindBestHand
+    Player, Players, CardDealer, GetHandRanks, ClassifyHand, FindBestHand
 )
 
 def test_player():
     pass
 
 
-def test_create_players():
-    assert CreatePlayers(5).hasattr(play)
+def test_players_initialises_with_correct_number_of_players():
+    number_of_players = 8
+    for i in range(1, number_of_players):
+        assert hasattr(Players(number_of_players), f'player{i}') is True
 
 
 def test_deck_generation_contains_52_cards():
     players, pocket_cards = 1, 1
-    assert len(DealCards(players, pocket_cards).deck) == 52
+    assert len(CardDealer(players, pocket_cards).deck) == 52
 
 
 def test_deck_generation_contains_no_duplicate_cards():
     players, pocket_cards = 5, 6
-    new_hand = DealCards(players, pocket_cards)
+    new_hand = CardDealer(players, pocket_cards)
     assert len(new_hand.deck) == len(set(new_hand.deck))
 
 
 def test_pick_card():
     players, pocket_cards = 5, 6
-    card = DealCards(players, pocket_cards).pick_card()
+    card = CardDealer(players, pocket_cards).pick_card()
     suites = ('H', 'C', 'S', 'H')
     numbers = [i for i in range(2, 15)]
     assert card[0] in numbers, card[1] in suites
@@ -31,20 +33,6 @@ def test_pick_card():
 
 def test_deal_pocket_cards():
     pass # TODO: write test here
-
-
-
-
-# def test_deal_cards_to_players():
-#     new_hand = DealCards()
-#     new_hand.number_of_pocket_cards = 2
-#     print(new_hand.number_of_pocket_cards)
-#     assert len(tuple(
-#         new_hand.deal_cards_for_players(1))) == 5  # Five players
-#
-#     # assert len(tuple(
-#     #     new_hand.deal_cards_for_players(5))[0]) == 8  # 8 cards per player
-#     """Why is there a recursion error for the tests here?"""
 
 
 def test_get_high_card():
