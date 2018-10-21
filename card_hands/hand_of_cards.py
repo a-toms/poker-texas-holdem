@@ -1,8 +1,9 @@
 import itertools
+from collections import deque
+import copy
 import random
 import logging
 logging.basicConfig(level=logging.INFO)
-from collections import deque
 
 
 class Player:
@@ -14,7 +15,7 @@ class Player:
 
 
 class Players(Player):
-    """Use __dict__ to access the different players in Players"""
+    """Use __dict__ to access the different players in Players."""
     def __init__(self, number_of_players):
         for i in range(1, number_of_players + 1):
             setattr(self, f'player{i}', Player(f'player{i}'))
@@ -38,10 +39,8 @@ class CardDealer:
     def deal_pocket_cards(self):
         for i in range(1, self.number_of_players + 1):
             self.pocket_cards[f'player{i}'] = [
-                self.pick_card() for i in range(self.number_of_pocket_cards)
+                self.pick_card() for _ in self.number_of_pocket_cards
             ]
-
-
 
 
 class GetHandRanks:
@@ -165,7 +164,6 @@ class FindBestHand:
                 highest_rank = ranked_hand[0]
         return highest_rank
 
-
     def get_card_numbers_from_highest_ranked_cards(self, ranked_hands):
         """Return card numbers from only the hands with the highest rank."""
         highest_rank = self.get_highest_rank(ranked_hands)
@@ -175,7 +173,6 @@ class FindBestHand:
                 hands_with_highest_rank.append(
                     self.get_card_numbers_from_ranked_hand(ranked_hand))
         return hands_with_highest_rank
-
 
     def get_card_numbers_from_ranked_hand(self, ranked_hand):
         """Convert a ranked hand to the hand's card numbers."""
@@ -200,7 +197,8 @@ class FindBestHand:
         return best_hand
 
 
-class GameRound():
+class GameRound:
+    # self.players_information.player1 -> instantiation of Players(Player)
     """Player order represents the players' different positions in relation to
     the dealer around the table. The initial pre-flop positions are rotated
     after the pre-flop round."""
@@ -210,19 +208,20 @@ class GameRound():
     small_blind = 20
     big_blind = 40
 
-
     def __init__(self, instantiated_players_class):
         self.players_information = instantiated_players_class
-        self.playing_order = deque(
+        self.pre_flop_playing_order = deque(
             [player for player in self.players_information.__dict__.keys()]
         )
-        self.small_blind_player = self.playing_order[-2]
-        self.big_blind_player = self.playing_order[-1]
-        self.dealer_player = self.playing_order[-3]
+        self.post_flop_playing_order = self.get_post_flop_playing_order()
+        self.small_blind_player = self.pre_flop_playing_order[-2]
+        self.big_blind_player = self.pre_flop_playing_order[-1]
+        self.dealer_player = self.pre_flop_playing_order[-3]
 
-
-    def rotate_player_order_after_round_end(self):
-        self.playing_order(rotate=2)
+    def get_post_flop_playing_order(self):
+        post_flop_playing_order = copy.deepcopy(self.pre_flop_playing_order)
+        post_flop_playing_order.rotate(2)
+        return post_flop_playing_order
 
     def pay_blinds(self):
         self.players_information.__dict__[self.small_blind_player].money -= self.small_blind
@@ -231,22 +230,22 @@ class GameRound():
         self.highest_round_bet = self.big_blind
 
     def ask_for_raise_call_fold(self):
-        for player in self.playing_order:
+        for player in self.pre_flop_playing_order:
             while True:
                 action = self.get_player_action(player)
                 if action.lower() is 'c':
-                    #self.players_information.player.money -=
+                    #  self.players_information.player.money -=
                     break
                 elif action.lower() is 'r':
                     pass
                     break
                 elif action.lower is 'f':
                     pass
+                    # Remove any people that fold from the post_flop_playing_order
                     break
                 else:
                     print('Your action is unclear. Please re-enter\n')
                     continue
-
 
     def get_player_action(self, player):
         return input(
@@ -254,16 +253,10 @@ class GameRound():
             "the highest bet of the round so far is {highest_round_bet}." +
             "Would you like to call (C), raise (R), or fold(F) ?")
 
-
-
     def clear_bets_for_each_player_at_end_of_game_round(self):
         pass
 
-    
-    # Remove any people that fold from the post_flop_playing_order
-   
 
- 
 def main():
     all_players = Players(5)
     dealer = CardDealer(5, 2)
@@ -271,31 +264,14 @@ def main():
     print(dealer.pocket_cards)
 
 
-
-
-
 """ Will require a method to match the highest card numbers to the particular
 player. I like that the current methods will find the best hand in a 
 player-neutral manner. The player-hand-matching method should be discrete"""
 
 
-
-
 if __name__ == "__main__":
     main()
 
-
-
-
-    # ranked_hands = ClassifyHand().rank_hands(player_hands)
-    # print(ranked_hands)
-    # best_hand = FindBestHand().get_winner_from_ranked_hands(ranked_hands)
-    # print(best_hand)
-    # # Find which player has the best hand
-    # # for k, v in player_and_cards:
-    # #     card_numbers = FindBestHand().get_card_numbers_from_ranked_hand(hand)
-    # #     if card_numbers == best_hand:
-    # #         return
 
 """Game mechanics:
 
@@ -326,10 +302,3 @@ if __name__ == "__main__":
 
 
     """
-
-
-
-
-
-
-

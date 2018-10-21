@@ -34,7 +34,7 @@ def test_pick_card():
 
 
 def test_deal_pocket_cards():
-    pass # TODO: write test here
+    pass  # TODO: write test here
 
 
 def test_get_high_card():
@@ -345,3 +345,24 @@ def test_pay_blinds():
     assert game_round.pot == game_round.big_blind + game_round.small_blind
     assert game_round.highest_round_bet == game_round.big_blind
 
+
+def test_pre_flop_playing_order():
+    all_players = Players(8)
+    game_round = GameRound(all_players)
+    assert game_round.big_blind_player == 'player8'
+    assert game_round.pre_flop_playing_order[-1] == 'player8'
+    assert game_round.small_blind_player == 'player7'
+    assert game_round.pre_flop_playing_order[-2] == 'player7'
+    assert game_round.dealer_player == 'player6'
+    assert game_round.pre_flop_playing_order[-3] == 'player6'
+
+
+def test_post_flop_playing_order():
+    all_players = Players(8)
+    game_round = GameRound(all_players)
+    assert game_round.big_blind_player == 'player8'
+    assert game_round.post_flop_playing_order[1] == 'player8'
+    assert game_round.small_blind_player == 'player7'
+    assert game_round.post_flop_playing_order[0] == 'player7'
+    assert game_round.dealer_player == 'player6'
+    assert game_round.post_flop_playing_order[-1] == 'player6'
