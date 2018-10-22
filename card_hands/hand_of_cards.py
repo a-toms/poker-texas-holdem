@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.INFO)
 
 class Player:
     money = 100
-    amount_bet = 0
+    amount_bet_in_round = 0
 
     def __init__(self, name):
         self.name = name
@@ -229,12 +229,30 @@ class GameRound:
         self.pot += self.big_blind + self.small_blind
         self.highest_round_bet = self.big_blind
 
+    # todo: continue here. Write call/fold/raise
+    def call_bet(self, player):
+        call_amount = (
+                self.highest_round_bet -
+                self.players_information.__dict__[player].amount_bet_in_round
+        )
+        self.players_information.__dict__[player].money -= call_amount
+        self.pot += call_amount
+
+
+    def fold_hand(self):
+        # Remove player from playing order
+        pass
+
+    def raise_bet(self):
+        pass
+
     def ask_for_raise_call_fold(self):
         for player in self.pre_flop_playing_order:
             while True:
                 action = self.get_player_action(player)
                 if action.lower() is 'c':
-                    #  self.players_information.player.money -=
+
+
                     break
                 elif action.lower() is 'r':
                     pass

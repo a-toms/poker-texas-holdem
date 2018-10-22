@@ -1,5 +1,6 @@
 {
   "test_hand_of_cards.py::test_create_players_initialises_with_correct_number_of_players": true,
   "test_hand_of_cards.py::test_deal_cards_to_players": true,
-  "test_hand_of_cards.py::test_deck_generation": true
+  "test_hand_of_cards.py::test_deck_generation": true,
+  "test_hand_of_cards.py::test_rotate_pre_flop_playing_order_after_pre_flop_actions": true
 }

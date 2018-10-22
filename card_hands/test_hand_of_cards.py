@@ -366,3 +366,7 @@ def test_post_flop_playing_order():
     assert game_round.post_flop_playing_order[0] == 'player7'
     assert game_round.dealer_player == 'player6'
     assert game_round.post_flop_playing_order[-1] == 'player6'
+
+def test_post_flop_playing_order():
+    all_players = Players(8)
+    game_round = GameRound(all_players)
