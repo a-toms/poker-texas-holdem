@@ -367,6 +367,26 @@ def test_post_flop_playing_order():
     assert game_round.dealer_player == 'player6'
     assert game_round.post_flop_playing_order[-1] == 'player6'
 
-def test_post_flop_playing_order():
-    all_players = Players(8)
+
+def test_call_bet():
+    all_players = Players(6)
     game_round = GameRound(all_players)
+    game_round.pay_blinds()
+    start_money = game_round.players_information.__dict__['player3'].money
+    game_round.call_bet('player3')
+    post_call_money  = game_round.players_information.__dict__['player3'].money
+    assert post_call_money < start_money
+    assert start_money - post_call_money == game_round.big_blind
+
+def test_fold_hand():
+    all_players = Players(5)
+    game_round = GameRound(all_players)
+    assert game_round.player_position_order[3] == 'player4'
+    assert game_round.pre_flop_playing_order[3] == 'player4'
+    assert game_round.post_flop_playing_order[0] == 'player4'  # After blinds paid
+    game_round.fold_hand('player4')
+    assert game_round.player_position_order[3] == 'player4'  # Unaffected by fold
+    assert game_round.pre_flop_playing_order[3] == 'player5'
+    assert game_round.post_flop_playing_order[0] == 'player5'
+    assert 'player4' not in game_round.pre_flop_playing_order
+    assert 'player4' not in game_round.post_flop_playing_order

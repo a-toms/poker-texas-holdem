@@ -210,16 +210,17 @@ class GameRound:
 
     def __init__(self, instantiated_players_class):
         self.players_information = instantiated_players_class
-        self.pre_flop_playing_order = deque(
+        self.player_position_order = deque(
             [player for player in self.players_information.__dict__.keys()]
         )
+        self.pre_flop_playing_order = copy.deepcopy(self.player_position_order)
         self.post_flop_playing_order = self.get_post_flop_playing_order()
         self.small_blind_player = self.pre_flop_playing_order[-2]
         self.big_blind_player = self.pre_flop_playing_order[-1]
         self.dealer_player = self.pre_flop_playing_order[-3]
 
     def get_post_flop_playing_order(self):
-        post_flop_playing_order = copy.deepcopy(self.pre_flop_playing_order)
+        post_flop_playing_order = copy.deepcopy(self.player_position_order)
         post_flop_playing_order.rotate(2)
         return post_flop_playing_order
 
@@ -229,7 +230,6 @@ class GameRound:
         self.pot += self.big_blind + self.small_blind
         self.highest_round_bet = self.big_blind
 
-    # todo: continue here. Write call/fold/raise
     def call_bet(self, player):
         call_amount = (
                 self.highest_round_bet -
@@ -238,38 +238,32 @@ class GameRound:
         self.players_information.__dict__[player].money -= call_amount
         self.pot += call_amount
 
+    def fold_hand(self, player):
+        self.pre_flop_playing_order.remove(player)
+        self.post_flop_playing_order.remove(player)
 
-    def fold_hand(self):
-        # Remove player from playing order
-        pass
+    # todo: continue here. Write call/fold/raise/check
 
     def raise_bet(self):
         pass
 
+    def check(self):
+        # can only check if player amount bet == highest_round_bet
+        pass
+
     def ask_for_raise_call_fold(self):
         for player in self.pre_flop_playing_order:
-            while True:
-                action = self.get_player_action(player)
-                if action.lower() is 'c':
+            action = self.get_player_action(player)
 
-
-                    break
-                elif action.lower() is 'r':
-                    pass
-                    break
-                elif action.lower is 'f':
-                    pass
-                    # Remove any people that fold from the post_flop_playing_order
-                    break
-                else:
-                    print('Your action is unclear. Please re-enter\n')
-                    continue
 
     def get_player_action(self, player):
         return input(
             f"{player},\n" +
             "the highest bet of the round so far is {highest_round_bet}." +
-            "Would you like to call (C), raise (R), or fold(F) ?")
+            f"You have {player.money} currently."
+            f"You have bet {player.amount_bet_in_round} this round." +
+            "Would you like to check (1), call (2), raise (3), or fold (4) ?" +
+            "Enter action: ")
 
     def clear_bets_for_each_player_at_end_of_game_round(self):
         pass
