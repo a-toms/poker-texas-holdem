@@ -24,5 +24,8 @@
   "test_hand_of_cards.py::test_game_round_instantiates_to_include_players_class_instantiation",
   "test_hand_of_cards.py::test_pay_blinds",
   "test_hand_of_cards.py::test_pre_flop_playing_order",
-  "test_hand_of_cards.py::test_post_flop_playing_order"
+  "test_hand_of_cards.py::test_post_flop_playing_order",
+  "test_hand_of_cards.py::test_call_bet",
+  "test_hand_of_cards.py::test_fold_hand",
+  "test_hand_of_cards.py::test_raise_bet"
 ]

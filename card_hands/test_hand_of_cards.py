@@ -374,7 +374,7 @@ def test_call_bet():
     game_round.pay_blinds()
     start_money = game_round.players_information.__dict__['player3'].money
     game_round.call_bet('player3')
-    post_call_money  = game_round.players_information.__dict__['player3'].money
+    post_call_money = game_round.players_information.__dict__['player3'].money
     assert post_call_money < start_money
     assert start_money - post_call_money == game_round.big_blind
 
@@ -390,3 +390,18 @@ def test_fold_hand():
     assert game_round.post_flop_playing_order[0] == 'player5'
     assert 'player4' not in game_round.pre_flop_playing_order
     assert 'player4' not in game_round.post_flop_playing_order
+
+def test_raise_bet():
+    all_players = Players(4)
+    game_round = GameRound(all_players)
+    player_1 = game_round.players_information.__dict__['player1']
+    pre_bet_money = player_1.money
+    game_round.raise_bet('player1', 40)
+    post_bet_money = player_1.money
+    assert pre_bet_money - 40 == post_bet_money
+    assert player_1.amount_bet_in_round == 40
+    assert game_round.highest_round_bet == 40
+    assert game_round.pot == 40
+
+
+

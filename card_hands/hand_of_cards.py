@@ -242,10 +242,17 @@ class GameRound:
         self.pre_flop_playing_order.remove(player)
         self.post_flop_playing_order.remove(player)
 
-    # todo: continue here. Write call/fold/raise/check
+    def raise_bet(self, player, bet_size):
+        raising_player = self.players_information.__dict__[player]
+        if raising_player.money - bet_size < 0:
+            print(f"Invalid bet. {player} does not have enough money.")
+            return False
+        raising_player.money -= bet_size
+        raising_player.amount_bet_in_round += bet_size
+        self.highest_round_bet = raising_player.amount_bet_in_round
+        self.pot += bet_size
 
-    def raise_bet(self):
-        pass
+    # todo: continue here. Write call/fold/raise/check
 
     def check(self):
         # can only check if player amount bet == highest_round_bet
@@ -260,8 +267,8 @@ class GameRound:
         return input(
             f"{player},\n" +
             "the highest bet of the round so far is {highest_round_bet}." +
-            f"You have {player.money} currently."
-            f"You have bet {player.amount_bet_in_round} this round." +
+            f"You have {player.money} currently." +
+            f"You have bet {player.amount_bet} this round." +
             "Would you like to check (1), call (2), raise (3), or fold (4) ?" +
             "Enter action: ")
 
