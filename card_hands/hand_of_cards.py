@@ -252,29 +252,39 @@ class GameRound:
         self.highest_round_bet = raising_player.amount_bet_in_round
         self.pot += bet_size
 
-    # todo: continue here. Write call/fold/raise/check
+    def check(self, player): # Todo - Continue by writing tests here
+        checking_player = self.players_information.__dict__[player].amount_bet_in_round
+        if checking_player.amount_bet_in_round == self.highest_round_bet:
+            return True
+        else:
+            print(f"Invalid bet. {player} must match the highest current bet "+
+                  f"of {self.highest_round_bet} to check")
+            return False
 
-    def check(self):
-        # can only check if player amount bet == highest_round_bet
-        pass
-
-    def ask_for_raise_call_fold(self):
-        for player in self.pre_flop_playing_order:
-            action = self.get_player_action(player)
-
+    def ask_player_for_actions(self, player):
+        actions = {
+            1: self.check, 2: self.call_bet, 3: self.raise_bet,
+            4: self.fold_hand
+        }
+        action = self.get_player_action(player)
+        # Work on this section. How do I access a func from a dict and call arguments
+        actions[action](player, *kwargs)
 
     def get_player_action(self, player):
-        return input(
+        return int(input(
             f"{player},\n" +
             "the highest bet of the round so far is {highest_round_bet}." +
             f"You have {player.money} currently." +
             f"You have bet {player.amount_bet} this round." +
             "Would you like to check (1), call (2), raise (3), or fold (4) ?" +
-            "Enter action: ")
+            "Enter action: "))
 
     def clear_bets_for_each_player_at_end_of_game_round(self):
+        #Wipe each players record of game round betting
         pass
 
+    def adjust_player_order_for_next_round(self):
+        pass
 
 def main():
     all_players = Players(5)
