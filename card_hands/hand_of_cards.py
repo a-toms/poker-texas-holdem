@@ -7,7 +7,6 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 
-
 class GetHandRanks:
 
     def get_high_card(self, hand):
@@ -161,7 +160,6 @@ class FindBestHand:
         return best_hand
 
 
-
 class Player:
     money = 100
     amount_bet_in_round = 0
@@ -173,7 +171,6 @@ class Player:
 
 class Players(Player):
     """Use __dict__ to access the different players in Players."""
-
     def __init__(self, number_of_players):
         for i in range(1, number_of_players + 1):
             setattr(self, f'player{i}', Player(f'player{i}'))
@@ -202,7 +199,6 @@ class CardDealer:
         return self.pocket_cards
 
 
-
 class GameRound:
     # self.players_information.player1 -> instantiation of Players(Player)
     """Player order represents the players' different positions in relation to
@@ -229,8 +225,6 @@ class GameRound:
         except IndexError:  # Applies where there are only two players
             self.dealer_player = self.pre_flop_playing_order[-1]
 
-# Todo: Marker
-
     def deal_pocket_cards_to_players(self):
         pocket_cards = self.card_dealer.deal_pocket_cards(
             self.card_dealer.number_of_starting_players)
@@ -253,7 +247,31 @@ class GameRound:
         self.pot += self.big_blind + self.small_blind
         self.highest_round_bet = self.big_blind
 
-    def call_bet(self, player):
+    def print_request(self, player: str) -> None:
+        active_player = self.players_information.__dict__[player]
+        print(f"{active_player.name.title()},\n" +
+              f"The highest bet of the round so far " +
+              f"is {self.highest_round_bet}.\n" +
+              f"You have {active_player.money} currently.\n" +
+              f"You have bet {active_player.amount_bet_in_round} this round.\n")
+
+    def perform_player_command(self, player: str):
+        self.print_request(player)
+        while True:
+            command = int(input(
+                "Would you like to check (0), call (1), raise (2), " +
+                "or fold (3)? Enter action >>\n\n "))
+            if command is 0:
+                self.check_bet(player)
+            elif command is 1:
+                self.call_bet(player)
+            elif command is 2:
+                self.raise_bet(player)
+            elif command is 3:
+                self.fold_hand(player)
+            print("Your action appears invalid.\n")
+
+    def call_bet(self, player: str) -> bool:
         # This will effectively pass if there is no higher bet
         calling_player = self.players_information.__dict__[player]
         call_amount = (
@@ -263,64 +281,43 @@ class GameRound:
         calling_player.money -= call_amount
         calling_player.amount_bet_in_round += call_amount
         self.pot += call_amount
+        # todo: add bool if successful output
 
-    def fold_hand(self, player):
+
+### Todo: Add bool outputs for successful commands. Write good tests for the player commands
+
+
+    def fold_hand(self, player: str):
         self.pre_flop_playing_order.remove(player)
         self.post_flop_playing_order.remove(player)
+        return True
 
-    def raise_bet(self, player, bet_size):
-        raising_player = self.players_information.__dict__[player]
-        if self.highest_round_bet >= bet_size + raising_player.amount_bet_in_round:
-            print(f"Insufficient bet. The bet must be larger to raise.")
-            return False
-        if raising_player.money - bet_size < 0:
-            print(f"Invalid bet. {player} does not have enough money.")
-            return False
-        raising_player.money -= bet_size
-        raising_player.amount_bet_in_round += bet_size
-        self.highest_round_bet = raising_player.amount_bet_in_round
-        self.pot += bet_size
+    def raise_bet(self, player: str, bet_size: int) -> bool:
+        while True:
+            amount: int = int(input("Enter the raise amount >>\n"))
+            if amount + player.amount_bet_in_round < self.highest_round_bet:
+                print(f"Insufficient bet. The bet must be larger to raise. Try again")
+                return False
+            if player.money - amount < 0:
+                print(f"Invalid bet. {player} does not have enough money.")
+                return False
+            else:
+                raising_player = self.players_information.__dict__[player]
+                raising_player.money -= bet_size
+                raising_player.amount_bet_in_round += bet_size
+                self.highest_round_bet = raising_player.amount_bet_in_round
+                self.pot += bet_size
+                return True
 
-    def check_bet(self, player):
+
+    def check_bet(self, player: str) -> bool:
         checking_player = self.players_information.__dict__[player]
         if checking_player.amount_bet_in_round == self.highest_round_bet:
             return True
         else:
             print(f"Invalid bet. {player} must match the highest current bet " +
                   f"of {self.highest_round_bet} to check")
-            return False
-
-    # Todo: cont here. Execute player commands
-    # def execute_player_command(self, player):
-    #     actions = (self.check_bet, self.call_bet, self.fold_hand)
-    #     command = self.get_player_command(player)
-    #     if command is 2:
-    #         bet_size = self.get_raise_amount()
-    #         self.raise_bet(player, bet_size)
-    #     else:
-    #         actions[command](player)
-
-    def get_player_command(self, player):
-        active_player = self.players_information.__dict__[player]
-        print(f"{active_player.name.title()},\n" +
-              f"The highest bet of the round so far " +
-              f"is {self.highest_round_bet}.\n" +
-              f"You have {active_player.money} currently.\n" +
-              f"You have bet {active_player.amount_bet_in_round} this round.\n")
-        while True:
-            command = int(input(
-                "Would you like to check (0), call (1), raise (2), " +
-                "or fold (3)? Enter action >>\n\n "))
-            if command in (0, 1, 2, 3):
-                return command
-            else:
-                print("Your action appears invalid.\n")
-
-    def get_raise_amount(self):
-        while True:
-            amount = int(input("Enter the raise amount >>\n"))
-            if type(amount) is int and amount > 0:
-                return amount
+        # todo: add bool if successful output
 
     def give_pot_to_winners(self, winners: tuple) -> None:
         winnings = self.pot // len(winners)

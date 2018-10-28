@@ -443,9 +443,7 @@ def test_raise_bet_player_has_enough_money():
     game_round = GameRound(all_players, card_dealer)
     player_1 = game_round.players_information.__dict__['player1']
     player_1.money = 40
-    assert game_round.raise_bet('player1', 50) is False
-    player_1.money = 50
-    assert game_round.raise_bet('player1', 50) is not False
+    # Todo: complete test
 
 
 def test_raise_bet_raise_high_enough():
@@ -455,10 +453,7 @@ def test_raise_bet_raise_high_enough():
     game_round = GameRound(all_players, card_dealer)
     player_1 = game_round.players_information.__dict__['player1']
     player_1.money = 100
-    game_round.highest_round_bet = 50
-    assert game_round.raise_bet('player1', 49) is False
-    assert game_round.raise_bet('player1', 50) is False
-    assert game_round.raise_bet('player1', 51) is not False
+    # Todo: complete test
 
 
 def test_check_bet():
@@ -494,32 +489,20 @@ def test_give_pot_to_winners():
 
 
 
-# Todo: Complete writing this test
-# class TestGetPlayerCommands:
-#     n_players = 2
-#     all_players = Players(n_players)
-#     card_dealer = CardDealer(n_players)
-#     game_round = GameRound(all_players, card_dealer)
-#     player_1 = game_round.players_information.__dict__['player1']
-#     player_1.money = 100
-#
-#     def test_get_player_commands(self, monkeypatch):
-#         # Monkeypatch simulates the user entering input in the terminal.
-#         command_codes = 0, 1, 2, 3
-#         for i in command_codes:
-#             monkeypatch.setattr('builtins.input', lambda x: i)
-#             command_code = self.game_round.get_player_command('player1')
-#             assert command_code == i
-#
-#     def test_get_raise_amount(self, monkeypatch):
-#         raise_amount = 40
-#         monkeypatch.setattr('builtins.input', lambda x: raise_amount)
-#         assert raise_amount == self.game_round.get_raise_amount()
-#
-#     def test_execute_player_commands(self):
-#         assert self.player_1.money == 100
-#         self.game_round.highest_round_bet = 40
-#         self.game_round.execute_player_command.command = 1
+#Todo: Write this test
+class TestGetPlayerCommands:
+    n_players = 2
+    all_players = Players(n_players)
+    card_dealer = CardDealer(n_players)
+    game_round = GameRound(all_players, card_dealer)
+    player_1 = game_round.players_information.__dict__['player1']
+    player_1.money = 100
+
+    def test_get_player_commands(self, monkeypatch):
+        # Monkeypatch simulates the user entering input in the terminal.
+        monkeypatch.setattr('builtins.input', lambda x: 'some input')
+        pass
+
 
 
 

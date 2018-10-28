@@ -30,5 +30,7 @@
   "test_hand_of_cards.py::test_raise_bet_raise_action",
   "test_hand_of_cards.py::test_raise_bet_player_has_enough_money",
   "test_hand_of_cards.py::test_raise_bet_raise_high_enough",
-  "test_hand_of_cards.py::test_check_bet"
+  "test_hand_of_cards.py::test_check_bet",
+  "test_hand_of_cards.py::test_give_pot_to_winners",
+  "test_hand_of_cards.py::TestGetPlayerCommands::()::test_get_player_commands"
 ]
