@@ -473,6 +473,28 @@ def test_check_bet():
     assert game_round.check_bet('player1') is True
 
 
+def test_give_pot_to_winners():
+    n_players = 7
+    game_round = GameRound(Players(n_players), CardDealer(n_players))
+    game_round.pot = 150
+    winners = ('player1', 'player2')
+    game_round.players_information.player1.money = 100
+    game_round.players_information.player2.money = 100
+    game_round.give_pot_to_winners(winners)
+    assert game_round.players_information.player1.money == 175
+    assert game_round.players_information.player2.money == 175
+    assert game_round.pot == 0
+    game_round.pot = 200
+    winner = ('player3',)
+    game_round.players_information.player3.money = 100
+    game_round.give_pot_to_winners(winner)
+    assert game_round.players_information.player3.money == 300
+    assert game_round.pot == 0
+
+
+
+
+# Todo: Complete writing this test
 # class TestGetPlayerCommands:
 #     n_players = 2
 #     all_players = Players(n_players)

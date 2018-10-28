@@ -322,6 +322,13 @@ class GameRound:
             if type(amount) is int and amount > 0:
                 return amount
 
+    def give_pot_to_winners(self, winners: tuple) -> None:
+        winnings = self.pot // len(winners)
+        for player in winners:
+            print(self.players_information.__dict__[player].money)
+            self.players_information.__dict__[player].money += winnings
+            print(self.players_information.__dict__[player].money)
+        self.pot = 0
 
     def clear_bets_for_each_player_at_end_of_game_round(self):
         # Wipe each players record of game round betting
@@ -370,12 +377,43 @@ player-neutral manner. The player-hand-matching method should be discrete"""
 
     """
 
+"""
 if __name__ == "__main__":
-    all_players = Players(5)
-    card_dealer = CardDealer(5)
+    n_of_players = 5
+    all_players = Players(n_of_players)
+    card_dealer = CardDealer(n_of_players)
     game_round = GameRound(all_players, card_dealer)
-    game_round.deal_pocket_cards_to_players()
-    print(game_round.players_information.player1.hand)
+    while True:
+        ## Pre-flop
+        game_round.deal_pocket_cards_to_players()
+        game_round.pay_blinds()
+        for player in game_round.pre_flop_playing_order:
+            # Execute player command
+            # check_if_only_one_player_left -> if yes, give pot and end round
+        ## Flop
+        # show board cards
+        for player in game_round.post_flop_playing_order:
+            # Execute player command
+            # check_if_only_one_player_left -> if yes, give pot and end round
+        ## Turn
+        # show board cards
+        for player in game_round.post_flop_playing_order:
+            # Execute player command
+            # check_if_only_one_player_left -> if yes, give pot and end round
+        ## River
+            # show board cards
+            for player in game_round.post_flop_playing_order:
+            # Execute player command
+            # check_if_only_one_player_left -> if yes, give pot and end round
+            # Show winning hand -> give pot to the winner
+        ## Post-Round
+            # game_round.reset_bets()
+            # game_round.ask_to_play_again()
+            # game_round.exclude_player if player does not have enough money for big blind
+"""
+
+
+
 
 
 
