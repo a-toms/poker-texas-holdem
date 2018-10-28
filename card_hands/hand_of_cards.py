@@ -3,44 +3,9 @@ from collections import deque
 import copy
 import random
 import logging
+
 logging.basicConfig(level=logging.INFO)
 
-
-class Player:
-    money = 100
-    amount_bet_in_round = 0
-
-    def __init__(self, name):
-        self.name = name
-
-
-class Players(Player):
-    """Use __dict__ to access the different players in Players."""
-    def __init__(self, number_of_players):
-        for i in range(1, number_of_players + 1):
-            setattr(self, f'player{i}', Player(f'player{i}'))
-
-
-class CardDealer:
-    dealt_cards = []
-    deck = list(itertools.product(range(2, 15), ('H', 'D', 'S', 'C')))
-    pocket_cards = {}
-
-    def __init__(self, n_of_players, n_of_pocket_cards):
-        self.number_of_players = n_of_players
-        self.number_of_pocket_cards = n_of_pocket_cards
-
-    def pick_card(self):
-        card = random.choice(self.deck)
-        self.deck.remove(card)
-        self.dealt_cards.append(card)
-        return card
-
-    def deal_pocket_cards(self):
-        for i in range(1, self.number_of_players + 1):
-            self.pocket_cards[f'player{i}'] = [
-                self.pick_card() for _ in self.number_of_pocket_cards
-            ]
 
 
 class GetHandRanks:
@@ -127,7 +92,6 @@ class GetHandRanks:
 
 
 class ClassifyHand(GetHandRanks):
-
     ranked_hands = []
     hand_ranks = {
         GetHandRanks.get_straight_flush: 9,
@@ -197,6 +161,48 @@ class FindBestHand:
         return best_hand
 
 
+
+class Player:
+    money = 100
+    amount_bet_in_round = 0
+    hand = []
+
+    def __init__(self, name):
+        self.name = name
+
+
+class Players(Player):
+    """Use __dict__ to access the different players in Players."""
+
+    def __init__(self, number_of_players):
+        for i in range(1, number_of_players + 1):
+            setattr(self, f'player{i}', Player(f'player{i}'))
+
+
+class CardDealer:
+    dealt_cards = []
+    deck = list(itertools.product(range(2, 15), ('H', 'D', 'S', 'C')))
+    pocket_cards_per_player = 2
+    pocket_cards = {}
+
+    def __init__(self, number_of_starting_players):
+        self.number_of_starting_players = number_of_starting_players
+
+    def pick_card(self):
+        card = random.choice(self.deck)
+        self.deck.remove(card)
+        self.dealt_cards.append(card)
+        return card
+
+    def deal_pocket_cards(self, number_of_players):
+        for i in range(1, number_of_players + 1):
+            self.pocket_cards[f'player{i}'] = [
+                self.pick_card() for _ in range(self.pocket_cards_per_player)
+            ]
+        return self.pocket_cards
+
+
+
 class GameRound:
     # self.players_information.player1 -> instantiation of Players(Player)
     """Player order represents the players' different positions in relation to
@@ -208,8 +214,9 @@ class GameRound:
     small_blind = 20
     big_blind = 40
 
-    def __init__(self, instantiated_players_class):
+    def __init__(self, instantiated_players_class, instantiated_dealer_class):
         self.players_information = instantiated_players_class
+        self.card_dealer = instantiated_dealer_class
         self.player_position_order = deque(
             [player for player in self.players_information.__dict__.keys()]
         )
@@ -217,7 +224,19 @@ class GameRound:
         self.post_flop_playing_order = self.get_post_flop_playing_order()
         self.small_blind_player = self.pre_flop_playing_order[-2]
         self.big_blind_player = self.pre_flop_playing_order[-1]
-        self.dealer_player = self.pre_flop_playing_order[-3]
+        try:
+            self.dealer_player = self.pre_flop_playing_order[-3]
+        except IndexError:  # Applies where there are only two players
+            self.dealer_player = self.pre_flop_playing_order[-1]
+
+# Todo: Marker
+
+    def deal_pocket_cards_to_players(self):
+        pocket_cards = self.card_dealer.deal_pocket_cards(
+            self.card_dealer.number_of_starting_players)
+        for player, cards in pocket_cards.items():
+            self.players_information.__dict__[player].hand = cards
+
 
     def get_post_flop_playing_order(self):
         post_flop_playing_order = copy.deepcopy(self.player_position_order)
@@ -225,17 +244,24 @@ class GameRound:
         return post_flop_playing_order
 
     def pay_blinds(self):
-        self.players_information.__dict__[self.small_blind_player].money -= self.small_blind
-        self.players_information.__dict__[self.big_blind_player].money -= self.big_blind
+        sb_player = self.players_information.__dict__[self.small_blind_player]
+        bb_player = self.players_information.__dict__[self.big_blind_player]
+        sb_player.money -= self.small_blind
+        sb_player.amount_bet_in_round += self.small_blind
+        bb_player.money -= self.big_blind
+        bb_player.amount_bet_in_round += self.big_blind
         self.pot += self.big_blind + self.small_blind
         self.highest_round_bet = self.big_blind
 
     def call_bet(self, player):
+        # This will effectively pass if there is no higher bet
+        calling_player = self.players_information.__dict__[player]
         call_amount = (
                 self.highest_round_bet -
                 self.players_information.__dict__[player].amount_bet_in_round
         )
-        self.players_information.__dict__[player].money -= call_amount
+        calling_player.money -= call_amount
+        calling_player.amount_bet_in_round += call_amount
         self.pot += call_amount
 
     def fold_hand(self, player):
@@ -244,6 +270,9 @@ class GameRound:
 
     def raise_bet(self, player, bet_size):
         raising_player = self.players_information.__dict__[player]
+        if self.highest_round_bet >= bet_size + raising_player.amount_bet_in_round:
+            print(f"Insufficient bet. The bet must be larger to raise.")
+            return False
         if raising_player.money - bet_size < 0:
             print(f"Invalid bet. {player} does not have enough money.")
             return False
@@ -252,54 +281,63 @@ class GameRound:
         self.highest_round_bet = raising_player.amount_bet_in_round
         self.pot += bet_size
 
-    def check(self, player): # Todo - Continue by writing tests here
-        checking_player = self.players_information.__dict__[player].amount_bet_in_round
+    def check_bet(self, player):
+        checking_player = self.players_information.__dict__[player]
         if checking_player.amount_bet_in_round == self.highest_round_bet:
             return True
         else:
-            print(f"Invalid bet. {player} must match the highest current bet "+
+            print(f"Invalid bet. {player} must match the highest current bet " +
                   f"of {self.highest_round_bet} to check")
             return False
 
-    def ask_player_for_actions(self, player):
-        actions = {
-            1: self.check, 2: self.call_bet, 3: self.raise_bet,
-            4: self.fold_hand
-        }
-        action = self.get_player_action(player)
-        # Work on this section. How do I access a func from a dict and call arguments
-        actions[action](player, *kwargs)
+    # Todo: cont here. Execute player commands
+    # def execute_player_command(self, player):
+    #     actions = (self.check_bet, self.call_bet, self.fold_hand)
+    #     command = self.get_player_command(player)
+    #     if command is 2:
+    #         bet_size = self.get_raise_amount()
+    #         self.raise_bet(player, bet_size)
+    #     else:
+    #         actions[command](player)
 
-    def get_player_action(self, player):
-        return int(input(
-            f"{player},\n" +
-            "the highest bet of the round so far is {highest_round_bet}." +
-            f"You have {player.money} currently." +
-            f"You have bet {player.amount_bet} this round." +
-            "Would you like to check (1), call (2), raise (3), or fold (4) ?" +
-            "Enter action: "))
+    def get_player_command(self, player):
+        active_player = self.players_information.__dict__[player]
+        print(f"{active_player.name.title()},\n" +
+              f"The highest bet of the round so far " +
+              f"is {self.highest_round_bet}.\n" +
+              f"You have {active_player.money} currently.\n" +
+              f"You have bet {active_player.amount_bet_in_round} this round.\n")
+        while True:
+            command = int(input(
+                "Would you like to check (0), call (1), raise (2), " +
+                "or fold (3)? Enter action >>\n\n "))
+            if command in (0, 1, 2, 3):
+                return command
+            else:
+                print("Your action appears invalid.\n")
+
+    def get_raise_amount(self):
+        while True:
+            amount = int(input("Enter the raise amount >>\n"))
+            if type(amount) is int and amount > 0:
+                return amount
+
 
     def clear_bets_for_each_player_at_end_of_game_round(self):
-        #Wipe each players record of game round betting
+        # Wipe each players record of game round betting
         pass
 
     def adjust_player_order_for_next_round(self):
         pass
 
-def main():
-    all_players = Players(5)
-    dealer = CardDealer(5, 2)
-    dealer.deal_pocket_cards()
-    print(dealer.pocket_cards)
+
+
+
 
 
 """ Will require a method to match the highest card numbers to the particular
 player. I like that the current methods will find the best hand in a 
 player-neutral manner. The player-hand-matching method should be discrete"""
-
-
-if __name__ == "__main__":
-    main()
 
 
 """Game mechanics:
@@ -331,3 +369,13 @@ if __name__ == "__main__":
 
 
     """
+
+if __name__ == "__main__":
+    all_players = Players(5)
+    card_dealer = CardDealer(5)
+    game_round = GameRound(all_players, card_dealer)
+    game_round.deal_pocket_cards_to_players()
+    print(game_round.players_information.player1.hand)
+
+
+

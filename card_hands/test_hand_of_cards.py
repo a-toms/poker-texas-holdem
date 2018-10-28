@@ -9,32 +9,43 @@ def test_player():
 
 
 def test_players_initialises_with_correct_number_of_players():
-    number_of_players = 8
-    for i in range(1, number_of_players):
-        assert hasattr(Players(number_of_players), f'player{i}') is True
+    n_players = 8
+    for i in range(1, n_players):
+        assert hasattr(Players(n_players), f'player{i}') is True
 
 
 def test_deck_generation_contains_52_cards():
-    players, pocket_cards = 1, 1
-    assert len(CardDealer(players, pocket_cards).deck) == 52
+    n_players = 1
+    assert len(CardDealer(n_players).deck) == 52
 
 
 def test_deck_generation_contains_no_duplicate_cards():
-    players, pocket_cards = 5, 6
-    new_hand = CardDealer(players, pocket_cards)
+    n_players = 5
+    new_hand = CardDealer(n_players)
     assert len(new_hand.deck) == len(set(new_hand.deck))
 
 
-def test_pick_card():
-    players, pocket_cards = 5, 6
-    card = CardDealer(players, pocket_cards).pick_card()
+def test_pick_card(): # Todo: rewrite
+    n_players = 5
+    card_dealer = CardDealer(n_players)
+    card = card_dealer.pick_card()
     suites = ('H', 'C', 'S', 'H')
     numbers = [i for i in range(2, 15)]
     assert card[0] in numbers, card[1] in suites
 
 
-def test_deal_pocket_cards():
-    pass  # TODO: write test here
+def test_deal_pocket_cards_to_players():
+    n_players = 5
+    all_players = Players(n_players)
+    card_dealer = CardDealer(n_players)
+    game_round = GameRound(all_players, card_dealer)
+    game_round.deal_pocket_cards_to_players()
+    print(game_round.players_information.player1.hand)
+    print(game_round.players_information.__dict__)
+    for k in game_round.players_information.__dict__:
+        print(k)
+        print(game_round.players_information.__dict__[k].hand)
+
 
 
 def test_get_high_card():
@@ -325,30 +336,44 @@ def test_get_winner_from_same_ranked_hands():
     assert FindBestHand().get_highest_card(two_pairs) == best_of_two_pairs
 
 
+# Discuss this aspect with J: is it better to have a single class
+# containing the model data? Would require the test data to be reset frequently
+
+
 def test_game_round_instantiates_to_include_players_class_instantiation():
     all_players = Players(6)
-    game_round = GameRound(all_players)
+    card_dealer = CardDealer(6)
+    game_round = GameRound(all_players, card_dealer)
     assert type(game_round.players_information.player1.money) is int
 
 
 def test_pay_blinds():
+    n_players = 3
     all_players = Players(3)
-    game_round = GameRound(all_players)
+    card_dealer = CardDealer(n_players)
+    game_round = GameRound(all_players, card_dealer)
     starting_player_money = 100
-    assert game_round.players_information.player3.money == starting_player_money
+    starting_player_amount_bet = 0
     assert game_round.big_blind_player == 'player3'
-    assert game_round.players_information.player2.money == starting_player_money
+    assert game_round.players_information.player3.money == starting_player_money
+    assert game_round.players_information.player3.amount_bet_in_round == starting_player_amount_bet
     assert game_round.small_blind_player == 'player2'
+    assert game_round.players_information.player2.money == starting_player_money
+    assert game_round.players_information.player3.amount_bet_in_round == starting_player_amount_bet
     game_round.pay_blinds()
     assert game_round.players_information.player3.money == starting_player_money - game_round.big_blind
+    assert game_round.players_information.player3.amount_bet_in_round == starting_player_amount_bet + game_round.big_blind
     assert game_round.players_information.player2.money == starting_player_money - game_round.small_blind
+    assert game_round.players_information.player2.amount_bet_in_round == starting_player_amount_bet + game_round.small_blind
     assert game_round.pot == game_round.big_blind + game_round.small_blind
     assert game_round.highest_round_bet == game_round.big_blind
 
 
 def test_pre_flop_playing_order():
+    n_players = 8
     all_players = Players(8)
-    game_round = GameRound(all_players)
+    card_dealer = CardDealer(n_players)
+    game_round = GameRound(all_players, card_dealer)
     assert game_round.big_blind_player == 'player8'
     assert game_round.pre_flop_playing_order[-1] == 'player8'
     assert game_round.small_blind_player == 'player7'
@@ -358,8 +383,10 @@ def test_pre_flop_playing_order():
 
 
 def test_post_flop_playing_order():
+    n_players = 8
     all_players = Players(8)
-    game_round = GameRound(all_players)
+    card_dealer = CardDealer(n_players)
+    game_round = GameRound(all_players, card_dealer)
     assert game_round.big_blind_player == 'player8'
     assert game_round.post_flop_playing_order[1] == 'player8'
     assert game_round.small_blind_player == 'player7'
@@ -369,8 +396,10 @@ def test_post_flop_playing_order():
 
 
 def test_call_bet():
+    n_players = 6
     all_players = Players(6)
-    game_round = GameRound(all_players)
+    card_dealer = CardDealer(n_players)
+    game_round = GameRound(all_players, card_dealer)
     game_round.pay_blinds()
     start_money = game_round.players_information.__dict__['player3'].money
     game_round.call_bet('player3')
@@ -379,8 +408,10 @@ def test_call_bet():
     assert start_money - post_call_money == game_round.big_blind
 
 def test_fold_hand():
+    n_players = 5
     all_players = Players(5)
-    game_round = GameRound(all_players)
+    card_dealer = CardDealer(n_players)
+    game_round = GameRound(all_players, card_dealer)
     assert game_round.player_position_order[3] == 'player4'
     assert game_round.pre_flop_playing_order[3] == 'player4'
     assert game_round.post_flop_playing_order[0] == 'player4'  # After blinds paid
@@ -391,9 +422,11 @@ def test_fold_hand():
     assert 'player4' not in game_round.pre_flop_playing_order
     assert 'player4' not in game_round.post_flop_playing_order
 
-def test_raise_bet():
+def test_raise_bet_raise_action():
+    n_players = 4
     all_players = Players(4)
-    game_round = GameRound(all_players)
+    card_dealer = CardDealer(n_players)
+    game_round = GameRound(all_players, card_dealer)
     player_1 = game_round.players_information.__dict__['player1']
     pre_bet_money = player_1.money
     game_round.raise_bet('player1', 40)
@@ -402,6 +435,69 @@ def test_raise_bet():
     assert player_1.amount_bet_in_round == 40
     assert game_round.highest_round_bet == 40
     assert game_round.pot == 40
+
+def test_raise_bet_player_has_enough_money():
+    n_players = 4
+    all_players = Players(n_players)
+    card_dealer = CardDealer(n_players)
+    game_round = GameRound(all_players, card_dealer)
+    player_1 = game_round.players_information.__dict__['player1']
+    player_1.money = 40
+    assert game_round.raise_bet('player1', 50) is False
+    player_1.money = 50
+    assert game_round.raise_bet('player1', 50) is not False
+
+
+def test_raise_bet_raise_high_enough():
+    n_players = 4
+    all_players = Players(n_players)
+    card_dealer = CardDealer(n_players)
+    game_round = GameRound(all_players, card_dealer)
+    player_1 = game_round.players_information.__dict__['player1']
+    player_1.money = 100
+    game_round.highest_round_bet = 50
+    assert game_round.raise_bet('player1', 49) is False
+    assert game_round.raise_bet('player1', 50) is False
+    assert game_round.raise_bet('player1', 51) is not False
+
+
+def test_check_bet():
+    n_players = 7
+    all_players = Players(n_players)
+    card_dealer = CardDealer(n_players)
+    game_round = GameRound(all_players, card_dealer)
+    assert game_round.check_bet('player1') is True
+    game_round.highest_round_bet = 10
+    assert game_round.check_bet('player1') is False
+    game_round.call_bet('player1')
+    assert game_round.check_bet('player1') is True
+
+
+# class TestGetPlayerCommands:
+#     n_players = 2
+#     all_players = Players(n_players)
+#     card_dealer = CardDealer(n_players)
+#     game_round = GameRound(all_players, card_dealer)
+#     player_1 = game_round.players_information.__dict__['player1']
+#     player_1.money = 100
+#
+#     def test_get_player_commands(self, monkeypatch):
+#         # Monkeypatch simulates the user entering input in the terminal.
+#         command_codes = 0, 1, 2, 3
+#         for i in command_codes:
+#             monkeypatch.setattr('builtins.input', lambda x: i)
+#             command_code = self.game_round.get_player_command('player1')
+#             assert command_code == i
+#
+#     def test_get_raise_amount(self, monkeypatch):
+#         raise_amount = 40
+#         monkeypatch.setattr('builtins.input', lambda x: raise_amount)
+#         assert raise_amount == self.game_round.get_raise_amount()
+#
+#     def test_execute_player_commands(self):
+#         assert self.player_1.money == 100
+#         self.game_round.highest_round_bet = 40
+#         self.game_round.execute_player_command.command = 1
 
 
 

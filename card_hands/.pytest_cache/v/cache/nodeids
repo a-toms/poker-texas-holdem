@@ -4,7 +4,7 @@
   "test_hand_of_cards.py::test_deck_generation_contains_52_cards",
   "test_hand_of_cards.py::test_deck_generation_contains_no_duplicate_cards",
   "test_hand_of_cards.py::test_pick_card",
-  "test_hand_of_cards.py::test_deal_pocket_cards",
+  "test_hand_of_cards.py::test_deal_pocket_cards_to_players",
   "test_hand_of_cards.py::test_get_high_card",
   "test_hand_of_cards.py::test_get_pairs",
   "test_hand_of_cards.py::test_get_two_pairs",
@@ -27,5 +27,8 @@
   "test_hand_of_cards.py::test_post_flop_playing_order",
   "test_hand_of_cards.py::test_call_bet",
   "test_hand_of_cards.py::test_fold_hand",
-  "test_hand_of_cards.py::test_raise_bet"
+  "test_hand_of_cards.py::test_raise_bet_raise_action",
+  "test_hand_of_cards.py::test_raise_bet_player_has_enough_money",
+  "test_hand_of_cards.py::test_raise_bet_raise_high_enough",
+  "test_hand_of_cards.py::test_check_bet"
 ]
