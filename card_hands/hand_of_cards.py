@@ -231,7 +231,6 @@ class GameRound:
         for player, cards in pocket_cards.items():
             self.players_information.__dict__[player].hand = cards
 
-
     def get_post_flop_playing_order(self):
         post_flop_playing_order = copy.deepcopy(self.player_position_order)
         post_flop_playing_order.rotate(2)
@@ -255,6 +254,10 @@ class GameRound:
               f"You have {active_player.money} currently.\n" +
               f"You have bet {active_player.amount_bet_in_round} this round.\n")
 
+# Call functions with instantiated Player object
+
+#How do I write tests where I am using while loops?
+
     def perform_player_command(self, player: str):
         self.print_request(player)
         while True:
@@ -262,14 +265,21 @@ class GameRound:
                 "Would you like to check (0), call (1), raise (2), " +
                 "or fold (3)? Enter action >>\n\n "))
             if command is 0:
-                self.check_bet(player)
+                if self.check_bet(player) is True:
+                    return self.check_bet(player)
             elif command is 1:
-                self.call_bet(player)
+                if self.call_bet(player) is True:
+                    return self.check_bet(player)
             elif command is 2:
-                self.raise_bet(player)
+                if self.raise_bet(player) is True:
+                    return self.raise_bet(player)
             elif command is 3:
-                self.fold_hand(player)
+                if self.fold_hand(player) is True:
+                    return self.fold_hand(player)
             print("Your action appears invalid.\n")
+
+
+
 
     def call_bet(self, player: str) -> bool:
         # This will effectively pass if there is no higher bet
@@ -278,10 +288,16 @@ class GameRound:
                 self.highest_round_bet -
                 self.players_information.__dict__[player].amount_bet_in_round
         )
+
+        if calling_player.money - call_amount < 0:
+            print(f"{player} does not have enough money to call")
+            return False
         calling_player.money -= call_amount
         calling_player.amount_bet_in_round += call_amount
         self.pot += call_amount
-        # todo: add bool if successful output
+        return True
+
+
 
 
 ### Todo: Add bool outputs for successful commands. Write good tests for the player commands
@@ -317,7 +333,8 @@ class GameRound:
         else:
             print(f"Invalid bet. {player} must match the highest current bet " +
                   f"of {self.highest_round_bet} to check")
-        # todo: add bool if successful output
+            return False
+
 
     def give_pot_to_winners(self, winners: tuple) -> None:
         winnings = self.pot // len(winners)
