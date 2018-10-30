@@ -216,7 +216,7 @@ class GameRound:
         self.player_position_order = deque(
             [player for player in self.players_information.__dict__.keys()]
         )
-        self.pre_flop_playing_order = copy.deepcopy(self.player_position_order)
+        self.pre_flop_playing_order = copy.deepcopy(list(self.player_position_order))
         self.post_flop_playing_order = self.get_post_flop_playing_order()
         self.small_blind_player = self.pre_flop_playing_order[-2]
         self.big_blind_player = self.pre_flop_playing_order[-1]
@@ -251,33 +251,36 @@ class GameRound:
         print(f"{active_player.name.title()},\n" +
               f"The highest bet of the round so far " +
               f"is {self.highest_round_bet}.\n" +
-              f"You have {active_player.money} currently.\n" +
+              f"You have {active_player.money} coins currently.\n" +
               f"You have bet {active_player.amount_bet_in_round} this round.\n")
 
 # Call functions with instantiated Player object
 
 #How do I write tests where I am using while loops?
 
+
+    def get_player_command(self, player):
+        is_valid_command = False
+        while is_valid_command is False:
+            is_valid_command = self.perform_player_command(player)
+
+
     def perform_player_command(self, player: str):
         self.print_request(player)
-        while True:
-            command = int(input(
-                "Would you like to check (0), call (1), raise (2), " +
-                "or fold (3)? Enter action >>\n\n "))
-            if command is 0:
-                if self.check_bet(player) is True:
-                    return self.check_bet(player)
-            elif command is 1:
-                if self.call_bet(player) is True:
-                    return self.check_bet(player)
-            elif command is 2:
-                if self.raise_bet(player) is True:
-                    return self.raise_bet(player)
-            elif command is 3:
-                if self.fold_hand(player) is True:
-                    return self.fold_hand(player)
-            print("Your action appears invalid.\n")
-
+        command = input(
+            "Would you like to check (0), call (1), raise (2), " +
+            "or fold (3)? Enter command >>\n\n ")
+        if command is '0':
+            return self.check_bet(player)
+        elif command is '1':
+            return self.check_bet(player)
+        elif command is '2':
+            return self.get_amount_to_raise(player)
+        elif command is '3':
+            return self.fold_hand(player)
+        else:
+            print("Your command is invalid.\n")
+            return False
 
 
 
@@ -288,7 +291,6 @@ class GameRound:
                 self.highest_round_bet -
                 self.players_information.__dict__[player].amount_bet_in_round
         )
-
         if calling_player.money - call_amount < 0:
             print(f"{player} does not have enough money to call")
             return False
@@ -308,22 +310,26 @@ class GameRound:
         self.post_flop_playing_order.remove(player)
         return True
 
-    def raise_bet(self, player: str, bet_size: int) -> bool:
+    def get_amount_to_raise(self, player: str) -> bool:
         while True:
-            amount: int = int(input("Enter the raise amount >>\n"))
-            if amount + player.amount_bet_in_round < self.highest_round_bet:
-                print(f"Insufficient bet. The bet must be larger to raise. Try again")
+            bet_amount: int = int(input("Enter the raise bet_amount >>\n"))
+            if self.highest_round_bet > bet_amount + player.amount_bet_in_round:
+                print(f"Insufficient bet. The bet must be larger to raise. " +
+                      f"Try again")
                 return False
-            if player.money - amount < 0:
+            if player.money - bet_amount < 0:
                 print(f"Invalid bet. {player} does not have enough money.")
                 return False
             else:
-                raising_player = self.players_information.__dict__[player]
-                raising_player.money -= bet_size
-                raising_player.amount_bet_in_round += bet_size
-                self.highest_round_bet = raising_player.amount_bet_in_round
-                self.pot += bet_size
-                return True
+                return self.place_bet(player, bet_amount)
+
+    def place_bet(self, player, bet_amount):
+        raising_player = self.players_information.__dict__[player]
+        raising_player.money -= bet_amount
+        raising_player.amount_bet_in_round += bet_amount
+        self.highest_round_bet = raising_player.amount_bet_in_round
+        self.pot += bet_amount
+        return True
 
 
     def check_bet(self, player: str) -> bool:
@@ -391,12 +397,17 @@ player-neutral manner. The player-hand-matching method should be discrete"""
 
     """
 
-"""
+
 if __name__ == "__main__":
     n_of_players = 5
     all_players = Players(n_of_players)
     card_dealer = CardDealer(n_of_players)
     game_round = GameRound(all_players, card_dealer)
+    for player in game_round.pre_flop_playing_order:
+        game_round.get_player_command(player)
+
+
+    """
     while True:
         ## Pre-flop
         game_round.deal_pocket_cards_to_players()

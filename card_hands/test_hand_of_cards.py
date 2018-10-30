@@ -464,7 +464,7 @@ def test_player_chooses_call_bet(monkeypatch):
 #     game_round = GameRound(all_players, card_dealer)
 #     player_1 = game_round.players_information.__dict__['player1']
 #     pre_bet_money = player_1.money
-#     game_round.raise_bet('player1', 40)
+#     game_round.get_amount_to_raise('player1', 40)
 #     post_bet_money = player_1.money
 #     assert pre_bet_money - 40 == post_bet_money
 #     assert player_1.amount_bet_in_round == 40
