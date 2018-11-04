@@ -7,6 +7,10 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 
+
+
+
+
 class GetHandRanks:
 
     def get_high_card(self, hand):
@@ -200,11 +204,6 @@ class CardDealer:
 
 
 class GameRound:
-    # self.players_information.player1 -> instantiation of Players(Player)
-    """Player order represents the players' different positions in relation to
-    the dealer around the table. The initial pre-flop positions are rotated
-    after the pre-flop round."""
-
     highest_round_bet = 0
     pot = 0
     small_blind = 20
@@ -249,21 +248,37 @@ class GameRound:
     def print_request(self, player: str) -> None:
         active_player = self.players_information.__dict__[player]
         print(f"{active_player.name.title()},\n" +
-              f"The highest bet of the round so far " +
-              f"is {self.highest_round_bet}.\n" +
               f"You have {active_player.money} coins currently.\n" +
-              f"You have bet {active_player.amount_bet_in_round} this round.\n")
+              f"You have bet {active_player.amount_bet_in_round} " +
+              f"this round.\n" +
+              f"The highest bet of the round so far " +
+              f"is {self.highest_round_bet}.\n"
+              )
 
-# Call functions with instantiated Player object
+    def get_player_actions_after_raise(self, active_players):
+        for player in active_players:
+            a_player = self.players_information.__dict__[player]
+            if a_player.amount_bet_in_round != game_round.highest_round_bet:
+                self.get_player_command(player)
+        if self.each_player_has_matched_highest_bet(active_players) is False:
+            self.get_player_actions_after_raise(active_players)
 
-#How do I write tests where I am using while loops?
+    def each_player_has_matched_highest_bet(self, active_players):
+        for player in active_players:
+            a_player = self.players_information.__dict__[player]
+            if a_player.amount_bet_in_round != game_round.highest_round_bet:
+                return False
+
+
+
+
+
 
 
     def get_player_command(self, player):
         is_valid_command = False
         while is_valid_command is False:
             is_valid_command = self.perform_player_command(player)
-
 
     def perform_player_command(self, player: str):
         self.print_request(player)
@@ -273,7 +288,7 @@ class GameRound:
         if command is '0':
             return self.check_bet(player)
         elif command is '1':
-            return self.check_bet(player)
+            return self.call_bet(player)
         elif command is '2':
             return self.get_amount_to_raise(player)
         elif command is '3':
@@ -281,7 +296,6 @@ class GameRound:
         else:
             print("Your command is invalid.\n")
             return False
-
 
 
     def call_bet(self, player: str) -> bool:
@@ -297,6 +311,7 @@ class GameRound:
         calling_player.money -= call_amount
         calling_player.amount_bet_in_round += call_amount
         self.pot += call_amount
+        print(f"{player} called {call_amount}")
         return True
 
 
@@ -305,25 +320,27 @@ class GameRound:
 ### Todo: Add bool outputs for successful commands. Write good tests for the player commands
 
 
-    def fold_hand(self, player: str):
+    def fold_hand(self, player: str) -> bool:
         self.pre_flop_playing_order.remove(player)
         self.post_flop_playing_order.remove(player)
         return True
 
     def get_amount_to_raise(self, player: str) -> bool:
-        while True:
-            bet_amount: int = int(input("Enter the raise bet_amount >>\n"))
-            if self.highest_round_bet > bet_amount + player.amount_bet_in_round:
-                print(f"Insufficient bet. The bet must be larger to raise. " +
-                      f"Try again")
-                return False
-            if player.money - bet_amount < 0:
-                print(f"Invalid bet. {player} does not have enough money.")
-                return False
-            else:
-                return self.place_bet(player, bet_amount)
+        a_player = self.players_information.__dict__[player]
+        bet_amount: int = int(input("Enter the amount to raise >>\n"))
+        if self.highest_round_bet > bet_amount + a_player.amount_bet_in_round:
+            print(f"Insufficient bet. The bet must be larger to raise. " +
+                  f"Try again")
+            return False
+        if a_player.money - bet_amount < 0:
+            print(f"Invalid bet. {a_player.name} does not have enough money.")
+            return False
+        else:
+            self.place_bet(player, bet_amount)
+            print(f"{a_player.name} bet {bet_amount}")
+            return True
 
-    def place_bet(self, player, bet_amount):
+    def place_bet(self, player: str, bet_amount) -> bool:
         raising_player = self.players_information.__dict__[player]
         raising_player.money -= bet_amount
         raising_player.amount_bet_in_round += bet_amount
@@ -337,7 +354,7 @@ class GameRound:
         if checking_player.amount_bet_in_round == self.highest_round_bet:
             return True
         else:
-            print(f"Invalid bet. {player} must match the highest current bet " +
+            print(f"Invalid action. {player} must match the highest current bet " +
                   f"of {self.highest_round_bet} to check")
             return False
 
@@ -403,8 +420,11 @@ if __name__ == "__main__":
     all_players = Players(n_of_players)
     card_dealer = CardDealer(n_of_players)
     game_round = GameRound(all_players, card_dealer)
-    for player in game_round.pre_flop_playing_order:
+    start_order = copy.deepcopy(game_round.pre_flop_playing_order)
+    for player in start_order:
         game_round.get_player_command(player)
+    game_round.get_player_actions_after_raise(game_round.pre_flop_playing_order)
+
 
 
     """
@@ -437,6 +457,12 @@ if __name__ == "__main__":
             # game_round.exclude_player if player does not have enough money for big blind
 """
 
+
+"""
+General queries:
+-How do I write tests where I am using while loops?
+
+"""
 
 
 

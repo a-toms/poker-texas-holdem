@@ -2,6 +2,7 @@ from hand_of_cards import (
     Player, Players, CardDealer, GetHandRanks, ClassifyHand, FindBestHand,
     GameRound
 )
+import sys
 
 
 def test_player():
@@ -439,64 +440,25 @@ def test_player_chooses_check_bet(monkeypatch):
     all_players = Players(n_players)
     card_dealer = CardDealer(n_players)
     game_round = GameRound(all_players, card_dealer)
-    monkeypatch.setattr('builtins.input', lambda x: 0)
     game_round.highest_round_bet = 50
     game_round.players_information.__dict__['player1'].amount_bet_in_round = 50
-    assert game_round.perform_player_command('player1') is True
+    monkeypatch.setattr('builtins.input', lambda x: 0)
+    assert game_round.check_bet('player1') is True
 
+# How do I test the perform bet action?
 
 def test_player_chooses_call_bet(monkeypatch):
     n_players = 6
     all_players = Players(n_players)
     card_dealer = CardDealer(n_players)
     game_round = GameRound(all_players, card_dealer)
-    monkeypatch.setattr('builtins.input', lambda x: 0)
+    monkeypatch.setattr('builtins.input', lambda x: 1)
+    i = int(input(''))
+    assert i == 1
     game_round.highest_round_bet = 50
     game_round.players_information.__dict__['player1'].money = 100
-    #assert game_round.perform_player_command('player1') is False
+    assert game_round.call_bet('player1') is True
 
-
-
-# def test_raise_bet_raise_action():
-#     n_players = 4
-#     all_players = Players(4)
-#     card_dealer = CardDealer(n_players)
-#     game_round = GameRound(all_players, card_dealer)
-#     player_1 = game_round.players_information.__dict__['player1']
-#     pre_bet_money = player_1.money
-#     game_round.get_amount_to_raise('player1', 40)
-#     post_bet_money = player_1.money
-#     assert pre_bet_money - 40 == post_bet_money
-#     assert player_1.amount_bet_in_round == 40
-#     assert game_round.highest_round_bet == 40
-#     assert game_round.pot == 40
-
-# def test_raise_bet_player_has_enough_money():
-#     n_players = 4
-#     all_players = Players(n_players)
-#     card_dealer = CardDealer(n_players)
-#     game_round = GameRound(all_players, card_dealer)
-#     player_1 = game_round.players_information.__dict__['player1']
-#     player_1.money = 40
-#     # Todo: complete test
-
-
-# def test_raise_bet_raise_high_enough():
-#     n_players = 4
-#     all_players = Players(n_players)
-#     card_dealer = CardDealer(n_players)
-#     game_round = GameRound(all_players, card_dealer)
-#     player_1 = game_round.players_information.__dict__['player1']
-#     player_1.money = 100
-#     # Todo: complete test
-
-
-def test_check_bet():
-    n_players = 7
-    all_players = Players(n_players)
-    card_dealer = CardDealer(n_players)
-    game_round = GameRound(all_players, card_dealer)
-    # Todo: complete test
 
 
 def test_give_pot_to_winners():
@@ -518,9 +480,6 @@ def test_give_pot_to_winners():
     assert game_round.pot == 0
 
 
-
-
-#Todo: Write this test
 class TestGetPlayerCommands:
     n_players = 2
     all_players = Players(n_players)
