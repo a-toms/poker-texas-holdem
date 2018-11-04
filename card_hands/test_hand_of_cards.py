@@ -480,19 +480,6 @@ def test_give_pot_to_winners():
     assert game_round.pot == 0
 
 
-class TestGetPlayerCommands:
-    n_players = 2
-    all_players = Players(n_players)
-    card_dealer = CardDealer(n_players)
-    game_round = GameRound(all_players, card_dealer)
-    player_1 = game_round.players_information.__dict__['player1']
-    player_1.money = 100
-
-    def test_get_player_commands(self, monkeypatch):
-        # Monkeypatch simulates the user entering input in the terminal.
-        monkeypatch.setattr('builtins.input', lambda x: 'some input')
-        pass
-
 
 
 

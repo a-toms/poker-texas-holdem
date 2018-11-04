@@ -247,7 +247,7 @@ class GameRound:
 
     def print_request(self, player: str) -> None:
         active_player = self.players_information.__dict__[player]
-        print(f"{active_player.name.title()},\n" +
+        print(f"\n{active_player.name.title()},\n" +
               f"You have {active_player.money} coins currently.\n" +
               f"You have bet {active_player.amount_bet_in_round} " +
               f"this round.\n" +
@@ -255,24 +255,28 @@ class GameRound:
               f"is {self.highest_round_bet}.\n"
               )
 
-    def get_player_actions_after_raise(self, active_players):
+    def get_actions(self, active_players): # How do I write tests for this function?
         for player in active_players:
             a_player = self.players_information.__dict__[player]
-            if a_player.amount_bet_in_round != game_round.highest_round_bet:
+            if self.is_player_required_to_act(a_player) is True:
                 self.get_player_command(player)
         if self.each_player_has_matched_highest_bet(active_players) is False:
-            self.get_player_actions_after_raise(active_players)
+            self.get_actions(active_players)
 
-    def each_player_has_matched_highest_bet(self, active_players):
+
+    def is_player_required_to_act(self, player: Player) -> bool: # Todo: Write test for this
+        if player.amount_bet_in_round != game_round.highest_round_bet:
+            return True
+        elif game_round.highest_round_bet == 0:
+            return True
+        else:
+            return False
+
+    def each_player_has_matched_highest_bet(self, active_players): # Todo: Write test for this
         for player in active_players:
             a_player = self.players_information.__dict__[player]
             if a_player.amount_bet_in_round != game_round.highest_round_bet:
                 return False
-
-
-
-
-
 
 
     def get_player_command(self, player):
@@ -315,11 +319,6 @@ class GameRound:
         return True
 
 
-
-
-### Todo: Add bool outputs for successful commands. Write good tests for the player commands
-
-
     def fold_hand(self, player: str) -> bool:
         self.pre_flop_playing_order.remove(player)
         self.post_flop_playing_order.remove(player)
@@ -337,7 +336,8 @@ class GameRound:
             return False
         else:
             self.place_bet(player, bet_amount)
-            print(f"{a_player.name} bet {bet_amount}")
+            print(f"{a_player.name} bet {bet_amount} " +
+                  f"to bet {a_player.amount_bet_in_round} overall.")
             return True
 
     def place_bet(self, player: str, bet_amount) -> bool:
@@ -348,7 +348,6 @@ class GameRound:
         self.pot += bet_amount
         return True
 
-
     def check_bet(self, player: str) -> bool:
         checking_player = self.players_information.__dict__[player]
         if checking_player.amount_bet_in_round == self.highest_round_bet:
@@ -358,7 +357,6 @@ class GameRound:
                   f"of {self.highest_round_bet} to check")
             return False
 
-
     def give_pot_to_winners(self, winners: tuple) -> None:
         winnings = self.pot // len(winners)
         for player in winners:
@@ -367,9 +365,10 @@ class GameRound:
             print(self.players_information.__dict__[player].money)
         self.pot = 0
 
-    def clear_bets_for_each_player_at_end_of_game_round(self):
-        # Wipe each players record of game round betting
-        pass
+    def clear_bets_for_each_player_at_end_of_game_round(self): # Todo: write test for this
+        for player in self.players_information.__dict__.keys():
+            player.amount_bet_in_round = 0
+
 
     def adjust_player_order_for_next_round(self):
         pass
@@ -421,9 +420,8 @@ if __name__ == "__main__":
     card_dealer = CardDealer(n_of_players)
     game_round = GameRound(all_players, card_dealer)
     start_order = copy.deepcopy(game_round.pre_flop_playing_order)
-    for player in start_order:
-        game_round.get_player_command(player)
-    game_round.get_player_actions_after_raise(game_round.pre_flop_playing_order)
+    game_round.get_actions(game_round.pre_flop_playing_order)
+    # Reset
 
 
 
@@ -461,6 +459,9 @@ if __name__ == "__main__":
 """
 General queries:
 -How do I write tests where I am using while loops?
+
+
+
 
 """
 
