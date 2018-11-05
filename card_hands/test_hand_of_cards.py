@@ -26,7 +26,7 @@ def test_deck_generation_contains_no_duplicate_cards():
     assert len(new_hand.deck) == len(set(new_hand.deck))
 
 
-def test_pick_card(): # Todo: rewrite
+def test_pick_card():
     n_players = 5
     card_dealer = CardDealer(n_players)
     card = card_dealer.pick_card()
@@ -46,7 +46,6 @@ def test_deal_pocket_cards_to_players():
     for k in game_round.players_information.__dict__:
         print(k)
         print(game_round.players_information.__dict__[k].hand)
-
 
 
 def test_get_high_card():
@@ -408,6 +407,7 @@ def test_call_bet_successful():
     assert post_call_money < start_money
     assert start_money - post_call_money == game_round.big_blind
 
+
 def test_call_bet_unsuccessful():
     n_players = 6
     all_players = Players(n_players)
@@ -416,7 +416,6 @@ def test_call_bet_unsuccessful():
     game_round.players_information.__dict__['player1'].money = 50
     game_round.highest_round_bet = 100
     assert game_round.call_bet('player1') is False
-
 
 
 def test_fold_hand():
@@ -460,7 +459,6 @@ def test_player_chooses_call_bet(monkeypatch):
     assert game_round.call_bet('player1') is True
 
 
-
 def test_give_pot_to_winners():
     n_players = 7
     game_round = GameRound(Players(n_players), CardDealer(n_players))
@@ -478,6 +476,51 @@ def test_give_pot_to_winners():
     game_round.give_pot_to_winners(winner)
     assert game_round.players_information.player3.money == 300
     assert game_round.pot == 0
+
+
+def test_is_player_required_to_act():
+    n_players = 7
+    game_round = GameRound(Players(n_players), CardDealer(n_players))
+    player_1 = game_round.players_information.player1
+    game_round.highest_round_bet = 100
+    player_1.amount_bet_in_round = 50
+    assert game_round.is_player_required_to_act(player_1) is True
+    game_round.highest_round_bet = 0
+    game_round.players_information.player1.amount_bet_in_round = 0
+    assert game_round.is_player_required_to_act(player_1) is True
+    game_round.highest_round_bet = 100
+    player_1.amount_bet_in_round = 100
+    assert game_round.is_player_required_to_act(player_1) is False
+
+
+def test_each_player_has_matched_highest_bet():
+    n_players = 3
+    game_round = GameRound(Players(n_players), CardDealer(n_players))
+    game_round.highest_round_bet = 100
+    game_round.players_information.player1.amount_bet_in_round = 100
+    game_round.players_information.player2.amount_bet_in_round = 100
+    game_round.players_information.player3.amount_bet_in_round = 100
+    a_players = game_round.players_information.__dict__
+    assert game_round.each_player_has_matched_highest_bet(a_players) is True
+    game_round.players_information.player3.amount_bet_in_round = 20
+    assert game_round.each_player_has_matched_highest_bet(a_players) is False
+
+
+def test_clear_player_bets_at_round_end():
+    n_players = 4
+    game_round = GameRound(Players(n_players), CardDealer(n_players))
+    game_round.players_information.player1.amount_bet_in_round = 100
+    game_round.players_information.player2.amount_bet_in_round = 50
+    game_round.players_information.player3.amount_bet_in_round = 100
+    game_round.players_information.player4.amount_bet_in_round = 90
+    game_round.clear_player_bets_at_round_end()
+    assert game_round.players_information.player1.amount_bet_in_round == 0
+    assert game_round.players_information.player2.amount_bet_in_round == 0
+    assert game_round.players_information.player3.amount_bet_in_round == 0
+    assert game_round.players_information.player4.amount_bet_in_round == 0
+
+
+
 
 
 

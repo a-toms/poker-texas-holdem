@@ -255,7 +255,7 @@ class GameRound:
               f"is {self.highest_round_bet}.\n"
               )
 
-    def get_actions(self, active_players): # How do I write tests for this function?
+    def get_actions(self, active_players):  # Todo: How do I write tests for this function?
         for player in active_players:
             a_player = self.players_information.__dict__[player]
             if self.is_player_required_to_act(a_player) is True:
@@ -264,19 +264,20 @@ class GameRound:
             self.get_actions(active_players)
 
 
-    def is_player_required_to_act(self, player: Player) -> bool: # Todo: Write test for this
-        if player.amount_bet_in_round != game_round.highest_round_bet:
+    def is_player_required_to_act(self, player: Player) -> bool:
+        if player.amount_bet_in_round != self.highest_round_bet:
             return True
-        elif game_round.highest_round_bet == 0:
+        elif self.highest_round_bet == 0:
             return True
         else:
             return False
 
-    def each_player_has_matched_highest_bet(self, active_players): # Todo: Write test for this
+    def each_player_has_matched_highest_bet(self, active_players):
         for player in active_players:
             a_player = self.players_information.__dict__[player]
-            if a_player.amount_bet_in_round != game_round.highest_round_bet:
+            if a_player.amount_bet_in_round != self.highest_round_bet:
                 return False
+        return True
 
 
     def get_player_command(self, player):
@@ -357,6 +358,11 @@ class GameRound:
                   f"of {self.highest_round_bet} to check")
             return False
 
+
+    def clear_player_bets_at_round_end(self):
+        for player in self.players_information.__dict__.keys():
+            self.players_information.__dict__[player].amount_bet_in_round = 0
+
     def give_pot_to_winners(self, winners: tuple) -> None:
         winnings = self.pot // len(winners)
         for player in winners:
@@ -365,22 +371,10 @@ class GameRound:
             print(self.players_information.__dict__[player].money)
         self.pot = 0
 
-    def clear_bets_for_each_player_at_end_of_game_round(self): # Todo: write test for this
-        for player in self.players_information.__dict__.keys():
-            player.amount_bet_in_round = 0
-
-
     def adjust_player_order_for_next_round(self):
         pass
 
 
-
-
-
-
-""" Will require a method to match the highest card numbers to the particular
-player. I like that the current methods will find the best hand in a 
-player-neutral manner. The player-hand-matching method should be discrete"""
 
 
 """Game mechanics:
@@ -420,9 +414,15 @@ if __name__ == "__main__":
     card_dealer = CardDealer(n_of_players)
     game_round = GameRound(all_players, card_dealer)
     start_order = copy.deepcopy(game_round.pre_flop_playing_order)
+    game_round.pay_blinds()
+    print(
+        f"\nDealt cards to {n_of_players} players.\n"
+        f"The big blind is {game_round.big_blind_player}. " +
+        f"The small blind is {game_round.small_blind_player}.\n"
+    )
     game_round.get_actions(game_round.pre_flop_playing_order)
-    # Reset
-
+    game_round.clear_player_bets_at_round_end()
+    # Todo: Continue by showing winner at the end of the first round
 
 
     """
@@ -454,18 +454,3 @@ if __name__ == "__main__":
             # game_round.ask_to_play_again()
             # game_round.exclude_player if player does not have enough money for big blind
 """
-
-
-"""
-General queries:
--How do I write tests where I am using while loops?
-
-
-
-
-"""
-
-
-
-
-
