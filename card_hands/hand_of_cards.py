@@ -7,10 +7,6 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 
-
-
-
-
 class GetHandRanks:
 
     def get_high_card(self, hand):
@@ -95,7 +91,7 @@ class GetHandRanks:
 
 
 class ClassifyHand(GetHandRanks):
-    ranked_hands = []
+
     hand_ranks = {
         GetHandRanks.get_straight_flush: 9,
         GetHandRanks.get_four_of_a_kind: 8,
@@ -122,7 +118,9 @@ class ClassifyHand(GetHandRanks):
         return ranked_hands
 
 
-class FindBestHand:
+class FindBestHand():
+    # Todo: adjust tests to include the initialised value
+
     def get_highest_rank(self, ranked_hands):
         """Find the highest rank from several hands."""
         highest_rank = 0
@@ -144,25 +142,33 @@ class FindBestHand:
     def get_card_numbers_from_ranked_hand(self, ranked_hand):
         """Convert a ranked hand to the hand's card numbers."""
         card_numbers = [card[0] for card in ranked_hand[1]]
+        print(card_numbers)
         card_numbers = self.sort_by_frequency_and_size(card_numbers)
         return card_numbers
 
     def sort_by_frequency_and_size(self, card_numbers):
         card_numbers.sort(reverse=True)  # Descending card number size
         card_numbers = sorted(
-            card_numbers, key=lambda n: card_numbers.count(n), reverse=True)  # Descending card number frequency
+            card_numbers, key=lambda n: card_numbers.count(n), reverse=True
+        )  # Descending card number frequency
         return card_numbers
 
     def get_highest_card(self, card_numbers):
-        card_numbers = list(set(card_numbers))
+        card_numbers = self.filter_out_duplicates(card_numbers)
         return self.sort_by_frequency_and_size(card_numbers)[0]
 
-    def get_winner_from_ranked_hands(self, ranked_hands):
+    def get_winner_from_ranked_hands(self, ranked_hands: tuple):
         card_numbers = self.get_card_numbers_from_highest_ranked_cards(
             ranked_hands)
         best_hand = self.get_highest_card(card_numbers)
         return best_hand
 
+    def filter_out_duplicates(self, iterable):
+        filtered = []
+        for x in iterable:
+            if x not in filtered:
+                filtered.append(x)
+        return filtered
 
 class Player:
     money = 100
@@ -178,6 +184,7 @@ class Players(Player):
     def __init__(self, number_of_players):
         for i in range(1, number_of_players + 1):
             setattr(self, f'player{i}', Player(f'player{i}'))
+
 
 
 class CardDealer:
@@ -257,11 +264,12 @@ class GameRound:
 
     def get_actions(self, active_players):  # Todo: How do I write tests for this function?
         for player in active_players:
-            a_player = self.players_information.__dict__[player]
-            if self.is_player_required_to_act(a_player) is True:
+            active_player = self.players_information.__dict__[player]
+            if self.is_player_required_to_act(active_player) is True:
                 self.get_player_command(player)
         if self.each_player_has_matched_highest_bet(active_players) is False:
             self.get_actions(active_players)
+        self.active_players = active_players
 
 
     def is_player_required_to_act(self, player: Player) -> bool:
@@ -358,7 +366,6 @@ class GameRound:
                   f"of {self.highest_round_bet} to check")
             return False
 
-
     def clear_player_bets_at_round_end(self):
         for player in self.players_information.__dict__.keys():
             self.players_information.__dict__[player].amount_bet_in_round = 0
@@ -375,82 +382,23 @@ class GameRound:
         pass
 
 
-
-
-"""Game mechanics:
-
-    1. Represent the board and pocket cards
-    Have a board representation that the player can access, e.g.,
-    board = [(3, 'H'), (3, 'C'), (4, 'S'), (14, 'C'), (8, 'H')], and
-    deal pocket cards to each player, e.g.,
-    hand = [(3, 'S'), (3, 'D').
-
-    2. Find the best hand that the player can form. 
-
-    Do this by running get_hand_rank for each permutation*1 that the player can 
-    form with his pocket cards. Note that the player may be able to form 
-    multiple top ranking hands using 1 of his pocket cards. For example, if he
-    has (4, 'D'), (3,'D') and the board cards are all 'D', he could form a 
-    flush with either card. The highest flush that he can make may involve him
-    using 1, 2, or none of his pocket cards. 
-
-    Accordingly, find the best hand that the player can form by:
-        - ranking all the hands that he can form using the hand_ranking func
-        - finding the best hand from the hands that he can form. If there is a 
-          tie in the best hands that he can form, pick one of them arbitrarily.
-
-    I note that finding the individual's best hand is very similar to finding 
-    the best hand among multiple players.
-
-    *1 Use itertools.permutations
-
-
-    """
-
-
 if __name__ == "__main__":
     n_of_players = 5
     all_players = Players(n_of_players)
     card_dealer = CardDealer(n_of_players)
     game_round = GameRound(all_players, card_dealer)
     start_order = copy.deepcopy(game_round.pre_flop_playing_order)
+    game_round.deal_pocket_cards_to_players()
     game_round.pay_blinds()
     print(
-        f"\nDealt cards to {n_of_players} players.\n"
         f"The big blind is {game_round.big_blind_player}. " +
         f"The small blind is {game_round.small_blind_player}.\n"
     )
     game_round.get_actions(game_round.pre_flop_playing_order)
     game_round.clear_player_bets_at_round_end()
-    # Todo: Continue by showing winner at the end of the first round
-
-
-    """
-    while True:
-        ## Pre-flop
-        game_round.deal_pocket_cards_to_players()
-        game_round.pay_blinds()
-        for player in game_round.pre_flop_playing_order:
-            # Execute player command
-            # check_if_only_one_player_left -> if yes, give pot and end round
-        ## Flop
-        # show board cards
-        for player in game_round.post_flop_playing_order:
-            # Execute player command
-            # check_if_only_one_player_left -> if yes, give pot and end round
-        ## Turn
-        # show board cards
-        for player in game_round.post_flop_playing_order:
-            # Execute player command
-            # check_if_only_one_player_left -> if yes, give pot and end round
-        ## River
-            # show board cards
-            for player in game_round.post_flop_playing_order:
-            # Execute player command
-            # check_if_only_one_player_left -> if yes, give pot and end round
-            # Show winning hand -> give pot to the winner
-        ## Post-Round
-            # game_round.reset_bets()
-            # game_round.ask_to_play_again()
-            # game_round.exclude_player if player does not have enough money for big blind
-"""
+    print(card_dealer.pocket_cards)
+    print(hands)
+    ranked_hands = ClassifyHand().rank_hands(hands)
+    print(ranked_hands)
+    best_hand = FindBestHand().get_winner_from_ranked_hands(ranked_hands)
+    print(f"best hand = {best_hand}")

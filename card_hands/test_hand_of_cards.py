@@ -39,13 +39,7 @@ def test_deal_pocket_cards_to_players():
     n_players = 5
     all_players = Players(n_players)
     card_dealer = CardDealer(n_players)
-    game_round = GameRound(all_players, card_dealer)
-    game_round.deal_pocket_cards_to_players()
-    print(game_round.players_information.player1.hand)
-    print(game_round.players_information.__dict__)
-    for k in game_round.players_information.__dict__:
-        print(k)
-        print(game_round.players_information.__dict__[k].hand)
+    # TOdo: add assert
 
 
 def test_get_high_card():
@@ -335,9 +329,6 @@ def test_get_winner_from_same_ranked_hands():
     best_of_two_pairs = (14, 14, 4, 4, 3)
     assert FindBestHand().get_highest_card(two_pairs) == best_of_two_pairs
 
-
-# Discuss this aspect with J: is it better to have a single class
-# containing the model data? Would require the test data to be reset frequently
 
 
 def test_game_round_instantiates_to_include_players_class_instantiation():

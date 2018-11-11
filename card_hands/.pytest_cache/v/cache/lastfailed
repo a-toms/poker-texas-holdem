@@ -2,7 +2,6 @@
   "test_hand_of_cards.py::TestExecutePlayerCommand::()::test_check_bet_with_player_input": true,
   "test_hand_of_cards.py::TestGameRound": true,
   "test_hand_of_cards.py::TestGameRound::()::test_game_round_instantiates_to_include_players_class_instantiation": true,
-  "test_hand_of_cards.py::TestGetPlayerCommands": true,
   "test_hand_of_cards.py::TestGetPlayerCommands::()::test_execute_player_commands": true,
   "test_hand_of_cards.py::TestGetPlayerCommands::()::test_get_player_command_to_raise": true,
   "test_hand_of_cards.py::TestGetPlayerCommands::()::test_get_raise_amount": true,

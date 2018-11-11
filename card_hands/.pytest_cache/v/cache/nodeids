@@ -30,7 +30,8 @@
   "test_hand_of_cards.py::test_fold_hand",
   "test_hand_of_cards.py::test_player_chooses_check_bet",
   "test_hand_of_cards.py::test_player_chooses_call_bet",
-  "test_hand_of_cards.py::test_check_bet",
   "test_hand_of_cards.py::test_give_pot_to_winners",
-  "test_hand_of_cards.py::TestGetPlayerCommands::()::test_get_player_commands"
+  "test_hand_of_cards.py::test_is_player_required_to_act",
+  "test_hand_of_cards.py::test_each_player_has_matched_highest_bet",
+  "test_hand_of_cards.py::test_clear_player_bets_at_round_end"
 ]
