@@ -1,10 +1,7 @@
 [
-  "test_hand_of_cards.py::test_player",
-  "test_hand_of_cards.py::test_players_initialises_with_correct_number_of_players",
-  "test_hand_of_cards.py::test_deck_generation_contains_52_cards",
-  "test_hand_of_cards.py::test_deck_generation_contains_no_duplicate_cards",
-  "test_hand_of_cards.py::test_pick_card",
-  "test_hand_of_cards.py::test_deal_pocket_cards_to_players",
+  "test_hand_of_cards.py::TestDealingCards::test_deal_pocket_cards_to_players",
+  "test_hand_of_cards.py::TestDealingCards::test_pick_card",
+  "test_hand_of_cards.py::TestDeckGeneration::test_52_cards_in_deck",
   "test_hand_of_cards.py::test_get_high_card",
   "test_hand_of_cards.py::test_get_pairs",
   "test_hand_of_cards.py::test_get_two_pairs",
@@ -32,6 +29,6 @@
   "test_hand_of_cards.py::test_player_chooses_call_bet",
   "test_hand_of_cards.py::test_give_pot_to_winners",
   "test_hand_of_cards.py::test_is_player_required_to_act",
-  "test_hand_of_cards.py::test_each_player_has_matched_highest_bet",
-  "test_hand_of_cards.py::test_clear_player_bets_at_round_end"
+  "test_hand_of_cards.py::TestBetting::test_clear_player_bets_at_round_end",
+  "test_hand_of_cards.py::TestBetting::test_each_player_has_matched_highest_bet"
 ]

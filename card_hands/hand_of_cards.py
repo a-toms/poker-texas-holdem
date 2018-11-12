@@ -118,9 +118,7 @@ class ClassifyHand(GetHandRanks):
         return ranked_hands
 
 
-class FindBestHand():
-    # Todo: adjust tests to include the initialised value
-
+class FindBestHand:
     def get_highest_rank(self, ranked_hands):
         """Find the highest rank from several hands."""
         highest_rank = 0
@@ -189,12 +187,13 @@ class Players(Player):
 
 class CardDealer:
     dealt_cards = []
-    deck = list(itertools.product(range(2, 15), ('H', 'D', 'S', 'C')))
     pocket_cards_per_player = 2
     pocket_cards = {}
 
     def __init__(self, number_of_starting_players):
         self.number_of_starting_players = number_of_starting_players
+        self.deck = list(itertools.product(range(2, 15), ('H', 'D', 'S', 'C')))
+
 
     def pick_card(self):
         card = random.choice(self.deck)
@@ -216,13 +215,15 @@ class GameRound:
     small_blind = 20
     big_blind = 40
 
-    def __init__(self, instantiated_players_class, instantiated_dealer_class):
-        self.players_information = instantiated_players_class
-        self.card_dealer = instantiated_dealer_class
+    def __init__(self, instantiated_players, instantiated_dealer):
+        self.players_information = instantiated_players
+        self.card_dealer = instantiated_dealer
         self.player_position_order = deque(
             [player for player in self.players_information.__dict__.keys()]
         )
-        self.pre_flop_playing_order = copy.deepcopy(list(self.player_position_order))
+        self.pre_flop_playing_order = copy.deepcopy(
+            list(self.player_position_order)
+        )
         self.post_flop_playing_order = self.get_post_flop_playing_order()
         self.small_blind_player = self.pre_flop_playing_order[-2]
         self.big_blind_player = self.pre_flop_playing_order[-1]
@@ -267,7 +268,7 @@ class GameRound:
             active_player = self.players_information.__dict__[player]
             if self.is_player_required_to_act(active_player) is True:
                 self.get_player_command(player)
-        if self.each_player_has_matched_highest_bet(active_players) is False:
+        if self.each_player_matched_highest_bet(active_players) is False:
             self.get_actions(active_players)
         self.active_players = active_players
 
@@ -280,7 +281,7 @@ class GameRound:
         else:
             return False
 
-    def each_player_has_matched_highest_bet(self, active_players):
+    def each_player_matched_highest_bet(self, active_players):
         for player in active_players:
             a_player = self.players_information.__dict__[player]
             if a_player.amount_bet_in_round != self.highest_round_bet:

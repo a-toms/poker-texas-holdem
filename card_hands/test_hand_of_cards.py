@@ -2,124 +2,121 @@ from hand_of_cards import (
     Player, Players, CardDealer, GetHandRanks, ClassifyHand, FindBestHand,
     GameRound
 )
-import sys
+import unittest
 
 
-def test_player():
-    pass
+class TestDealingCards(unittest.TestCase):
+
+    def setUp(self):
+        n_players = 8
+        self.game_round = GameRound(Players(n_players), CardDealer(n_players))
+        self.players_information = self.game_round.players_information
+        self.suites = ('H', 'C', 'S', 'D')
+        self.numbers = [i for i in range(2, 15)]
+
+    def test_52_cards_in_deck(self):
+        self.assertIs(52, len(self.game_round.card_dealer.deck))
+
+    def test_pick_card(self):
+        card = self.game_round.card_dealer.pick_card()
+        self.assertIn(card[0], self.numbers)
+        self.assertIn(card[1], self.suites)
+
+    def test_deal_pocket_cards_to_players(self):
+        self.game_round.deal_pocket_cards_to_players()
+        self.assertIn('player8', self.players_information.__dict__.keys())
+        self.assertEqual(
+            str, type(self.players_information.player8.hand[1][1])
+        )
+        self.assertEqual(
+            int, type(self.players_information.player8.hand[1][0])
+        )
 
 
-def test_players_initialises_with_correct_number_of_players():
-    n_players = 8
-    for i in range(1, n_players):
-        assert hasattr(Players(n_players), f'player{i}') is True
+class TestHandRankingSystem(unittest.TestCase):
+    def setUp(self):
+        self.ranker = GetHandRanks()
 
+    def test_get_high_card(self):
+        assert self.ranker.get_high_card(ExampleHands.test_high_card) == (
+            1, 2, 3, 4, 7
+        )
 
-def test_deck_generation_contains_52_cards():
-    n_players = 1
-    assert len(CardDealer(n_players).deck) == 52
+    def test_get_pairs(self):
+        self.assertEqual(len(self.ranker.get_pairs(ExampleHands.test_pair)), 1)
+        self.assertIsNone(self.ranker.get_pairs(ExampleHands.test_no_pair))
 
+    def test_get_two_pairs(self):
+        self.assertEqual(
+            len(self.ranker.get_two_pairs(ExampleHands.test_two_pairs)), 2
+        )
+        self.assertIsNone(
+            self.ranker.get_two_pairs(ExampleHands.test_no_two_pairs)
+        )
 
-def test_deck_generation_contains_no_duplicate_cards():
-    n_players = 5
-    new_hand = CardDealer(n_players)
-    assert len(new_hand.deck) == len(set(new_hand.deck))
+    def test_three_of_a_kind(self):
+        self.assertEqual(
+            len(self.ranker.get_three_of_a_kind(ExampleHands.test_triples)), 3
+        )
+        self.assertIsNone(
+            self.ranker.get_three_of_a_kind(ExampleHands.test_no_triples)
+        )
 
+    def test_four_of_a_kind(self):
+        self.assertEqual(
+            len(self.ranker.get_four_of_a_kind(ExampleHands.test_quads)), 4
+        )
+        self.assertIsNone(
+            self.ranker.get_four_of_a_kind(ExampleHands.test_no_quads)
+        )
 
-def test_pick_card():
-    n_players = 5
-    card_dealer = CardDealer(n_players)
-    card = card_dealer.pick_card()
-    suites = ('H', 'C', 'S', 'H')
-    numbers = [i for i in range(2, 15)]
-    assert card[0] in numbers, card[1] in suites
+    def test_full_house(self):
+        self.assertEqual(
+            self.ranker.get_full_house(ExampleHands.test_full_house),
+            (10, 10, 10, 8, 8)
+        )
+        self.assertIsNone(
+            self.ranker.get_full_house(ExampleHands.test_no_full_house)
+        )
 
+    def test_straight(self):
+        self.assertEqual(self.ranker.get_straight_with_low_ace(
+            ExampleHands.test_straight), (1, 2, 3, 4, 5)
+        )
+        self.assertIsNone(self.ranker.get_straight_with_low_ace(
+            ExampleHands.test_no_straight)
+        )
+        self.assertEqual(self.ranker.get_straight_without_low_ace(
+            ExampleHands.test_ace_high_straight), (10, 11, 12, 13, 14)
+        )
+        self.assertIsNone(self.ranker.get_straight_without_low_ace(
+            ExampleHands.test_no_ace_high_straight)
+        )
+        self.assertEqual(self.ranker.get_straights(
+            ExampleHands.test_ace_high_straight), (10, 11, 12, 13, 14)
+        )
+        self.assertEqual(self.ranker.get_straights(
+            ExampleHands.test_straight), (1, 2, 3, 4, 5)
+        )
+        self.assertIsNone(
+            self.ranker.get_straights(ExampleHands.test_no_straight)
+        )
+        self.assertIsNone(
+            self.ranker.get_straights(ExampleHands.test_no_straight2)
+        )
 
-def test_deal_pocket_cards_to_players():
-    n_players = 5
-    all_players = Players(n_players)
-    card_dealer = CardDealer(n_players)
-    # TOdo: add assert
+    def test_flush(self):
+        self.assertEqual(self.ranker.get_flush(ExampleHands.test_flush),'C')
+        self.assertIsNone(self.ranker.get_flush(ExampleHands.test_no_flush))
 
-
-def test_get_high_card():
-    hand_getter = GetHandRanks()
-    assert hand_getter.get_high_card(ExampleHands.test_high_card) == (
-        1, 2, 3, 4, 7
-    )
-
-
-def test_get_pairs():
-    hand_getter = GetHandRanks()
-    assert len(hand_getter.get_pairs(ExampleHands.test_pair)) == 1
-    assert hand_getter.get_pairs(ExampleHands.test_no_pair) is None
-
-
-def test_get_two_pairs():
-    hand_getter = GetHandRanks()
-    assert len(hand_getter.get_two_pairs(
-        ExampleHands.test_two_pairs)) == 2
-    assert hand_getter.get_two_pairs(
-        ExampleHands.test_no_two_pairs) is None
-
-
-def test_three_of_a_kind():
-    hand_getter = GetHandRanks()
-    assert len(hand_getter.get_three_of_a_kind(
-        ExampleHands.test_triples)) == 3
-    assert hand_getter.get_three_of_a_kind(
-        ExampleHands.test_no_triples) is None
-
-
-def test_four_of_a_kind():
-    hand_getter = GetHandRanks()
-    assert len(hand_getter.get_four_of_a_kind(
-        ExampleHands.test_quads)) == 4
-    assert hand_getter.get_four_of_a_kind(
-        ExampleHands.test_no_quads) is None
-
-
-def test_full_house():
-    hand_getter = GetHandRanks()
-    assert hand_getter.get_full_house(
-        ExampleHands.test_full_house) == (10, 10, 10, 8, 8)
-    assert hand_getter.get_full_house(
-        ExampleHands.test_no_full_house) is None
-
-
-def test_straight():
-    hand_getter = GetHandRanks()
-    assert hand_getter.get_straight_with_low_ace(
-        ExampleHands.test_straight) == (1, 2, 3, 4, 5)
-    assert hand_getter.get_straight_with_low_ace(
-        ExampleHands.test_no_straight) is None
-    assert hand_getter.get_straight_without_low_ace(
-        ExampleHands.test_ace_high_straight) == (10, 11, 12, 13, 14)
-    assert hand_getter.get_straight_without_low_ace(
-        ExampleHands.test_no_ace_high_straight) is None
-    assert hand_getter.get_straights(
-        ExampleHands.test_ace_high_straight) == (10, 11, 12, 13, 14)
-    assert hand_getter.get_straights(
-        ExampleHands.test_straight) == (1, 2, 3, 4, 5)
-    assert hand_getter.get_straights(ExampleHands.test_no_straight) is None
-    assert hand_getter.get_straights(ExampleHands.test_no_straight2) is None
-
-
-def test_flush():
-    hand_getter = GetHandRanks()
-    assert hand_getter.get_flush(ExampleHands.test_flush) == 'C'
-    assert hand_getter.get_flush(ExampleHands.test_no_flush) is None
-
-
-def test_straight_flush():
-    hand_getter = GetHandRanks()
-    assert hand_getter.get_straight_flush(
-        ExampleHands.test_straight_flush) == [
-            (1, 'C'), (2, 'C'), (3, 'C'),
-            (4, 'C'), (5, 'C')
-    ]
-    assert hand_getter.get_straight_flush(
-        ExampleHands.test_no_straight_flush) is None
+    def test_straight_flush(self):
+        self.assertEqual(self.ranker.get_straight_flush(
+            ExampleHands.test_straight_flush),
+            [(1, 'C'), (2, 'C'), (3, 'C'),(4, 'C'), (5, 'C')]
+        )
+        self.assertIsNone(
+            self.ranker.get_straight_flush(ExampleHands.test_no_straight_flush)
+        )
 
 
 class ExampleHands:
@@ -244,49 +241,89 @@ class ExampleHands:
     ]
 
 
-def test_classify_hand():
-    """Check that rank numbers are correctly output for each hand"""
-    hand_classifier = ClassifyHand()
-    hand_and_rank = {
-        'straight flush': 9,
-        'four of a kind': 8,
-        'full house': 7,
-        'flush': 6,
-        'straight': 5,
-        'three of a kind': 4,
-        'two pairs': 3,
-        'pair': 2,
-        'high card': 1
-    }
-    assert hand_classifier.rank_hand(
-        ExampleHands.test_straight_flush) == hand_and_rank['straight flush']
-    assert hand_classifier.rank_hand(
-        ExampleHands.test_quads) == hand_and_rank['four of a kind']
-    assert hand_classifier.rank_hand(
-        ExampleHands.test_full_house) == hand_and_rank['full house']
-    assert hand_classifier.rank_hand(
-        ExampleHands.test_flush) == hand_and_rank['flush']
-    assert hand_classifier.rank_hand(
-        ExampleHands.test_straight) == hand_and_rank['straight']
-    assert hand_classifier.rank_hand(
-        ExampleHands.test_triples) == hand_and_rank['three of a kind']
-    assert hand_classifier.rank_hand(
-        ExampleHands.test_two_pairs) == hand_and_rank['two pairs']
-    assert hand_classifier.rank_hand(
-        ExampleHands.test_pair) == hand_and_rank['pair']
-    assert hand_classifier.rank_hand(
-        ExampleHands.test_high_card) == hand_and_rank['high card']
+class TestHandClassifier(unittest.TestCase):
+    """
+    Check that rank numbers are correctly output for each hand.
+    """
+    def setUp(self):
+        self.hand_classifier = ClassifyHand()
+        self.hand_and_rank = {
+            'straight flush': 9,
+            'four of a kind': 8,
+            'full house': 7,
+            'flush': 6,
+            'straight': 5,
+            'three of a kind': 4,
+            'two pairs': 3,
+            'pair': 2,
+            'high card': 1
+        }
 
+    def check_straight_flush(self):
+        self.assertEqual(
+            self.hand_classifier.rank_hand(ExampleHands.test_straight_flush),
+            self.hand_and_rank['straight flush']
+        )
 
-def test_ranks_hands():
-    assert ClassifyHand().rank_hands(
-        ExampleHands().sample_hands) == ExampleHands().all_ranked_hands
+    def check_quads(self):
+        self.assertEqual(
+            self.hand_classifier.rank_hand(ExampleHands.test_quads),
+            self.hand_and_rank['four of a kind']
+        )
 
+    def check_full_house(self):
+        self.assertEqual(
+            self.hand_classifier.rank_hand(ExampleHands.test_full_house),
+            self.hand_and_rank['full house']
+        )
 
-def test_get_highest_rank():
-    assert FindBestHand().get_highest_rank(
-        ExampleHands().all_ranked_hands) == 9
+    def check_flush_classifier(self):
+        self.assertEqual(
+            self.hand_classifier.rank_hand(ExampleHands.test_flush),
+            self.hand_and_rank['flush']
+        )
 
+    def check_straight(self):
+        self.assertEqual(
+            self.hand_classifier.rank_hand(ExampleHands.test_straight),
+            self.hand_and_rank['straight']
+        )
+
+    def check_triples(self):
+        self.assertEqual(
+            self.hand_classifier.rank_hand(ExampleHands.test_triples),
+            self.hand_and_rank['three of a kind']
+        )
+
+    def check_two_pairs(self):
+        self.assertEqual(
+            self.hand_classifier.rank_hand(ExampleHands.test_two_pairs),
+            self.hand_and_rank['two pairs']
+        )
+
+    def check_paid(self):
+        self.assertEqual(
+            self.hand_classifier.rank_hand(ExampleHands.test_pair),
+            self.hand_and_rank['pair']
+        )
+
+    def check_high_card(self):
+        self.assertEqual(
+            self.hand_classifier.rank_hand(ExampleHands.test_high_card),
+            self.hand_and_rank['high card']
+        )
+
+    def check_all_hands(self):
+        self.assertEqual(
+            ClassifyHand().rank_hands(ExampleHands().sample_hands),
+            ExampleHands().all_ranked_hands
+        )
+
+    def test_get_highest_rank(self):
+        self.assertEqual(
+            FindBestHand().get_highest_rank(ExampleHands().all_ranked_hands),
+            9
+        )
 
 def test_get_card_numbers_sorted_by_frequency_and_size():
     card_numbers1 = [3, 5, 3, 12, 12]
@@ -484,31 +521,40 @@ def test_is_player_required_to_act():
     assert game_round.is_player_required_to_act(player_1) is False
 
 
-def test_each_player_has_matched_highest_bet():
+
+
+class TestBetting(unittest.TestCase):
     n_players = 3
     game_round = GameRound(Players(n_players), CardDealer(n_players))
-    game_round.highest_round_bet = 100
-    game_round.players_information.player1.amount_bet_in_round = 100
-    game_round.players_information.player2.amount_bet_in_round = 100
-    game_round.players_information.player3.amount_bet_in_round = 100
-    a_players = game_round.players_information.__dict__
-    assert game_round.each_player_has_matched_highest_bet(a_players) is True
-    game_round.players_information.player3.amount_bet_in_round = 20
-    assert game_round.each_player_has_matched_highest_bet(a_players) is False
+    player1 = game_round.players_information.player1
+    player2 = game_round.players_information.player2
+    player3 = game_round.players_information.player3
+    all_players: dict = game_round.players_information.__dict__
+
+    def test_clear_player_bets_at_round_end(self):
+        self.player1.amount_bet_in_round = 100
+        self.game_round.clear_player_bets_at_round_end()
+        self.assertEqual(self.player1.amount_bet_in_round, 0)
+
+    def test_each_player_has_matched_highest_bet(self):
+        self.game_round.highest_round_bet = 75
+        self.player1.amount_bet_in_round = 75
+        self.player2.amount_bet_in_round = 75
+        self.player3.amount_bet_in_round = 75
+        self.assertTrue(
+            self.game_round.each_player_matched_highest_bet(self.all_players)
+        )
+        self.player3.amount_bet_in_round = 70
+        self.assertFalse(
+            self.game_round.each_player_matched_highest_bet(self.all_players)
+        )
 
 
-def test_clear_player_bets_at_round_end():
-    n_players = 4
-    game_round = GameRound(Players(n_players), CardDealer(n_players))
-    game_round.players_information.player1.amount_bet_in_round = 100
-    game_round.players_information.player2.amount_bet_in_round = 50
-    game_round.players_information.player3.amount_bet_in_round = 100
-    game_round.players_information.player4.amount_bet_in_round = 90
-    game_round.clear_player_bets_at_round_end()
-    assert game_round.players_information.player1.amount_bet_in_round == 0
-    assert game_round.players_information.player2.amount_bet_in_round == 0
-    assert game_round.players_information.player3.amount_bet_in_round == 0
-    assert game_round.players_information.player4.amount_bet_in_round == 0
+
+
+if __name__ == '__main__':
+    unittest.main()
+
 
 
 

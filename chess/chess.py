@@ -20,15 +20,39 @@ board = {
 }
 
 
-# todo: write the below functions
-def main():
-    game_status = 'incomplete'
-    while game_status is 'incomplete':
-        for player in players:
-            show_board(board)
-            move = get_player_move()
-            is_move_valid = check_move(move)
-            if is_move_valid is False:
-                continue
-            update_board(move)
-            check_game_status(board)
+#V1 moving pawns that players can take. Being with UI
+
+
+
+
+class Piece:
+
+    def __init__(name, color, position):
+        self.name = name
+        self.color = color
+        self.position = position
+
+
+class Board(Piece):
+
+    #def show_board(self):
+
+
+    def
+
+
+
+    pass
+
+
+
+
+class PlayGame(Board):
+    pass
+
+
+
+if __name__ == '__main__':
+    print(1)
+
+
