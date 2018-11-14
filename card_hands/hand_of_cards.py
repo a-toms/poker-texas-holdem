@@ -127,28 +127,36 @@ class FindBestHand:
                 highest_rank = ranked_hand[0]
         return highest_rank
 
-    def get_card_numbers_from_highest_ranked_cards(self, ranked_hands):
-        """Return card numbers from only the hands with the highest rank."""
+    def get_card_numbers_from_cards_in_highest_rank(self, ranked_hands):
+        """
+        Return card numbers from only the hands with the highest rank.
+        """
         highest_rank = self.get_highest_rank(ranked_hands)
         hands_with_highest_rank = []
         for ranked_hand in ranked_hands:
             if ranked_hand[0] == highest_rank:
                 hands_with_highest_rank.append(
-                    self.get_card_numbers_from_ranked_hand(ranked_hand))
+                    self.get_card_numbers_from_ranked_hand(ranked_hand)
+                )
         return hands_with_highest_rank
 
     def get_card_numbers_from_ranked_hand(self, ranked_hand):
-        """Convert a ranked hand to the hand's card numbers."""
+        """
+        Convert a ranked hand to the hand's card numbers.
+        """
         card_numbers = [card[0] for card in ranked_hand[1]]
         print(card_numbers)
         card_numbers = self.sort_by_frequency_and_size(card_numbers)
         return card_numbers
 
     def sort_by_frequency_and_size(self, card_numbers):
-        card_numbers.sort(reverse=True)  # Descending card number size
+        """
+        Sort into descending card number size and descending frequency.
+        """
+        card_numbers.sort(reverse=True)
         card_numbers = sorted(
             card_numbers, key=lambda n: card_numbers.count(n), reverse=True
-        )  # Descending card number frequency
+        )
         return card_numbers
 
     def get_highest_card(self, card_numbers):
@@ -156,7 +164,7 @@ class FindBestHand:
         return self.sort_by_frequency_and_size(card_numbers)[0]
 
     def get_winner_from_ranked_hands(self, ranked_hands: tuple):
-        card_numbers = self.get_card_numbers_from_highest_ranked_cards(
+        card_numbers = self.get_card_numbers_from_cards_in_highest_rank(
             ranked_hands)
         best_hand = self.get_highest_card(card_numbers)
         return best_hand
@@ -178,7 +186,9 @@ class Player:
 
 
 class Players(Player):
-    """Use __dict__ to access the different players in Players."""
+    """
+    Use __dict__ to access the different players in Players.
+    """
     def __init__(self, number_of_players):
         for i in range(1, number_of_players + 1):
             setattr(self, f'player{i}', Player(f'player{i}'))

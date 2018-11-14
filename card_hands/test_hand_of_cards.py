@@ -80,23 +80,28 @@ class TestHandRankingSystem(unittest.TestCase):
         )
 
     def test_straight(self):
-        self.assertEqual(self.ranker.get_straight_with_low_ace(
-            ExampleHands.test_straight), (1, 2, 3, 4, 5)
+        self.assertEqual(
+            self.ranker.get_straight_with_low_ace(ExampleHands.test_straight),
+            (1, 2, 3, 4, 5)
         )
         self.assertIsNone(self.ranker.get_straight_with_low_ace(
             ExampleHands.test_no_straight)
         )
-        self.assertEqual(self.ranker.get_straight_without_low_ace(
-            ExampleHands.test_ace_high_straight), (10, 11, 12, 13, 14)
+        self.assertEqual(
+            self.ranker.get_straight_without_low_ace(
+                ExampleHands.test_ace_high_straight),
+            (10, 11, 12, 13, 14)
         )
         self.assertIsNone(self.ranker.get_straight_without_low_ace(
             ExampleHands.test_no_ace_high_straight)
         )
-        self.assertEqual(self.ranker.get_straights(
-            ExampleHands.test_ace_high_straight), (10, 11, 12, 13, 14)
+        self.assertEqual(
+            self.ranker.get_straights(ExampleHands.test_ace_high_straight),
+            (10, 11, 12, 13, 14)
         )
-        self.assertEqual(self.ranker.get_straights(
-            ExampleHands.test_straight), (1, 2, 3, 4, 5)
+        self.assertEqual(
+            self.ranker.get_straights(ExampleHands.test_straight),
+            (1, 2, 3, 4, 5)
         )
         self.assertIsNone(
             self.ranker.get_straights(ExampleHands.test_no_straight)
@@ -106,13 +111,13 @@ class TestHandRankingSystem(unittest.TestCase):
         )
 
     def test_flush(self):
-        self.assertEqual(self.ranker.get_flush(ExampleHands.test_flush),'C')
+        self.assertEqual(self.ranker.get_flush(ExampleHands.test_flush), 'C')
         self.assertIsNone(self.ranker.get_flush(ExampleHands.test_no_flush))
 
     def test_straight_flush(self):
         self.assertEqual(self.ranker.get_straight_flush(
             ExampleHands.test_straight_flush),
-            [(1, 'C'), (2, 'C'), (3, 'C'),(4, 'C'), (5, 'C')]
+            [(1, 'C'), (2, 'C'), (3, 'C'), (4, 'C'), (5, 'C')]
         )
         self.assertIsNone(
             self.ranker.get_straight_flush(ExampleHands.test_no_straight_flush)
@@ -319,53 +324,81 @@ class TestHandClassifier(unittest.TestCase):
             ExampleHands().all_ranked_hands
         )
 
+
+class TestFindBestHand(unittest.TestCase):
+
+    def setUp(self):
+        self.find_best_hand = FindBestHand()
+
     def test_get_highest_rank(self):
         self.assertEqual(
-            FindBestHand().get_highest_rank(ExampleHands().all_ranked_hands),
+            self.find_best_hand.get_highest_rank(ExampleHands().all_ranked_hands),
             9
         )
 
-def test_get_card_numbers_sorted_by_frequency_and_size():
-    card_numbers1 = [3, 5, 3, 12, 12]
-    card_numbers2 = [14, 14, 2, 2, 2]
-    assert FindBestHand().sort_by_frequency_and_size(
-        card_numbers1) == [12, 12, 3, 3, 5]
-    assert FindBestHand().sort_by_frequency_and_size(
-        card_numbers2) == [2, 2, 2, 14, 14]
+    def test_get_card_numbers_sorted_by_frequency_and_size_higher_size(self):
+        card_numbers = [3, 5, 3, 12, 12]
+        self.assertEqual(
+            self.find_best_hand.sort_by_frequency_and_size(card_numbers),
+            [12, 12, 3, 3, 5]
+        )
 
+    def test_get_card_numbers_sorted_by_frequency_and_size_higher_frequency(self):
+        card_numbers = [14, 14, 2, 2, 2]
+        self.assertEqual(
+            self.find_best_hand.sort_by_frequency_and_size(card_numbers),
+            [2, 2, 2, 14, 14]
+        )
 
-def test1_get_card_numbers_from_highest_ranked_cards():
-    #     3H, 3C, 4S, 14C and 8H on the board. 5 players
-    #     board = [(3, 'H'), (3, 'C'), (4, 'S'), (14, 'C'), (8, 'H')]
-    test_ranked_hand = [
-        (3, [(2, 'H'), (2, 'C'), (3, 'H'), (14, 'C'), (3, 'C')]),  # pocket 2s
-        (2, [(3, 'H'), (3, 'C'), (6, 'H'), (14, 'C'), (8, 'H')]),  # 2D, 6H
-        (3, [(3, 'H'), (4, 'D'), (4, 'S'), (14, 'C'), (14, 'D')]),  # 14D, 4D
-        (3, [(3, 'H'), (3, 'C'), (8, 'C'), (14, 'C'), (8, 'H')]),  # 12D , 8C
-        (2, [(3, 'H'), (3, 'C'), (12, 'S'), (14, 'C'), (8, 'H')])  # 12S, 7S
-    ]
-    assert FindBestHand().get_card_numbers_from_highest_ranked_cards(
-        test_ranked_hand) == [
-        [3, 3, 2, 2, 14], [14, 14, 4, 4, 3], [8, 8, 3, 3, 14]
-    ]
+    def test1_get_card_numbers_from_cards_in_highest_rank(self):
+        """
+        3H, 3C, 4S, 14C and 8H on the board. 5 players.
+        board = [(3, 'H'), (3, 'C'), (4, 'S'), (14, 'C'), (8, 'H')].
+        The test_hand is ranked.
+        """
+        test_hand = [
+            (3, [(2, 'H'), (2, 'C'), (3, 'H'), (14, 'C'), (3, 'C')]),  # pocket 2s
+            (2, [(3, 'H'), (3, 'C'), (6, 'H'), (14, 'C'), (8, 'H')]),  # 2D, 6H
+            (3, [(3, 'H'), (4, 'D'), (4, 'S'), (14, 'C'), (14, 'D')]),  # 14D, 4D
+            (3, [(3, 'H'), (3, 'C'), (8, 'C'), (14, 'C'), (8, 'H')]),  # 12D , 8C
+            (2, [(3, 'H'), (3, 'C'), (12, 'S'), (14, 'C'), (8, 'H')])  # 12S, 7S
+        ]
+        self.assertEqual(
+            self.find_best_hand.get_card_numbers_from_cards_in_highest_rank(test_hand),
+            [[3, 3, 2, 2, 14], [14, 14, 4, 4, 3], [8, 8, 3, 3, 14]]
+        )
 
+    def test2_get_card_numbers_from_highest_ranked_cards(self):
+        self.assertEqual(
+            len(self.find_best_hand.get_card_numbers_from_cards_in_highest_rank(
+                ExampleHands().high_card_ranked_hands)),
+            5
+        )
 
-def test2_get_card_numbers_from_highest_ranked_cards():
-    assert len(FindBestHand().get_card_numbers_from_highest_ranked_cards(
-        ExampleHands().high_card_ranked_hands)) == 5
-    assert len(FindBestHand().get_card_numbers_from_highest_ranked_cards(
-        ExampleHands().full_house_ranked_hands)) == 2
-    assert len(FindBestHand().get_card_numbers_from_highest_ranked_cards(
-        ExampleHands().all_ranked_hands)) == 1
+    def test3_get_card_numbers_from_highest_ranked_cards(self):
+        self.assertEqual(
+            len(self.find_best_hand.get_card_numbers_from_cards_in_highest_rank(
+                ExampleHands().full_house_ranked_hands)),
+            2
+        )
 
+    def test4_get_card_numbers_from_highest_ranked_cards(self):
+        self.assertEqual(
+            len(self.find_best_hand.get_card_numbers_from_cards_in_highest_rank(
+                ExampleHands().all_ranked_hands)),
+            1
+        )
 
-def test_get_winner_from_same_ranked_hands():
-    two_pairs = [
-        (3, 3, 2, 2, 14), (14, 14, 4, 4, 3), (8, 8, 3, 3, 14), (8, 8, 3, 3, 14)
-    ]
-    best_of_two_pairs = (14, 14, 4, 4, 3)
-    assert FindBestHand().get_highest_card(two_pairs) == best_of_two_pairs
-
+    def test_get_winner_from_same_ranked_hands(self):
+        two_pairs = [
+            (3, 3, 2, 2, 14), (14, 14, 4, 4, 3), (8, 8, 3, 3, 14),
+            (8, 8, 3, 3, 14)
+        ]
+        best_of_two_pairs = (14, 14, 4, 4, 3)
+        self.assertEqual(
+            self.find_best_hand.get_highest_card(two_pairs),
+            best_of_two_pairs
+        )
 
 
 def test_game_round_instantiates_to_include_players_class_instantiation():
@@ -375,27 +408,77 @@ def test_game_round_instantiates_to_include_players_class_instantiation():
     assert type(game_round.players_information.player1.money) is int
 
 
-def test_pay_blinds():
-    n_players = 3
-    all_players = Players(3)
-    card_dealer = CardDealer(n_players)
-    game_round = GameRound(all_players, card_dealer)
-    starting_player_money = 100
-    starting_player_amount_bet = 0
-    assert game_round.big_blind_player == 'player3'
-    assert game_round.players_information.player3.money == starting_player_money
-    assert game_round.players_information.player3.amount_bet_in_round == starting_player_amount_bet
-    assert game_round.small_blind_player == 'player2'
-    assert game_round.players_information.player2.money == starting_player_money
-    assert game_round.players_information.player3.amount_bet_in_round == starting_player_amount_bet
-    game_round.pay_blinds()
-    assert game_round.players_information.player3.money == starting_player_money - game_round.big_blind
-    assert game_round.players_information.player3.amount_bet_in_round == starting_player_amount_bet + game_round.big_blind
-    assert game_round.players_information.player2.money == starting_player_money - game_round.small_blind
-    assert game_round.players_information.player2.amount_bet_in_round == starting_player_amount_bet + game_round.small_blind
-    assert game_round.pot == game_round.big_blind + game_round.small_blind
-    assert game_round.highest_round_bet == game_round.big_blind
+class TestGameRoundPreFlopEvents(unittest.TestCase):
 
+    def setUp(self):
+        n_players = 3
+        self.all_players = Players(3)
+        self.card_dealer = CardDealer(n_players)
+        self.game_round = GameRound(self.all_players, self.card_dealer)
+        self.starting_player_money = 100
+        self.starting_player_amount_bet = 0
+        self.game_round.big_blind = 20
+        self.game_round.small_blind = 10
+
+    def test_big_blind_player_correctly_assigned(self):
+        self.assertEqual(self.game_round.big_blind_player, 'player3')
+
+    def test_small_blind_player_correctly_assigned(self):
+        self.assertEqual(self.game_round.small_blind_player, 'player2')
+
+    def test_pay_big_blind(self):
+        self.assertEqual(
+            self.game_round.players_information.player3.money,
+            self.starting_player_money
+        )
+        self.game_round.pay_blinds()
+        self.assertEqual(
+            self.game_round.players_information.player3.money,
+            self.starting_player_money - self.game_round.big_blind
+        )
+        self.assertEqual(
+            self.game_round.players_information.player3.amount_bet_in_round,
+            self.starting_player_amount_bet + self.game_round.big_blind
+        )
+
+    def test_pay_small_blind(self):
+
+        self.assertEqual(
+            self.game_round.players_information.player2.money,
+            self.starting_player_money
+        )
+        self.game_round.pay_blinds()
+        self.assertEqual(
+            self.game_round.players_information.player2.money,
+            self.starting_player_money - self.game_round.small_blind
+        )
+        self.assertEqual(
+            self.game_round.players_information.player2.amount_bet_in_round,
+            self.starting_player_amount_bet + self.game_round.small_blind
+        )
+
+    def test_paying_blinds_adds_to_pot(self):
+        self.assertNotEqual(
+            self.game_round.pot,
+            self.game_round.big_blind + self.game_round.small_blind
+        )
+        self.game_round.pay_blinds()
+        self.assertEqual(
+            self.game_round.pot,
+            self.game_round.big_blind + self.game_round.small_blind
+        )
+
+    def test_paying_blinds_adds_to_record_of_highest_round_bet(self):
+        self.assertNotEqual(
+            self.game_round.highest_round_bet,
+            self.game_round.big_blind)
+        self.game_round.pay_blinds()
+        self.assertEqual(
+            self.game_round.highest_round_bet,
+            self.game_round.big_blind
+        )
+
+# Todo: continue rationalising
 
 def test_pre_flop_playing_order():
     n_players = 8
