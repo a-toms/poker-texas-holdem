@@ -205,13 +205,13 @@ class CardDealer:
         self.deck = list(itertools.product(range(2, 15), ('H', 'D', 'S', 'C')))
 
 
-    def pick_card(self):
+    def pick_card(self) -> tuple:
         card = random.choice(self.deck)
         self.deck.remove(card)
         self.dealt_cards.append(card)
         return card
 
-    def deal_pocket_cards(self, number_of_players):
+    def deal_pocket_cards(self, number_of_players: int) -> dict:
         for i in range(1, number_of_players + 1):
             self.pocket_cards[f'player{i}'] = [
                 self.pick_card() for _ in range(self.pocket_cards_per_player)

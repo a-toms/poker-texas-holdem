@@ -408,11 +408,11 @@ def test_game_round_instantiates_to_include_players_class_instantiation():
     assert type(game_round.players_information.player1.money) is int
 
 
-class TestGameRoundPreFlopEvents(unittest.TestCase):
+class TestGameRoundPayingBlinds(unittest.TestCase):
 
     def setUp(self):
         n_players = 3
-        self.all_players = Players(3)
+        self.all_players = Players(n_players)
         self.card_dealer = CardDealer(n_players)
         self.game_round = GameRound(self.all_players, self.card_dealer)
         self.starting_player_money = 100
@@ -478,55 +478,74 @@ class TestGameRoundPreFlopEvents(unittest.TestCase):
             self.game_round.big_blind
         )
 
-# Todo: continue rationalising
 
-def test_pre_flop_playing_order():
-    n_players = 8
-    all_players = Players(8)
-    card_dealer = CardDealer(n_players)
-    game_round = GameRound(all_players, card_dealer)
-    assert game_round.big_blind_player == 'player8'
-    assert game_round.pre_flop_playing_order[-1] == 'player8'
-    assert game_round.small_blind_player == 'player7'
-    assert game_round.pre_flop_playing_order[-2] == 'player7'
-    assert game_round.dealer_player == 'player6'
-    assert game_round.pre_flop_playing_order[-3] == 'player6'
+class TestGameRoundPlayingOrder(unittest.TestCase):
+
+    def setUp(self):
+        n_players = 8
+        self.all_players = Players(n_players)
+        self.card_dealer = CardDealer(n_players)
+        self.game_round = GameRound(self.all_players, self.card_dealer)
+        self.starting_player_money = 100
+        self.starting_player_amount_bet = 0
+        self.game_round.big_blind = 20
+        self.game_round.small_blind = 10
+
+    def test_pre_flop_playing_order_and_blind_and_dealer_positions(self):
+        self.assertEqual(
+            self.game_round.pre_flop_playing_order[-1],
+            self.game_round.big_blind_player
+        )
+        self.assertEqual(
+            self.game_round.pre_flop_playing_order[-2],
+            self.game_round.small_blind_player
+        )
+        self.assertEqual(
+            self.game_round.pre_flop_playing_order[-3],
+            self.game_round.dealer_player
+        )
+
+    def test_post_flop_playing_order_and_blinds_and_dealer_positions(self):
+        self.assertEqual(
+            self.game_round.post_flop_playing_order[1],
+            self.game_round.big_blind_player
+        )
+        self.assertEqual(
+            self.game_round.post_flop_playing_order[0],
+            self.game_round.small_blind_player
+        )
+        self.assertEqual(
+            self.game_round.post_flop_playing_order[-1],
+            self.game_round.dealer_player
+        )
 
 
-def test_post_flop_playing_order():
-    n_players = 8
-    all_players = Players(8)
-    card_dealer = CardDealer(n_players)
-    game_round = GameRound(all_players, card_dealer)
-    assert game_round.big_blind_player == 'player8'
-    assert game_round.post_flop_playing_order[1] == 'player8'
-    assert game_round.small_blind_player == 'player7'
-    assert game_round.post_flop_playing_order[0] == 'player7'
-    assert game_round.dealer_player == 'player6'
-    assert game_round.post_flop_playing_order[-1] == 'player6'
+class TestPlayerActions(unittest.TestCase):
+    def setUp(self):
+        n_players = 8
+        self.all_players = Players(n_players)
+        self.card_dealer = CardDealer(n_players)
+        self.game_round = GameRound(self.all_players, self.card_dealer)
+        self.starting_player_money = 100
+        self.starting_player_amount_bet = 0
+        self.game_round.big_blind = 20
+        self.game_round.small_blind = 10
 
+    def test_call_big_blind_successful(self):
+        self.game_round.pay_blinds()
+        start_money = self.game_round.players_information.player3.money
+        self.game_round.call_bet('player3')
+        post_call_money = self.game_round.players_information.player3.money
+        self.assertLess(post_call_money, start_money)
+        self.assertEqual(
+            start_money - post_call_money,
+            self.game_round.big_blind
+        )
 
-def test_call_bet_successful():
-    n_players = 6
-    all_players = Players(n_players)
-    card_dealer = CardDealer(n_players)
-    game_round = GameRound(all_players, card_dealer)
-    game_round.pay_blinds()
-    start_money = game_round.players_information.__dict__['player3'].money
-    game_round.call_bet('player3')
-    post_call_money = game_round.players_information.__dict__['player3'].money
-    assert post_call_money < start_money
-    assert start_money - post_call_money == game_round.big_blind
-
-
-def test_call_bet_unsuccessful():
-    n_players = 6
-    all_players = Players(n_players)
-    card_dealer = CardDealer(n_players)
-    game_round = GameRound(all_players, card_dealer)
-    game_round.players_information.__dict__['player1'].money = 50
-    game_round.highest_round_bet = 100
-    assert game_round.call_bet('player1') is False
+    def test_call_bet_unsuccessful(self):
+        self.game_round.players_information.__dict__['player1'].money = 50
+        self.game_round.highest_round_bet = 100
+        self.assertFalse(self.game_round.call_bet('player1'))
 
 
 def test_fold_hand():
