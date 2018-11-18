@@ -249,6 +249,10 @@ class GameRound:
             self.players_information.__dict__[player].hand = cards
 
     def get_post_flop_playing_order(self):
+        """
+        Post-flop playing order rotates by 2 to begin from the left of the
+        dealer player.
+        """
         post_flop_playing_order = copy.deepcopy(self.player_position_order)
         post_flop_playing_order.rotate(2)
         return post_flop_playing_order
@@ -299,16 +303,14 @@ class GameRound:
         return True
 
 
-    def get_player_command(self, player):
-        is_valid_command = False
-        while is_valid_command is False:
-            is_valid_command = self.perform_player_command(player)
-
-    def perform_player_command(self, player: str):
+    def get_player_input(self, player: str) -> str:
         self.print_request(player)
         command = input(
             "Would you like to check (0), call (1), raise (2), " +
-            "or fold (3)? Enter command >>\n\n ")
+            "or fold (3)? Enter command >>\n\n")
+        return command
+
+    def perform_player_command(self, command: str, player: str):
         if command is '0':
             return self.check_bet(player)
         elif command is '1':
@@ -394,6 +396,7 @@ class GameRound:
 
 
 if __name__ == "__main__":
+    # Todo: continue building game. Encapsulate any additional functionality.
     n_of_players = 5
     all_players = Players(n_of_players)
     card_dealer = CardDealer(n_of_players)

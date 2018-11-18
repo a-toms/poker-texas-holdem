@@ -3,6 +3,8 @@ from hand_of_cards import (
     GameRound
 )
 import unittest
+from unittest.mock import patch
+from io import StringIO
 
 
 class TestDealingCards(unittest.TestCase):
@@ -478,6 +480,29 @@ class TestGameRoundPayingBlinds(unittest.TestCase):
             self.game_round.big_blind
         )
 
+class TestEndOfRoundActions(unittest.TestCase):
+
+    def setUp(self):
+        n_players = 8
+        self.all_players = Players(n_players)
+        self.card_dealer = CardDealer(n_players)
+        self.game_round = GameRound(self.all_players, self.card_dealer)
+        self.game_round.players_information.player1.money = 100
+
+    def test_give_pot_to_winners(self):
+        self.game_round.pot = 500
+        winners = ('player1', 'player2')
+        self.assertEqual(
+            self.game_round.players_information.player1.money,
+            100
+        )
+        self.game_round.give_pot_to_winners(winners)
+        self.assertEqual(
+            self.game_round.players_information.player1.money,
+            350
+        )
+        self.assertTrue(self.game_round.pot == 0)
+
 
 class TestGameRoundPlayingOrder(unittest.TestCase):
 
@@ -519,6 +544,19 @@ class TestGameRoundPlayingOrder(unittest.TestCase):
             self.game_round.dealer_player
         )
 
+    def test_player_pre_and_post_flop_positions(self):
+        self.assertEqual('player8', self.game_round.pre_flop_playing_order[-1])
+        self.assertEqual('player8', self.game_round.post_flop_playing_order[1])
+
+    def test_player_positions_pre_flop_position(self):
+        #  Player 7 is in the big blind position so penultimate to act during pre-flop
+        print(self.game_round.pre_flop_playing_order)
+        self.assertEqual('player7', self.game_round.pre_flop_playing_order[-2])
+
+    def test_player_positions_post_flop_position(self):
+        # Player 7 is second to act during post_flop
+        self.assertEqual('player8', self.game_round.post_flop_playing_order[1])
+
 
 class TestPlayerActions(unittest.TestCase):
     def setUp(self):
@@ -526,7 +564,6 @@ class TestPlayerActions(unittest.TestCase):
         self.all_players = Players(n_players)
         self.card_dealer = CardDealer(n_players)
         self.game_round = GameRound(self.all_players, self.card_dealer)
-        self.starting_player_money = 100
         self.starting_player_amount_bet = 0
         self.game_round.big_blind = 20
         self.game_round.small_blind = 10
@@ -547,80 +584,43 @@ class TestPlayerActions(unittest.TestCase):
         self.game_round.highest_round_bet = 100
         self.assertFalse(self.game_round.call_bet('player1'))
 
+    def test_fold_effect_on_folding_player_positions(self):
+        self.game_round.fold_hand('player7')
+        self.assertFalse('player7' in self.game_round.pre_flop_playing_order)
+        self.assertFalse('player7' in self.game_round.post_flop_playing_order)
+        self.assertTrue('player7' in self.game_round.player_position_order)
 
-def test_fold_hand():
-    n_players = 5
-    all_players = Players(n_players)
-    card_dealer = CardDealer(n_players)
-    game_round = GameRound(all_players, card_dealer)
-    assert game_round.player_position_order[3] == 'player4'
-    assert game_round.pre_flop_playing_order[3] == 'player4'
-    assert game_round.post_flop_playing_order[0] == 'player4'  # After blinds paid
-    game_round.fold_hand('player4')
-    assert game_round.player_position_order[3] == 'player4'  # Unaffected by fold
-    assert game_round.pre_flop_playing_order[3] == 'player5'
-    assert game_round.post_flop_playing_order[0] == 'player5'
-    assert 'player4' not in game_round.pre_flop_playing_order
-    assert 'player4' not in game_round.post_flop_playing_order
+    def test_fold_effect_on_other_player_positions(self):
+        self.assertEqual(
+            self.game_round.post_flop_playing_order[1],
+            'player8'
+        )
+        self.game_round.fold_hand('player7')
+        self.assertEqual(
+            self.game_round.post_flop_playing_order[0],
+            'player8'
+        )
 
+    def test_is_player_required_to_act_is_true(self):
+        player_1 = self.game_round.players_information.player1
+        self.game_round.highest_round_bet = 100
+        player_1.amount_bet_in_round = 50
+        self.assertTrue(self.game_round.is_player_required_to_act(player_1))
 
-def test_player_chooses_check_bet(monkeypatch):
-    n_players = 6
-    all_players = Players(n_players)
-    card_dealer = CardDealer(n_players)
-    game_round = GameRound(all_players, card_dealer)
-    game_round.highest_round_bet = 50
-    game_round.players_information.__dict__['player1'].amount_bet_in_round = 50
-    monkeypatch.setattr('builtins.input', lambda x: 0)
-    assert game_round.check_bet('player1') is True
-
-# How do I test the perform bet action?
-
-def test_player_chooses_call_bet(monkeypatch):
-    n_players = 6
-    all_players = Players(n_players)
-    card_dealer = CardDealer(n_players)
-    game_round = GameRound(all_players, card_dealer)
-    monkeypatch.setattr('builtins.input', lambda x: 1)
-    i = int(input(''))
-    assert i == 1
-    game_round.highest_round_bet = 50
-    game_round.players_information.__dict__['player1'].money = 100
-    assert game_round.call_bet('player1') is True
+    def test_is_player_required_to_act_is_false(self):
+        player_1 = self.game_round.players_information.player1
+        self.game_round.highest_round_bet = 100
+        player_1.amount_bet_in_round = 100
+        self.assertFalse(self.game_round.is_player_required_to_act(player_1))
 
 
-def test_give_pot_to_winners():
-    n_players = 7
-    game_round = GameRound(Players(n_players), CardDealer(n_players))
-    game_round.pot = 150
-    winners = ('player1', 'player2')
-    game_round.players_information.player1.money = 100
-    game_round.players_information.player2.money = 100
-    game_round.give_pot_to_winners(winners)
-    assert game_round.players_information.player1.money == 175
-    assert game_round.players_information.player2.money == 175
-    assert game_round.pot == 0
-    game_round.pot = 200
-    winner = ('player3',)
-    game_round.players_information.player3.money = 100
-    game_round.give_pot_to_winners(winner)
-    assert game_round.players_information.player3.money == 300
-    assert game_round.pot == 0
 
+class TestPlayerInput(unittest.TestCase):
+    # Perhaps unnecessary. One need not test IO.
 
-def test_is_player_required_to_act():
-    n_players = 7
-    game_round = GameRound(Players(n_players), CardDealer(n_players))
-    player_1 = game_round.players_information.player1
-    game_round.highest_round_bet = 100
-    player_1.amount_bet_in_round = 50
-    assert game_round.is_player_required_to_act(player_1) is True
-    game_round.highest_round_bet = 0
-    game_round.players_information.player1.amount_bet_in_round = 0
-    assert game_round.is_player_required_to_act(player_1) is True
-    game_round.highest_round_bet = 100
-    player_1.amount_bet_in_round = 100
-    assert game_round.is_player_required_to_act(player_1) is False
+    @patch('builtins.input', lambda: 'y')
+    def test_input_mocking(self):
+        self.assertEqual(input(), 'y')
 
 
 
