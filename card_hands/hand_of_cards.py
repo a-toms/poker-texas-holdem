@@ -6,6 +6,20 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
+"""
+TODO:
+
+1. Build one working game round (including tests)
+2. Refactor to pass Player instances around, rather than using state
+
+"""
+
+
+
+
+
+
+
 
 class GetHandRanks:
 
@@ -180,6 +194,8 @@ class Player:
     money = 100
     amount_bet_in_round = 0
     hand = []
+    has_folded_hand = False
+    has_acted_in_round = False
 
     def __init__(self, name):
         self.name = name
@@ -220,6 +236,16 @@ class CardDealer:
 
 
 class GameRound:
+    """
+    .players_information contains all of the players instances.
+    .card_dealer contains card dealer functions.
+    .active_player contains str list of the players in the round.
+    .player_position_order contains a deque of strs representing player order.
+    .pre_flop_playing_order contains a deque of strs.
+    .small_blind_player
+
+    Todo: Move the records of state to the player instances.
+    """
     highest_round_bet = 0
     pot = 0
     small_blind = 20
@@ -228,6 +254,9 @@ class GameRound:
     def __init__(self, instantiated_players, instantiated_dealer):
         self.players_information = instantiated_players
         self.card_dealer = instantiated_dealer
+        self.active_players = [
+            player for player in self.players_information.__dict__.keys()
+        ]
         self.player_position_order = deque(
             [player for player in self.players_information.__dict__.keys()]
         )
@@ -266,6 +295,13 @@ class GameRound:
         bb_player.amount_bet_in_round += self.big_blind
         self.pot += self.big_blind + self.small_blind
         self.highest_round_bet = self.big_blind
+        print(
+            f""
+            f"The big blind player, {self.big_blind_player}, "
+            f"paid the big blind of {self.big_blind}.\n" +
+            f"The small blind player, {self.small_blind_player},"
+            f"paid the small blind of {self.small_blind}.\n"
+        )
 
     def print_request(self, player: str) -> None:
         active_player = self.players_information.__dict__[player]
@@ -277,18 +313,10 @@ class GameRound:
               f"is {self.highest_round_bet}.\n"
               )
 
-    def get_actions(self, active_players):  # Todo: How do I write tests for this function?
-        for player in active_players:
-            active_player = self.players_information.__dict__[player]
-            if self.is_player_required_to_act(active_player) is True:
-                self.get_player_command(player)
-        if self.each_player_matched_highest_bet(active_players) is False:
-            self.get_actions(active_players)
-        self.active_players = active_players
-
 
     def is_player_required_to_act(self, player: Player) -> bool:
-        if player.amount_bet_in_round != self.highest_round_bet:
+        if (player.amount_bet_in_round != self.highest_round_bet
+                and player in self.active_players):
             return True
         elif self.highest_round_bet == 0:
             return True
@@ -302,80 +330,82 @@ class GameRound:
                 return False
         return True
 
+    def get_player_command(self, player: Player) -> None:
+        action = self.get_player_input(player)
+        valid_command_exists = self.perform_player_command(action, player)
+        if valid_command_exists is False:
+            self.get_player_command(player)
 
-    def get_player_input(self, player: str) -> str:
-        self.print_request(player)
+    def get_player_input(self, player: Player) -> str:
+        self.print_request(player.name)
         command = input(
             "Would you like to check (0), call (1), raise (2), " +
             "or fold (3)? Enter command >>\n\n")
         return command
 
-    def perform_player_command(self, command: str, player: str):
+    def perform_player_command(self, command: str, active_player: Player):
         if command is '0':
-            return self.check_bet(player)
+            return self.check_bet(active_player)
         elif command is '1':
-            return self.call_bet(player)
+            return self.call_bet(active_player)
         elif command is '2':
-            return self.get_amount_to_raise(player)
+            return self.get_amount_to_raise(active_player)
         elif command is '3':
-            return self.fold_hand(player)
+            return self.fold_hand(active_player)
         else:
             print("Your command is invalid.\n")
             return False
 
-
-    def call_bet(self, player: str) -> bool:
-        # This will effectively pass if there is no higher bet
-        calling_player = self.players_information.__dict__[player]
+    def call_bet(self, calling_player: Player) -> bool:
+        """
+        This will make the player effectively check if there is no higher bet.
+        """
         call_amount = (
                 self.highest_round_bet -
-                self.players_information.__dict__[player].amount_bet_in_round
+                calling_player.amount_bet_in_round
         )
         if calling_player.money - call_amount < 0:
-            print(f"{player} does not have enough money to call")
+            print(f"{calling_player.name.title()} does not have enough money to call")
             return False
         calling_player.money -= call_amount
         calling_player.amount_bet_in_round += call_amount
         self.pot += call_amount
-        print(f"{player} called {call_amount}")
+        print(f"{calling_player.name.title()} called {call_amount}.")
         return True
 
-
-    def fold_hand(self, player: str) -> bool:
-        self.pre_flop_playing_order.remove(player)
-        self.post_flop_playing_order.remove(player)
+    def fold_hand(self, folding_player: Player) -> bool:
+        folding_player.has_folded_hand = True
+        print(f"{folding_player.name.title()} folded.")
         return True
 
-    def get_amount_to_raise(self, player: str) -> bool:
-        a_player = self.players_information.__dict__[player]
+    def get_amount_to_raise(self, raising_player: Player) -> bool:
         bet_amount: int = int(input("Enter the amount to raise >>\n"))
-        if self.highest_round_bet > bet_amount + a_player.amount_bet_in_round:
+        if self.highest_round_bet > bet_amount + raising_player.amount_bet_in_round:
             print(f"Insufficient bet. The bet must be larger to raise. " +
                   f"Try again")
             return False
-        if a_player.money - bet_amount < 0:
-            print(f"Invalid bet. {a_player.name} does not have enough money.")
+        if raising_player.money - bet_amount < 0:
+            print(f"Invalid bet. " +
+                  f"{raising_player.name.title()} does not have enough money.")
             return False
         else:
-            self.place_bet(player, bet_amount)
-            print(f"{a_player.name} bet {bet_amount} " +
-                  f"to bet {a_player.amount_bet_in_round} overall.")
+            self.place_bet(raising_player, bet_amount)
+            print(f"{raising_player.name.title()} raised {bet_amount} " +
+                  f"to bet {raising_player.amount_bet_in_round} overall.")
             return True
 
-    def place_bet(self, player: str, bet_amount) -> bool:
-        raising_player = self.players_information.__dict__[player]
+    def place_bet(self, raising_player: Player, bet_amount) -> bool:
         raising_player.money -= bet_amount
         raising_player.amount_bet_in_round += bet_amount
         self.highest_round_bet = raising_player.amount_bet_in_round
         self.pot += bet_amount
         return True
 
-    def check_bet(self, player: str) -> bool:
-        checking_player = self.players_information.__dict__[player]
+    def check_bet(self, checking_player: Player) -> bool:
         if checking_player.amount_bet_in_round == self.highest_round_bet:
             return True
         else:
-            print(f"Invalid action. {player} must match the highest current bet " +
+            print(f"Invalid action. {checking_player.name.title()} must match the highest current bet " +
                   f"of {self.highest_round_bet} to check")
             return False
 
@@ -391,28 +421,48 @@ class GameRound:
             print(self.players_information.__dict__[player].money)
         self.pot = 0
 
-    def adjust_player_order_for_next_round(self):
-        pass
+    def ask_all_active_players_for_actions(self):  #Todo: write test.
+        for name, player in self.players_information.__dict__.items():
+            if self.has_remaining_actions(player) is True:
+                self.get_player_command(player)
+                self.mark_player_as_having_made_action(player)
+        self.ask_all_active_players_for_actions()  # Todo: consider changing this to iterative
+
+
+    def mark_player_as_having_made_action(self, player_who_made_action: Player): #Todo: write test.
+        player_who_made_action.has_acted_in_round = True
+
+
+    def has_remaining_actions(self, player: Player) -> bool: #Todo: finish writing test for this.
+        if player.has_folded_hand is True:
+            return False
+        elif player.amount_bet_in_round == self.highest_round_bet and player.has_acted_in_round is True:
+            return False
+        else:
+            return True
+
+
+
 
 
 if __name__ == "__main__":
-    # Todo: continue building game. Encapsulate any additional functionality.
-    n_of_players = 5
+    n_of_players = 8
     all_players = Players(n_of_players)
     card_dealer = CardDealer(n_of_players)
     game_round = GameRound(all_players, card_dealer)
-    start_order = copy.deepcopy(game_round.pre_flop_playing_order)
     game_round.deal_pocket_cards_to_players()
     game_round.pay_blinds()
-    print(
-        f"The big blind is {game_round.big_blind_player}. " +
-        f"The small blind is {game_round.small_blind_player}.\n"
-    )
-    game_round.get_actions(game_round.pre_flop_playing_order)
-    game_round.clear_player_bets_at_round_end()
-    print(card_dealer.pocket_cards)
-    print(hands)
-    ranked_hands = ClassifyHand().rank_hands(hands)
-    print(ranked_hands)
-    best_hand = FindBestHand().get_winner_from_ranked_hands(ranked_hands)
-    print(f"best hand = {best_hand}")
+    game_round.ask_all_active_players_for_actions()
+
+
+
+
+
+
+
+
+    # game_round.clear_player_bets_at_round_end()
+    # ranked_hands = ClassifyHand().rank_hands(hands)
+    # print(ranked_hands)
+    # best_hand = FindBestHand().get_winner_from_ranked_hands(ranked_hands)
+    # print(f"best hand = {best_hand}")

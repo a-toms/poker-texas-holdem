@@ -444,7 +444,6 @@ class TestGameRoundPayingBlinds(unittest.TestCase):
         )
 
     def test_pay_small_blind(self):
-
         self.assertEqual(
             self.game_round.players_information.player2.money,
             self.starting_player_money
@@ -479,6 +478,7 @@ class TestGameRoundPayingBlinds(unittest.TestCase):
             self.game_round.highest_round_bet,
             self.game_round.big_blind
         )
+
 
 class TestEndOfRoundActions(unittest.TestCase):
 
@@ -564,15 +564,16 @@ class TestPlayerActions(unittest.TestCase):
         self.all_players = Players(n_players)
         self.card_dealer = CardDealer(n_players)
         self.game_round = GameRound(self.all_players, self.card_dealer)
-        self.starting_player_amount_bet = 0
+        self.player1 = self.game_round.players_information.player1
         self.game_round.big_blind = 20
         self.game_round.small_blind = 10
 
+
     def test_call_big_blind_successful(self):
         self.game_round.pay_blinds()
-        start_money = self.game_round.players_information.player3.money
-        self.game_round.call_bet('player3')
-        post_call_money = self.game_round.players_information.player3.money
+        start_money = self.player1.money
+        self.game_round.call_bet(self.player1)
+        post_call_money = self.player1.money
         self.assertLess(post_call_money, start_money)
         self.assertEqual(
             start_money - post_call_money,
@@ -580,38 +581,62 @@ class TestPlayerActions(unittest.TestCase):
         )
 
     def test_call_bet_unsuccessful(self):
-        self.game_round.players_information.__dict__['player1'].money = 50
+        self.player1.money = 40
+        self.player1.amount_bet_in_round = 0
         self.game_round.highest_round_bet = 100
-        self.assertFalse(self.game_round.call_bet('player1'))
+        self.assertFalse(self.game_round.call_bet(self.player1))
 
-    def test_fold_effect_on_folding_player_positions(self):
-        self.game_round.fold_hand('player7')
-        self.assertFalse('player7' in self.game_round.pre_flop_playing_order)
-        self.assertFalse('player7' in self.game_round.post_flop_playing_order)
-        self.assertTrue('player7' in self.game_round.player_position_order)
+class TestFoldHand(unittest.TestCase):
 
-    def test_fold_effect_on_other_player_positions(self):
-        self.assertEqual(
-            self.game_round.post_flop_playing_order[1],
-            'player8'
-        )
-        self.game_round.fold_hand('player7')
-        self.assertEqual(
-            self.game_round.post_flop_playing_order[0],
-            'player8'
-        )
+    def setUp(self):
+        n_players = 8
+        self.all_players = Players(n_players)
+        self.card_dealer = CardDealer(n_players)
+        self.game_round = GameRound(self.all_players, self.card_dealer)
+        self.starting_player_amount_bet = 0
+        self.game_round.big_blind = 20
+        self.game_round.small_blind = 10
 
-    def test_is_player_required_to_act_is_true(self):
-        player_1 = self.game_round.players_information.player1
-        self.game_round.highest_round_bet = 100
-        player_1.amount_bet_in_round = 50
-        self.assertTrue(self.game_round.is_player_required_to_act(player_1))
+    def test_fold(self): #Todo: add test
+        pass
 
-    def test_is_player_required_to_act_is_false(self):
-        player_1 = self.game_round.players_information.player1
-        self.game_round.highest_round_bet = 100
-        player_1.amount_bet_in_round = 100
-        self.assertFalse(self.game_round.is_player_required_to_act(player_1))
+
+class TestPlayerRequiredToAct(unittest.TestCase):
+    def setUp(self):
+        n_players = 8
+        self.all_players = Players(n_players)
+        self.card_dealer = CardDealer(n_players)
+        self.game_round = GameRound(self.all_players, self.card_dealer)
+        self.player1 = self.game_round.player1
+
+
+    def test_has_remaining_actions_folded_hand(self):
+        self.player1.has_folded_hand = True
+        self.assertFalse(self.game_round_has_remaining_actions(self.player1))
+
+    def test_has_remaining_actions_not_yet_bet_enough(self):
+        self.game_round.highest_round_bet = 50
+        self.assertFalse(self.game_round_has_remaining_actions(self.player1))
+
+
+
+
+
+
+    # def test_is_player_required_to_act_is_true(self):
+    #     player_1 = self.game_round.players_information.player1
+    #     self.game_round.highest_round_bet = 100
+    #     player_1.amount_bet_in_round = 50
+    #     self.assertTrue(self.game_round.is_player_required_to_act(player_1))
+    #
+    # def test_is_player_required_to_act_is_false(self):
+    #     player_1 = self.game_round.players_information.player1
+    #     self.game_round.highest_round_bet = 100
+    #     player_1.amount_bet_in_round = 100
+    #     self.assertFalse(self.game_round.is_player_required_to_act(player_1))
+
+
+
 
 
 
@@ -621,6 +646,24 @@ class TestPlayerInput(unittest.TestCase):
     @patch('builtins.input', lambda: 'y')
     def test_input_mocking(self):
         self.assertEqual(input(), 'y')
+
+
+class TestActivePlayersList(unittest.TestCase):
+    def setUp(self):
+        self.n_players = 8
+        self.game_round = GameRound(
+            Players(self.n_players), CardDealer(self.n_players)
+        )
+
+
+    def test_player_dict_items_in_active_players(self):
+        self.assertTrue(self.game_round.active_players[0] == 'player1')
+
+    def test_correct_order_of_player_instances_in_active_players(self):
+        self.assertEqual(
+            len(self.game_round.active_players),
+            self.n_players
+        )
 
 
 
