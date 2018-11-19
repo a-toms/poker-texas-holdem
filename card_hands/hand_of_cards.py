@@ -429,11 +429,11 @@ class GameRound:
         self.ask_all_active_players_for_actions()  # Todo: consider changing this to iterative
 
 
-    def mark_player_as_having_made_action(self, player_who_made_action: Player): #Todo: write test.
+    def mark_player_as_having_made_action(self, player_who_made_action: Player):
         player_who_made_action.has_acted_in_round = True
 
 
-    def has_remaining_actions(self, player: Player) -> bool: #Todo: finish writing test for this.
+    def has_remaining_actions(self, player: Player) -> bool:
         if player.has_folded_hand is True:
             return False
         elif player.amount_bet_in_round == self.highest_round_bet and player.has_acted_in_round is True:
@@ -452,7 +452,7 @@ if __name__ == "__main__":
     game_round = GameRound(all_players, card_dealer)
     game_round.deal_pocket_cards_to_players()
     game_round.pay_blinds()
-    game_round.ask_all_active_players_for_actions()
+    game_round.ask_all_active_players_for_actions() # Todo: continue building game
 
 
 

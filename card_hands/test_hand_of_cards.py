@@ -596,48 +596,56 @@ class TestFoldHand(unittest.TestCase):
         self.starting_player_amount_bet = 0
         self.game_round.big_blind = 20
         self.game_round.small_blind = 10
+        self.player1 = self.game_round.players_information.player1
 
-    def test_fold(self): #Todo: add test
-        pass
+    def test_fold(self):
+        self.assertFalse(self.player1.has_folded_hand)
+        self.game_round.fold_hand(self.player1)
+        self.assertTrue(self.player1.has_folded_hand)
 
 
-class TestPlayerRequiredToAct(unittest.TestCase):
+class TestPlayerHasRemainingActions(unittest.TestCase):
+
     def setUp(self):
         n_players = 8
         self.all_players = Players(n_players)
         self.card_dealer = CardDealer(n_players)
         self.game_round = GameRound(self.all_players, self.card_dealer)
-        self.player1 = self.game_round.player1
-
-
-    def test_has_remaining_actions_folded_hand(self):
-        self.player1.has_folded_hand = True
-        self.assertFalse(self.game_round_has_remaining_actions(self.player1))
+        self.player1 = self.game_round.players_information.player1
 
     def test_has_remaining_actions_not_yet_bet_enough(self):
         self.game_round.highest_round_bet = 50
-        self.assertFalse(self.game_round_has_remaining_actions(self.player1))
+        self.player1.amount_bet_in_round = 45
+        self.assertTrue(self.game_round.has_remaining_actions(self.player1))
 
+    def test_has_remaining_actions_player_not_yet_made_action(self):
+        """
+        This tests that function shows that the player has remaining actions if
+        the player's amount bet matches the highest round bet, but the player
+        has not acted in round. Example of occurrence is if player is big blind
+        and all other players merely called the big blind or folded, with no
+        raises.
+        """
+        self.game_round.highest_round_bet = 50
+        self.player1.amount_bet_in_round = 50
+        self.player1.has_acted_in_round = False
+        self.assertTrue(self.game_round.has_remaining_actions(self.player1))
 
+    def test_has_remaining_actions_folded_hand(self):
+        self.player1.has_folded_hand = True
+        self.assertFalse(self.game_round.has_remaining_actions(self.player1))
 
-
-
-
-    # def test_is_player_required_to_act_is_true(self):
-    #     player_1 = self.game_round.players_information.player1
-    #     self.game_round.highest_round_bet = 100
-    #     player_1.amount_bet_in_round = 50
-    #     self.assertTrue(self.game_round.is_player_required_to_act(player_1))
-    #
-    # def test_is_player_required_to_act_is_false(self):
-    #     player_1 = self.game_round.players_information.player1
-    #     self.game_round.highest_round_bet = 100
-    #     player_1.amount_bet_in_round = 100
-    #     self.assertFalse(self.game_round.is_player_required_to_act(player_1))
-
-
-
-
+    def test_has_remaining_actions_player_has_acted_and_matched_bet(self):
+        """
+        This tests that function shows that player has no remaining actions or
+        after player has acted in the round, matched the highest bet, and not
+        folded.
+        """
+        self.game_round.highest_round_bet = 50
+        self.player1.amount_bet_in_round = 50
+        self.player1.has_folded_hand = False
+        self.player1.has_acted_in_round = True
+        self.assertFalse(self.game_round.has_remaining_actions(self.player1))
 
 
 class TestPlayerInput(unittest.TestCase):
