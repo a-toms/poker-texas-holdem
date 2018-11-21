@@ -190,6 +190,7 @@ class FindBestHand:
                 filtered.append(x)
         return filtered
 
+
 class Player:
     money = 100
     amount_bet_in_round = 0
@@ -210,11 +211,11 @@ class Players(Player):
             setattr(self, f'player{i}', Player(f'player{i}'))
 
 
-
 class CardDealer:
     dealt_cards = []
     pocket_cards_per_player = 2
     pocket_cards = {}
+    table_cards = []
 
     def __init__(self, number_of_starting_players):
         self.number_of_starting_players = number_of_starting_players
@@ -233,6 +234,11 @@ class CardDealer:
                 self.pick_card() for _ in range(self.pocket_cards_per_player)
             ]
         return self.pocket_cards
+
+    def deal_flop(self):
+        for i in range(3):
+            card = self.pick_card()
+            self.table_cards.append(card)
 
 
 class GameRound:
@@ -421,17 +427,15 @@ class GameRound:
             print(self.players_information.__dict__[player].money)
         self.pot = 0
 
-    def ask_all_active_players_for_actions(self):  #Todo: write test.
-        for name, player in self.players_information.__dict__.items():
-            if self.has_remaining_actions(player) is True:
-                self.get_player_command(player)
-                self.mark_player_as_having_made_action(player)
-        self.ask_all_active_players_for_actions()  # Todo: consider changing this to iterative
-
+    def ask_all_active_players_for_actions(self) -> None:  #Todo: write test.
+        while self.at_least_one_player_has_remaining_action() is True:
+            for player in self.players_information.__dict__.values():
+                if self.has_remaining_actions(player) is True:
+                    self.get_player_command(player)
+                    self.mark_player_as_having_made_action(player)
 
     def mark_player_as_having_made_action(self, player_who_made_action: Player):
         player_who_made_action.has_acted_in_round = True
-
 
     def has_remaining_actions(self, player: Player) -> bool:
         if player.has_folded_hand is True:
@@ -440,6 +444,15 @@ class GameRound:
             return False
         else:
             return True
+
+    def at_least_one_player_has_remaining_action(self) -> bool: #Todo: write test.
+        for player in self.players_information.__dict__.values():
+            if self.has_remaining_actions(player) is True:
+                return True
+        return False
+
+
+
 
 
 
@@ -452,9 +465,7 @@ if __name__ == "__main__":
     game_round = GameRound(all_players, card_dealer)
     game_round.deal_pocket_cards_to_players()
     game_round.pay_blinds()
-    game_round.ask_all_active_players_for_actions() # Todo: continue building game
-
-
+    game_round.ask_all_active_players_for_actions()
 
 
 

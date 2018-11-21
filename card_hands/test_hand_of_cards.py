@@ -403,11 +403,15 @@ class TestFindBestHand(unittest.TestCase):
         )
 
 
-def test_game_round_instantiates_to_include_players_class_instantiation():
-    all_players = Players(6)
-    card_dealer = CardDealer(6)
-    game_round = GameRound(all_players, card_dealer)
-    assert type(game_round.players_information.player1.money) is int
+class TestGameRoundClassInstantiation(unittest.TestCase):
+    def test_game_round_instantiates_to_include_player_class_instantiation(self):
+        all_players = Players(6)
+        card_dealer = CardDealer(6)
+        game_round = GameRound(all_players, card_dealer)
+        self.assertEqual(
+            Player,
+            type(game_round.players_information.player1)
+        )
 
 
 class TestGameRoundPayingBlinds(unittest.TestCase):
@@ -621,10 +625,10 @@ class TestPlayerHasRemainingActions(unittest.TestCase):
     def test_has_remaining_actions_player_not_yet_made_action(self):
         """
         This tests that function shows that the player has remaining actions if
-        the player's amount bet matches the highest round bet, but the player
-        has not acted in round. Example of occurrence is if player is big blind
-        and all other players merely called the big blind or folded, with no
-        raises.
+        a) the player's amount bet matches the highest round bet, and b) the
+        player has not acted in round. Example of occurrence is if the player is
+        big blind and all other players merely called the big blind or folded,
+        with no raises.
         """
         self.game_round.highest_round_bet = 50
         self.player1.amount_bet_in_round = 50
@@ -663,7 +667,6 @@ class TestActivePlayersList(unittest.TestCase):
             Players(self.n_players), CardDealer(self.n_players)
         )
 
-
     def test_player_dict_items_in_active_players(self):
         self.assertTrue(self.game_round.active_players[0] == 'player1')
 
@@ -672,8 +675,6 @@ class TestActivePlayersList(unittest.TestCase):
             len(self.game_round.active_players),
             self.n_players
         )
-
-
 
 
 class TestBetting(unittest.TestCase):
@@ -703,6 +704,35 @@ class TestBetting(unittest.TestCase):
         )
 
 
+class TestBoardDealing(unittest.TestCase):
+
+    def setUp(self):
+        n_players = 8
+        self.game_round = GameRound(Players(n_players), CardDealer(n_players))
+
+
+    def test_deal_board_flop_deal_three(self):
+        self.assertEqual([], self.game_round.card_dealer.table_cards)
+        self.game_round.card_dealer.deal_flop()
+        self.assertEqual(
+            3,
+            len(self.game_round.card_dealer.table_cards)
+        )
+
+    def test_deal_board_flop_deal_card(self):
+        rank = tuple(range(2, 15))
+        suit = ('H', 'D', 'S', 'C')
+        self.assertEqual(self.game_round.card_dealer.table_cards, [])
+        self.game_round.card_dealer.deal_flop()
+        self.assertTrue(
+            self.game_round.card_dealer.table_cards[0][0] in rank
+        )
+        self.assertTrue(
+            self.game_round.card_dealer.table_cards[0][1] in suit
+                        )
+
+    def tearDown(self):
+        del self.game_round.card_dealer.table_cards[:]
 
 
 if __name__ == '__main__':
