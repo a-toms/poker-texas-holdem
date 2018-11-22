@@ -427,12 +427,14 @@ class TestGameRoundPayingBlinds(unittest.TestCase):
 
     def test_big_blind_player_correctly_assigned(self):
         self.assertEqual(self.game_round.big_blind_player.name, 'player3')
-
+        self.assertTrue(
+            self.game_round.players_information.player3.in_big_blind_position)
 
     def test_small_blind_player_correctly_assigned(self):
         self.assertEqual(self.game_round.small_blind_player.name, 'player2')
 
     def test_pay_big_blind(self): # This is failing. Modify test to refer to player's attributes
+
         self.assertEqual(
             self.game_round.players_information.player3.money,
             self.starting_player_money
@@ -560,7 +562,6 @@ class TestGameRoundPlayingOrder(unittest.TestCase):
 
     def test_player_positions_pre_flop_position(self):
         #  Player 7 is in the big blind position so penultimate to act during pre-flop
-        print(self.game_round.pre_flop_playing_order)
         self.assertEqual(
             'player7',
             self.game_round.pre_flop_playing_order[-2].name

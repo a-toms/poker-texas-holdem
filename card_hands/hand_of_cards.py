@@ -276,16 +276,28 @@ class GameRound:
         self.player_position_order = deque(
             player for player in self.players_information.__dict__.values()
         )
-        self.pre_flop_playing_order = copy.deepcopy(
-            list(self.player_position_order)
-        )
+        self.pre_flop_playing_order = self.player_position_order
         self.post_flop_playing_order = self.get_post_flop_playing_order()
-        self.small_blind_player = self.pre_flop_playing_order[-2]
-        self.big_blind_player = self.pre_flop_playing_order[-1]
+        self.assign_big_blind_player()
+        self.assign_small_blind_player()
         try:
             self.dealer_player = self.pre_flop_playing_order[-3]
         except IndexError:  # Applies where there are only two players
             self.dealer_player = self.pre_flop_playing_order[-1]
+
+    def assign_small_blind_player(self): # Todo: Write test
+        """
+        The small blind is second-last pre-flop and first post-flop.
+        """
+        self.small_blind_player: Player = self.pre_flop_playing_order[-2]
+        self.small_blind_player.in_small_blind_position = True
+
+    def assign_big_blind_player(self): # Todo: Write test
+        """
+        The big blind is last to act pre-flop and second to act post flop.
+        """
+        self.big_blind_player: Player = self.pre_flop_playing_order[-1]
+        self.big_blind_player.in_big_blind_position = True
 
     def deal_pocket_cards_to_players(self):
         pocket_cards = self.card_dealer.deal_pocket_cards(
@@ -313,7 +325,7 @@ class GameRound:
             f""
             f"The big blind player, {self.big_blind_player.name.title()}, "
             f"paid the big blind of {self.big_blind}.\n" +
-            f"The small blind player, {self.small_blind_player.name.title()},"
+            f"The small blind player, {self.small_blind_player.name.title()}, "
             f"paid the small blind of {self.small_blind}.\n"
         )
 
@@ -349,7 +361,7 @@ class GameRound:
             self.get_player_command(player)
 
     def get_player_input(self, player: Player) -> str:
-        self.print_request(player.name)
+        self.print_request(player)
         command = input(
             "Would you like to check (0), call (1), raise (2), " +
             "or fold (3)? Enter command >>\n\n")
@@ -428,9 +440,7 @@ class GameRound:
     def give_pot_to_winners(self, winners: tuple) -> None:
         winnings = self.pot // len(winners)
         for player in winners:
-            print(self.players_information.__dict__[player].money)
             self.players_information.__dict__[player].money += winnings
-            print(self.players_information.__dict__[player].money)
         self.pot = 0
 
     def ask_all_players_for_actions(self, player_order: dict) -> None:  #Todo: write test.
