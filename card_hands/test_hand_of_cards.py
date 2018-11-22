@@ -4,7 +4,6 @@ from hand_of_cards import (
 )
 import unittest
 from unittest.mock import patch
-from io import StringIO
 
 
 class TestDealingCards(unittest.TestCase):
@@ -427,12 +426,13 @@ class TestGameRoundPayingBlinds(unittest.TestCase):
         self.game_round.small_blind = 10
 
     def test_big_blind_player_correctly_assigned(self):
-        self.assertEqual(self.game_round.big_blind_player, 'player3')
+        self.assertEqual(self.game_round.big_blind_player.name, 'player3')
+
 
     def test_small_blind_player_correctly_assigned(self):
-        self.assertEqual(self.game_round.small_blind_player, 'player2')
+        self.assertEqual(self.game_round.small_blind_player.name, 'player2')
 
-    def test_pay_big_blind(self):
+    def test_pay_big_blind(self): # This is failing. Modify test to refer to player's attributes
         self.assertEqual(
             self.game_round.players_information.player3.money,
             self.starting_player_money
@@ -440,7 +440,7 @@ class TestGameRoundPayingBlinds(unittest.TestCase):
         self.game_round.pay_blinds()
         self.assertEqual(
             self.game_round.players_information.player3.money,
-            self.starting_player_money - self.game_round.big_blind
+            (self.starting_player_money - self.game_round.big_blind)
         )
         self.assertEqual(
             self.game_round.players_information.player3.amount_bet_in_round,
@@ -536,30 +536,42 @@ class TestGameRoundPlayingOrder(unittest.TestCase):
 
     def test_post_flop_playing_order_and_blinds_and_dealer_positions(self):
         self.assertEqual(
-            self.game_round.post_flop_playing_order[1],
-            self.game_round.big_blind_player
+            self.game_round.post_flop_playing_order[1].name,
+            self.game_round.big_blind_player.name
         )
         self.assertEqual(
-            self.game_round.post_flop_playing_order[0],
-            self.game_round.small_blind_player
+            self.game_round.post_flop_playing_order[0].name,
+            self.game_round.small_blind_player.name
         )
         self.assertEqual(
-            self.game_round.post_flop_playing_order[-1],
-            self.game_round.dealer_player
+            self.game_round.post_flop_playing_order[-1].name,
+            self.game_round.dealer_player.name
         )
 
     def test_player_pre_and_post_flop_positions(self):
-        self.assertEqual('player8', self.game_round.pre_flop_playing_order[-1])
-        self.assertEqual('player8', self.game_round.post_flop_playing_order[1])
+        self.assertEqual(
+            'player8',
+            self.game_round.pre_flop_playing_order[-1].name
+        )
+        self.assertEqual(
+            'player8',
+            self.game_round.post_flop_playing_order[1].name
+        )
 
     def test_player_positions_pre_flop_position(self):
         #  Player 7 is in the big blind position so penultimate to act during pre-flop
         print(self.game_round.pre_flop_playing_order)
-        self.assertEqual('player7', self.game_round.pre_flop_playing_order[-2])
+        self.assertEqual(
+            'player7',
+            self.game_round.pre_flop_playing_order[-2].name
+        )
 
     def test_player_positions_post_flop_position(self):
         # Player 7 is second to act during post_flop
-        self.assertEqual('player8', self.game_round.post_flop_playing_order[1])
+        self.assertEqual(
+            'player8',
+            self.game_round.post_flop_playing_order[1].name
+        )
 
 
 class TestPlayerActions(unittest.TestCase):
@@ -571,7 +583,6 @@ class TestPlayerActions(unittest.TestCase):
         self.player1 = self.game_round.players_information.player1
         self.game_round.big_blind = 20
         self.game_round.small_blind = 10
-
 
     def test_call_big_blind_successful(self):
         self.game_round.pay_blinds()
@@ -589,6 +600,7 @@ class TestPlayerActions(unittest.TestCase):
         self.player1.amount_bet_in_round = 0
         self.game_round.highest_round_bet = 100
         self.assertFalse(self.game_round.call_bet(self.player1))
+
 
 class TestFoldHand(unittest.TestCase):
 
@@ -668,7 +680,7 @@ class TestActivePlayersList(unittest.TestCase):
         )
 
     def test_player_dict_items_in_active_players(self):
-        self.assertTrue(self.game_round.active_players[0] == 'player1')
+        self.assertTrue(type(self.game_round.active_players[0]) is Player)
 
     def test_correct_order_of_player_instances_in_active_players(self):
         self.assertEqual(
@@ -710,7 +722,6 @@ class TestBoardDealing(unittest.TestCase):
         n_players = 8
         self.game_round = GameRound(Players(n_players), CardDealer(n_players))
 
-
     def test_deal_board_flop_deal_three(self):
         self.assertEqual([], self.game_round.card_dealer.table_cards)
         self.game_round.card_dealer.deal_flop()
@@ -737,12 +748,3 @@ class TestBoardDealing(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
-
-
-
-
-
-
-
-
