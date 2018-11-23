@@ -698,10 +698,10 @@ class TestBetting(unittest.TestCase):
     player3 = game_round.players_information.player3
     all_players: dict = game_round.players_information.__dict__
 
-    def test_clear_player_bets_at_round_end(self):
+    def test_clear_player_bets_at_round_end(self): # Todo: update test
         self.player1.amount_bet_in_round = 100
-        self.game_round.clear_player_bets_at_round_end()
-        self.assertEqual(self.player1.amount_bet_in_round, 0)
+        self.game_round.reset_players_status_at_round_end()
+        self.assertEqual(0, self.player1.amount_bet_in_round)
 
     def test_each_player_has_matched_highest_bet(self):
         self.game_round.highest_round_bet = 75
@@ -722,6 +722,8 @@ class TestBoardDealing(unittest.TestCase):
     def setUp(self):
         n_players = 8
         self.game_round = GameRound(Players(n_players), CardDealer(n_players))
+        self.rank = tuple(range(2, 15))
+        self.suit = ('H', 'D', 'S', 'C')
 
     def test_deal_board_flop_deal_three(self):
         self.assertEqual([], self.game_round.card_dealer.table_cards)
@@ -732,16 +734,29 @@ class TestBoardDealing(unittest.TestCase):
         )
 
     def test_deal_board_flop_deal_card(self):
-        rank = tuple(range(2, 15))
-        suit = ('H', 'D', 'S', 'C')
         self.assertEqual(self.game_round.card_dealer.table_cards, [])
         self.game_round.card_dealer.deal_flop()
         self.assertTrue(
-            self.game_round.card_dealer.table_cards[0][0] in rank
+            self.game_round.card_dealer.table_cards[0][0] in self.rank
         )
         self.assertTrue(
-            self.game_round.card_dealer.table_cards[0][1] in suit
-                        )
+            self.game_round.card_dealer.table_cards[0][1] in self.suit
+        )
+
+    def test_deal_card_to_table_deals_card(self):
+        self.assertEqual(self.game_round.card_dealer.table_cards, [])
+        self.game_round.card_dealer.deal_card_to_table()
+        self.assertTrue(
+            self.game_round.card_dealer.table_cards[0][0] in self.rank
+        )
+        self.assertTrue(
+            self.game_round.card_dealer.table_cards[0][1] in self.suit
+        )
+        self.assertEqual(
+            1,
+            len(self.game_round.card_dealer.table_cards)
+        )
+
 
     def tearDown(self):
         del self.game_round.card_dealer.table_cards[:]

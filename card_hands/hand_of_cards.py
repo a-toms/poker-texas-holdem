@@ -236,7 +236,7 @@ class CardDealer:
             card = self.pick_card()
             self.table_cards.append(card)
 
-    def deal_card_to_table(self): # Todo: write test
+    def deal_card_to_table(self):
         card = self.pick_card()
         self.table_cards.append(card)
 
@@ -250,16 +250,12 @@ class CardDealer:
         print(f"Table cards : \n{self.table_cards}")
 
 
-
-
 class GameRound:
     """
-    .players_information contains all of the players instances.
+    .players_information contains all of the Player instances.
     .card_dealer contains card dealer functions.
-    .active_player contains str list of the players in the round.
-    .player_position_order contains a deque of strs representing player order.
-    .pre_flop_playing_order contains a deque of strs.
-    .small_blind_player
+    .player_position_order contains a deque of Player instances.
+    .pre_flop_playing_order contains a deque of Player instances.
 
     """
     highest_round_bet = 0
@@ -277,7 +273,7 @@ class GameRound:
             player for player in self.players_information.__dict__.values()
         )
         self.pre_flop_playing_order = self.player_position_order
-        self.post_flop_playing_order = self.get_post_flop_playing_order()
+        self.post_flop_playing_order = self.get_post_flop_playing_order()  # Todo: change to one player order
         self.assign_big_blind_player()
         self.assign_small_blind_player()
         try:
@@ -285,14 +281,14 @@ class GameRound:
         except IndexError:  # Applies where there are only two players
             self.dealer_player = self.pre_flop_playing_order[-1]
 
-    def assign_small_blind_player(self): # Todo: Write test
+    def assign_small_blind_player(self):
         """
         The small blind is second-last pre-flop and first post-flop.
         """
         self.small_blind_player: Player = self.pre_flop_playing_order[-2]
         self.small_blind_player.in_small_blind_position = True
 
-    def assign_big_blind_player(self): # Todo: Write test
+    def assign_big_blind_player(self):
         """
         The big blind is last to act pre-flop and second to act post flop.
         """
@@ -310,7 +306,7 @@ class GameRound:
         Post-flop playing order rotates by 2 to begin from the left of the
         dealer player.
         """
-        post_flop_playing_order = copy.deepcopy(self.player_position_order)
+        post_flop_playing_order = copy.deepcopy(self.player_position_order) # This deepcopy appears unhelpful.
         post_flop_playing_order.rotate(2)
         return post_flop_playing_order
 
@@ -321,6 +317,9 @@ class GameRound:
         self.big_blind_player.amount_bet_in_round += self.big_blind
         self.pot += self.big_blind + self.small_blind
         self.highest_round_bet = self.big_blind
+        self.print_blinds_message()
+
+    def print_blinds_message(self):
         print(
             f""
             f"The big blind player, {self.big_blind_player.name.title()}, "
@@ -338,16 +337,7 @@ class GameRound:
               f"is {self.highest_round_bet}.\n"
               )
 
-    def is_player_required_to_act(self, player: Player) -> bool:
-        if (player.amount_bet_in_round != self.highest_round_bet
-                and player in self.active_players):
-            return True
-        elif self.highest_round_bet == 0:
-            return True
-        else:
-            return False
-
-    def each_player_matched_highest_bet(self, active_players):
+    def each_player_matched_highest_bet(self, active_players):  # Todo: remove this. This is superfluous.
         for player in active_players:
             a_player = self.players_information.__dict__[player]
             if a_player.amount_bet_in_round != self.highest_round_bet:
@@ -433,22 +423,12 @@ class GameRound:
                   f"of {self.highest_round_bet} to check")
             return False
 
-    def clear_player_bets_at_round_end(self):
-        for player in self.players_information.__dict__.keys():
-            self.players_information.__dict__[player].amount_bet_in_round = 0
 
     def give_pot_to_winners(self, winners: tuple) -> None:
         winnings = self.pot // len(winners)
         for player in winners:
             self.players_information.__dict__[player].money += winnings
         self.pot = 0
-
-    def ask_all_players_for_actions(self, player_order: dict) -> None:  #Todo: write test.
-        while self.at_least_one_player_has_remaining_action() is True:
-            for player in player_order:
-                if self.has_remaining_actions(player) is True:
-                    self.get_player_command(player)
-                    self.mark_player_as_having_made_action(player)
 
     def mark_player_as_having_made_action(self, player_who_made_action: Player):
         player_who_made_action.has_acted_in_round = True
@@ -467,9 +447,17 @@ class GameRound:
                 return True
         return False
 
+    def ask_all_players_for_actions(self, player_order: dict) -> None:  #Todo: write test.
+        while self.at_least_one_player_has_remaining_action() is True:
+            for player in player_order:
+                if self.has_remaining_actions(player) is True:
+                    self.get_player_command(player)
+                    self.mark_player_as_having_made_action(player)
 
-
-
+    def reset_players_status_at_round_end(self):  # Todo: write test
+        for player_at_round_end in self.post_flop_playing_order:
+            player_at_round_end.amount_bet_in_round = 0
+            player_at_round_end.has_acted_in_round = False
 
 
 
@@ -479,10 +467,6 @@ if __name__ == "__main__":
     all_players = Players(n_of_players)
     card_dealer = CardDealer(n_of_players)
     game_round = GameRound(all_players, card_dealer)
-    for counter, player in enumerate(game_round.pre_flop_playing_order):
-        print(player.name, counter)
-    for counter, player in enumerate(game_round.post_flop_playing_order):
-        print(player.name, counter)
     game_round.deal_pocket_cards_to_players()
     game_round.pay_blinds()
     game_round.ask_all_players_for_actions(
@@ -493,8 +477,10 @@ if __name__ == "__main__":
     game_round.ask_all_players_for_actions(
         game_round.post_flop_playing_order
     )
+    game_round.reset_players_status_at_round_end() # Todo: clear bets and has acted status
     game_round.card_dealer.deal_turn()
     game_round.card_dealer.show_table()
+
     game_round.ask_all_players_for_actions(
         game_round.post_flop_playing_order
     )
