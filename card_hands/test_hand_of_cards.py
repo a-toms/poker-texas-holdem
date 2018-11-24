@@ -698,7 +698,7 @@ class TestBetting(unittest.TestCase):
     player3 = game_round.players_information.player3
     all_players: dict = game_round.players_information.__dict__
 
-    def test_clear_player_bets_at_round_end(self): # Todo: update test
+    def test_clear_player_bets_at_round_end_clear_amount_bet(self): # Todo: update test
         self.player1.amount_bet_in_round = 100
         self.game_round.reset_players_status_at_round_end()
         self.assertEqual(0, self.player1.amount_bet_in_round)
