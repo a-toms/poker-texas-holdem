@@ -10,27 +10,36 @@ class TestDealingCards(unittest.TestCase):
 
     def setUp(self):
         n_players = 8
-        self.game_round = GameRound(Players(n_players), CardDealer(n_players))
-        self.players_information = self.game_round.players_information
+        self.card_dealer = CardDealer(n_players)
+        self.all_players = Players(n_players)
+        self.game_round = GameRound(self.all_players, self.card_dealer)
         self.suites = ('H', 'C', 'S', 'D')
         self.numbers = [i for i in range(2, 15)]
 
     def test_52_cards_in_deck(self):
-        self.assertIs(52, len(self.game_round.card_dealer.deck))
+        self.assertIs(52, len(self.card_dealer.deck))
 
     def test_pick_card(self):
-        card = self.game_round.card_dealer.pick_card()
+        card = self.card_dealer.pick_card()
         self.assertIn(card[0], self.numbers)
         self.assertIn(card[1], self.suites)
 
-    def test_deal_pocket_cards_to_players(self):
-        self.game_round.deal_pocket_cards_to_players()
-        self.assertIn('player8', self.players_information.__dict__.keys())
+    def test_deal_pocket_cards_to_players_two_cards(self):
+        self.assertTrue(self.all_players.player1.pocket_cards == [])
+        self.game_round.card_dealer.deal_pocket_cards()
         self.assertEqual(
-            str, type(self.players_information.player8.hand[1][1])
+            2,
+            len(self.all_players.player1.pocket_cards)
+        )
+
+    def test_deal_pocket_cards_to_players_two_cards(self):
+        self.card_dealer.deal_pocket_cards(self.all_players)
+        print(self.all_players.player1.pocket_cards)
+        self.assertEqual(
+            str, type(self.all_players.player1.pocket_cards[1][1])
         )
         self.assertEqual(
-            int, type(self.players_information.player8.hand[1][0])
+            int, type(self.all_players.player1.pocket_cards[1][0])
         )
 
 
@@ -433,8 +442,7 @@ class TestGameRoundPayingBlinds(unittest.TestCase):
     def test_small_blind_player_correctly_assigned(self):
         self.assertEqual(self.game_round.small_blind_player.name, 'player2')
 
-    def test_pay_big_blind(self): # This is failing. Modify test to refer to player's attributes
-
+    def test_pay_big_blind(self):
         self.assertEqual(
             self.game_round.players_information.player3.money,
             self.starting_player_money
@@ -522,56 +530,55 @@ class TestGameRoundPlayingOrder(unittest.TestCase):
         self.game_round.big_blind = 20
         self.game_round.small_blind = 10
 
-    def test_pre_flop_playing_order_and_blind_and_dealer_positions(self):
+    def test_playing_order_and_blind_and_dealer_positions(self):
         self.assertEqual(
-            self.game_round.pre_flop_playing_order[-1],
+            self.game_round.playing_order[-1],
             self.game_round.big_blind_player
         )
         self.assertEqual(
-            self.game_round.pre_flop_playing_order[-2],
+            self.game_round.playing_order[-2],
             self.game_round.small_blind_player
         )
         self.assertEqual(
-            self.game_round.pre_flop_playing_order[-3],
+            self.game_round.playing_order[-3],
             self.game_round.dealer_player
         )
 
-    def test_post_flop_playing_order_and_blinds_and_dealer_positions(self):
+    def test_playing_order_big_blind_position(self):
         self.assertEqual(
-            self.game_round.post_flop_playing_order[1].name,
-            self.game_round.big_blind_player.name
-        )
-        self.assertEqual(
-            self.game_round.post_flop_playing_order[0].name,
-            self.game_round.small_blind_player.name
-        )
-        self.assertEqual(
-            self.game_round.post_flop_playing_order[-1].name,
-            self.game_round.dealer_player.name
+            self.game_round.playing_order[-1],
+            self.game_round.big_blind_player
         )
 
-    def test_player_pre_and_post_flop_positions(self):
+    def test_playing_order_small_blind_player_position(self):
         self.assertEqual(
-            'player8',
-            self.game_round.pre_flop_playing_order[-1].name
-        )
-        self.assertEqual(
-            'player8',
-            self.game_round.post_flop_playing_order[1].name
+            self.game_round.playing_order[-2],
+            self.game_round.small_blind_player
         )
 
-    def test_player_positions_pre_flop_position(self):
-        #  Player 7 is in the big blind position so penultimate to act during pre-flop
+    def test_playing_order_dealer_player_position(self):
         self.assertEqual(
-            'player7',
-            self.game_round.pre_flop_playing_order[-2].name
+            self.game_round.playing_order[-3],
+            self.game_round.dealer_player
         )
 
-    def test_player_positions_post_flop_position(self):
-        # Player 7 is second to act during post_flop
+    def test_player_pre_flop_position(self):
+        """
+        With 8 players, player 7 is in the big blind position so penultimate to act pre-flop.
+        """
         self.assertEqual(
-            'player8',
-            self.game_round.post_flop_playing_order[1].name
+            self.game_round.players_information.player7,
+            self.game_round.playing_order[-2]
+        )
+
+    def test_player_post_flop_position(self):
+        """
+        With 8 players, player 7 is first to act after the flop.
+        """
+        self.game_round.rotate_playing_order_before_flop()
+        self.assertEqual(
+            self.game_round.players_information.player7,
+            self.game_round.playing_order[0]
         )
 
 
@@ -673,47 +680,27 @@ class TestPlayerInput(unittest.TestCase):
         self.assertEqual(input(), 'y')
 
 
-class TestActivePlayersList(unittest.TestCase):
-    def setUp(self):
-        self.n_players = 8
-        self.game_round = GameRound(
-            Players(self.n_players), CardDealer(self.n_players)
-        )
-
-    def test_player_dict_items_in_active_players(self):
-        self.assertTrue(type(self.game_round.active_players[0]) is Player)
-
-    def test_correct_order_of_player_instances_in_active_players(self):
-        self.assertEqual(
-            len(self.game_round.active_players),
-            self.n_players
-        )
-
-
 class TestBetting(unittest.TestCase):
     n_players = 3
     game_round = GameRound(Players(n_players), CardDealer(n_players))
     player1 = game_round.players_information.player1
-    player2 = game_round.players_information.player2
-    player3 = game_round.players_information.player3
-    all_players: dict = game_round.players_information.__dict__
 
-    def test_clear_player_bets_at_round_end_clear_amount_bet(self): # Todo: update test
+    def test_reset_players_status_at_round_end_reset_amount_bet_in_round(self):
         self.player1.amount_bet_in_round = 100
         self.game_round.reset_players_status_at_round_end()
         self.assertEqual(0, self.player1.amount_bet_in_round)
 
-    def test_each_player_has_matched_highest_bet(self):
-        self.game_round.highest_round_bet = 75
-        self.player1.amount_bet_in_round = 75
-        self.player2.amount_bet_in_round = 75
-        self.player3.amount_bet_in_round = 75
-        self.assertTrue(
-            self.game_round.each_player_matched_highest_bet(self.all_players)
-        )
-        self.player3.amount_bet_in_round = 70
-        self.assertFalse(
-            self.game_round.each_player_matched_highest_bet(self.all_players)
+    def test_reset_players_status_at_round_end_reset_has_acted_marker(self):
+        self.player1.has_acted_in_round = True
+        self.game_round.reset_players_status_at_round_end()
+        self.assertFalse(self.player1.has_acted_in_round)
+
+    def test_rest_highest_round_bet(self):
+        self.game_round.highest_round_bet = 100
+        self.game_round.reset_highest_round_bet()
+        self.assertEqual(
+            0,
+            self.game_round.highest_round_bet
         )
 
 
@@ -756,7 +743,6 @@ class TestBoardDealing(unittest.TestCase):
             1,
             len(self.game_round.card_dealer.table_cards)
         )
-
 
     def tearDown(self):
         del self.game_round.card_dealer.table_cards[:]

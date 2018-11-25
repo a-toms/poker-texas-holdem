@@ -1,6 +1,5 @@
 import itertools
 from collections import deque
-import copy
 import random
 import logging
 
@@ -185,18 +184,26 @@ class FindBestHand:
         return filtered
 
 
-class Player:
+class Player: # Todo: Modify player to incorporate hand ranking within the class
     money = 100
     amount_bet_in_round = 0
-    hand = []
+    pocket_cards = []
+    current_hand = []
     has_folded_hand = False
     has_acted_in_round = False
     in_big_blind_position = False
     in_small_blind_position = False
     in_dealer_position = False
 
+
     def __init__(self, name):
         self.name = name
+
+    def get_best_current_hand(self):
+        pass
+    #todo: find the best current hand
+    #itertools.permutations
+
 
 
 class Players(Player):
@@ -210,8 +217,6 @@ class Players(Player):
 
 class CardDealer:
     dealt_cards = []
-    pocket_cards_per_player = 2
-    pocket_cards = {}
     table_cards = []
 
     def __init__(self, number_of_starting_players):
@@ -224,12 +229,10 @@ class CardDealer:
         self.dealt_cards.append(card)
         return card
 
-    def deal_pocket_cards(self, number_of_players: int) -> dict:
-        for i in range(1, number_of_players + 1):
-            self.pocket_cards[f'player{i}'] = [
-                self.pick_card() for _ in range(self.pocket_cards_per_player)
-            ]
-        return self.pocket_cards
+    def deal_pocket_cards(self, active_players) -> None:
+        for player in active_players.__dict__.values():
+            player.pocket_cards.append(self.pick_card())
+            player.pocket_cards.append(self.pick_card())
 
     def deal_flop(self):
         for i in range(3):
@@ -255,7 +258,7 @@ class GameRound:
     .players_information contains all of the Player instances.
     .card_dealer contains card dealer functions.
     .player_position_order contains a deque of Player instances.
-    .pre_flop_playing_order contains a deque of Player instances.
+    .player_order contains a deque of Player instances.
 
     """
     highest_round_bet = 0
@@ -266,49 +269,37 @@ class GameRound:
     def __init__(self, instantiated_players, instantiated_dealer):
         self.players_information = instantiated_players
         self.card_dealer = instantiated_dealer
-        self.active_players = [
-            player for player in self.players_information.__dict__.values()
-        ]
-        self.player_position_order = deque(
+        self.playing_order = deque(
             player for player in self.players_information.__dict__.values()
         )
-        self.pre_flop_playing_order = self.player_position_order
-        self.post_flop_playing_order = self.get_post_flop_playing_order()  # Todo: change to one player order
         self.assign_big_blind_player()
         self.assign_small_blind_player()
         try:
-            self.dealer_player = self.pre_flop_playing_order[-3]
+            self.dealer_player = self.playing_order[-3]
         except IndexError:  # Applies where there are only two players
-            self.dealer_player = self.pre_flop_playing_order[-1]
+            self.dealer_player = self.playing_order[-1]
 
     def assign_small_blind_player(self):
         """
         The small blind is second-last pre-flop and first post-flop.
         """
-        self.small_blind_player: Player = self.pre_flop_playing_order[-2]
+        self.small_blind_player: Player = self.playing_order[-2]
         self.small_blind_player.in_small_blind_position = True
 
     def assign_big_blind_player(self):
         """
         The big blind is last to act pre-flop and second to act post flop.
         """
-        self.big_blind_player: Player = self.pre_flop_playing_order[-1]
+        self.big_blind_player: Player = self.playing_order[-1]
         self.big_blind_player.in_big_blind_position = True
 
-    def deal_pocket_cards_to_players(self):
-        pocket_cards = self.card_dealer.deal_pocket_cards(
-            self.card_dealer.number_of_starting_players)
-        for player, cards in pocket_cards.items():
-            self.players_information.__dict__[player].hand = cards
 
-    def get_post_flop_playing_order(self):
+    def rotate_playing_order_before_flop(self) -> None:
         """
-        Post-flop playing order rotates by 2 to begin from the left of the
+        Rotates playing order by 2 to begin from the left of the
         dealer player.
         """
-        post_flop_playing_order = copy.deepcopy(self.player_position_order) # This deepcopy appears unhelpful.
-        post_flop_playing_order.rotate(2)
-        return post_flop_playing_order
+        self.playing_order.rotate(2)
 
     def pay_blinds(self):
         self.small_blind_player.money -= self.small_blind
@@ -336,13 +327,6 @@ class GameRound:
               f"The highest bet of the round so far " +
               f"is {self.highest_round_bet}.\n"
               )
-
-    def each_player_matched_highest_bet(self, active_players):  # Todo: remove this. This is superfluous.
-        for player in active_players:
-            a_player = self.players_information.__dict__[player]
-            if a_player.amount_bet_in_round != self.highest_round_bet:
-                return False
-        return True
 
     def get_player_command(self, player: Player) -> None:
         action = self.get_player_input(player)
@@ -423,8 +407,7 @@ class GameRound:
                   f"of {self.highest_round_bet} to check")
             return False
 
-
-    def give_pot_to_winners(self, winners: tuple) -> None:
+    def give_pot_to_winners(self, winners: tuple) -> None:  # Pass in the Player objects
         winnings = self.pot // len(winners)
         for player in winners:
             self.players_information.__dict__[player].money += winnings
@@ -454,48 +437,46 @@ class GameRound:
                     self.get_player_command(player)
                     self.mark_player_as_having_made_action(player)
 
-    def reset_players_status_at_round_end(self):  # Todo: write test
-        for player_at_round_end in self.post_flop_playing_order:
+    def reset_players_status_at_round_end(self):
+        for player_at_round_end in self.playing_order:
             player_at_round_end.amount_bet_in_round = 0
             player_at_round_end.has_acted_in_round = False
+
+    def reset_highest_round_bet(self):
+        self.highest_round_bet = 0
+
+
 
 
 
 
 if __name__ == "__main__":
+    """
+    3 main objects: 1. all_players, 2. card_dealer; 3. game_round.
+    
+    May refactor the below to reduce the sprawling dominance of game_round.
+    """
     n_of_players = 8
     all_players = Players(n_of_players)
     card_dealer = CardDealer(n_of_players)
     game_round = GameRound(all_players, card_dealer)
-    game_round.deal_pocket_cards_to_players()
+    print(game_round.players_information.player1.hand)
+    card_dealer.deal_pocket_cards(all_players)
     game_round.pay_blinds()
-    game_round.ask_all_players_for_actions(
-        game_round.pre_flop_playing_order
-    )
+    game_round.ask_all_players_for_actions(game_round.playing_order)
+    game_round.reset_players_status_at_round_end()
+    game_round.rotate_playing_order_before_flop()
+
     game_round.card_dealer.deal_flop()
     game_round.card_dealer.show_table()
-    game_round.ask_all_players_for_actions(
-        game_round.post_flop_playing_order
-    )
-    game_round.reset_players_status_at_round_end() # Todo: clear bets and has acted status
+    game_round.ask_all_players_for_actions(game_round.playing_order)
+    game_round.reset_players_status_at_round_end()
+
     game_round.card_dealer.deal_turn()
     game_round.card_dealer.show_table()
+    game_round.ask_all_players_for_actions(game_round.playing_order)
+    game_round.reset_players_status_at_round_end()
 
-    game_round.ask_all_players_for_actions(
-        game_round.post_flop_playing_order
-    )
     game_round.card_dealer.deal_river()
     game_round.card_dealer.show_table()
-    game_round.ask_all_players_for_actions(
-        game_round.post_flop_playing_order
-    )
-
-
-
-
-
-    # game_round.clear_player_bets_at_round_end()
-    # ranked_hands = ClassifyHand().rank_hands(hands)
-    # print(ranked_hands)
-    # best_hand = FindBestHand().get_winner_from_ranked_hands(ranked_hands)
-    # print(f"best hand = {best_hand}")
+    game_round.ask_all_players_for_actions(game_round.playing_order)
