@@ -3,26 +3,46 @@ from collections import deque
 import random
 import logging
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 
 """
 TODO:
 
-1. Build one working game round (including tests)
+1. Refactor to pass a Card class instance around.
 
-? Refactor to pass a Card class instance around.
+2. Build one working game round (including tests)
 
 """
+
+
+class Card:
+    ranks_representation = (
+        None, "Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack",
+        "Queen", "King", "Ace"
+    )
+    suit_representation = {
+        'D': 'Diamonds', 'S': 'Spades', 'C': 'Clubs', 'H': 'Hearts'
+    }
+
+    def __init__(self, rank: int, suit: str):
+        self.rank = rank
+        self.suit = suit
+
+    def get_rank_and_suit(self):
+        return (self.rank, self.suit)
+
+    def __str__(self):
+        return f"{self.ranks_representation[self.rank]} of {self.suit_representation[self.suit]}"
 
 
 class GetHandRanks:
 
     def get_high_card(self, hand):
-        card_numbers = tuple(set([card[0] for card in hand]))
+        card_numbers = tuple(set([card.rank for card in hand]))
         return tuple(sorted(card_numbers))
 
     def get_pairs(self, hand):
-        card_numbers = [card[0] for card in hand]
+        card_numbers = [card.rank for card in hand]
         number_of_cards_in_a_pair = 2
         pairs = ()
         for card_number in card_numbers:
@@ -39,7 +59,7 @@ class GetHandRanks:
             pass
 
     def get_three_of_a_kind(self, hand):
-        card_numbers = [card[0] for card in hand]
+        card_numbers = [card.rank for card in hand]
         triples = ()
         for card_number in card_numbers:
             if card_numbers.count(card_number) == 3:
@@ -48,9 +68,11 @@ class GetHandRanks:
             return triples
 
     def get_straight_with_low_ace(self, hand):
-        """Check if a straight exists if the ace is treated as a low ace."""
+        """
+        Check if a straight exists if the ace is treated as a low ace.
+        """
         low_ace, high_ace = 1, 14
-        card_numbers = set([card[0] for card in hand])
+        card_numbers = set([card.rank for card in hand])
         card_numbers = [low_ace if n == high_ace else n for n in card_numbers]
         card_numbers.sort()
         high_card, low_card = card_numbers[-1], card_numbers[0]
@@ -58,7 +80,7 @@ class GetHandRanks:
             return tuple(card_numbers)
 
     def get_straight_without_low_ace(self, hand):
-        card_numbers = list(set(sorted([card[0] for card in hand])))
+        card_numbers = list(set(sorted([card.rank for card in hand])))
         high_card, low_card = card_numbers[-1], card_numbers[0]
         if len(card_numbers) == 5 and high_card - low_card == 4:
             return tuple(card_numbers)
@@ -73,19 +95,19 @@ class GetHandRanks:
                 return f(hand)
 
     def get_flush(self, hand):
-        card_suites = tuple([card[1] for card in hand])
-        card_numbers = [card[0] for card in hand]
+        card_suites = tuple([card.suit for card in hand])
+        card_numbers = [card.rank for card in hand]
         if len(card_numbers) == 5 and len(set(card_suites)) == 1:
             return card_suites[1]
 
     def get_full_house(self, hand):
-        card_numbers = tuple([card[0] for card in hand])
+        card_numbers = tuple([card.rank for card in hand])
         if self.get_three_of_a_kind(hand) is not None:
             if self.get_pairs(hand):
                 return tuple(card_numbers)
 
     def get_four_of_a_kind(self, hand):
-        card_numbers = [card[0] for card in hand]
+        card_numbers = [card.rank for card in hand]
         quads = ()
         for card_number in card_numbers:
             if card_numbers.count(card_number) == 4:
@@ -95,7 +117,7 @@ class GetHandRanks:
 
     def get_straight_flush(self, hand):
         if self.get_straights(hand) and self.get_flush(hand):
-            return sorted(hand)
+            return sorted(hand, key=lambda n: n.rank)
 
 
 class ClassifyHand(GetHandRanks):
@@ -127,8 +149,11 @@ class ClassifyHand(GetHandRanks):
 
 
 class FindBestHand(ClassifyHand):
+
     def get_highest_rank(self, ranked_hands):
-        """Find the highest rank from several hands."""
+        """
+        Find the highest rank from several hands.
+        """
         highest_rank = 0
         for ranked_hand in ranked_hands:
             if ranked_hand[0] > highest_rank:
@@ -152,7 +177,7 @@ class FindBestHand(ClassifyHand):
         """
         Convert a ranked hand to the hand's card numbers.
         """
-        card_numbers = [card[0] for card in ranked_hand[1]]
+        card_numbers = [card.rank for card in ranked_hand[1]]
         card_numbers = self.sort_by_frequency_and_size(card_numbers)
         return card_numbers
 
@@ -188,12 +213,25 @@ class FindBestHand(ClassifyHand):
         best_hand = self.get_highest_card(card_numbers)
         return best_hand
 
+    def get_winner(self, ranked_hands: tuple): #Todo: write test
+        pass
+
+
+    def get_hands_with_highest_rank(self, ranked_hands):
+        highest_rank = self.get_highest_rank(ranked_hands)
+        for hand in ranked_hands:
+            if hand[0] == highest_rank:
+                yield hand[1]  # Yield only the hand of cards
+
+    # Get best_card_from_the_cards_with_highest_rank
+
 
 class Player(FindBestHand):  # Todo: Modify player to incorporate hand ranking within the class
     money = 100
     amount_bet_in_round = 0
     pocket_cards = []
     hand = []
+    hand_rank = 0
     has_folded_hand = False
     has_acted_in_round = False
     in_big_blind_position = False
@@ -204,23 +242,27 @@ class Player(FindBestHand):  # Todo: Modify player to incorporate hand ranking w
     def __init__(self, name):
         self.name = name
 
-    def get_hand(self, card_dealer):
-        
-        """
-        #todo: find the best current hand based on permutations
-        """
-        card_pool = self.pocket_cards + card_dealer.table_cards
-        # logging.INFO(f"pocket cards = {self.pocket_cards}")
-        # logging.INFO(f"table cards = {card_dealer.table_cards}")
-        # logging.INFO(f"card pool = {card_pool}")
-        combinations = list(itertools.combinations(
-            card_pool, r=5
-        ))
-        print(combinations)
-        ranked_hand_combinations = super().rank_hands(combinations)
-        self.hand = super().get_winner_from_ranked_hands(
-            ranked_hand_combinations
-        )
+
+    # def get_hand(self, card_dealer):
+    #     """
+    #     Set the Player hand to the best hand that the Player can form.
+    #     """
+    #     card_pool = self.pocket_cards + card_dealer.table_cards
+    #     # logging.INFO(f"pocket cards = {self.pocket_cards}")
+    #     # logging.INFO(f"table cards = {card_dealer.table_cards}")
+    #     # logging.INFO(f"card pool = {card_pool}")
+    #     combinations = list(itertools.combinations(
+    #         card_pool, r=5
+    #     ))
+    #     ranked_hand_combinations = super().rank_hands(combinations)
+    #     # Fixme: the problem is that get_winner_from_ranked_hands is returning
+    #     # only the card numbers
+    #     self.hand = super().get_winner_from_ranked_hands(
+    #         ranked_hand_combinations
+    #     )
+
+    # def rank_player_hand(self):
+    #     self.hand_rank = super().rank_hand(self.hand)
 
 
 class Players(Player):
