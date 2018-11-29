@@ -47,14 +47,12 @@ class TestDealingCards(unittest.TestCase):
 
     def test_pick_card(self):
         card = self.card_dealer.pick_card()
-        self.assertIn(card[0], self.numbers)
-        self.assertIn(card[1], self.suites)
+        self.assertIn(card.rank, self.numbers)
+        self.assertIn(card.suit, self.suites)
 
     def test_deal_pocket_cards_to_players_two_cards(self):
-        # Todo: fix test. Currently this is passing because 2 cards are first added.
-        #However, more cards than two are added.
         self.assertTrue(self.all_players.player1.pocket_cards == [])
-        self.game_round.card_dealer.deal_pocket_cards()
+        self.game_round.card_dealer.deal_pocket_cards(self.all_players)
         self.assertEqual(
             2,
             len(self.all_players.player1.pocket_cards)
@@ -64,15 +62,29 @@ class TestDealingCards(unittest.TestCase):
             len(self.all_players.player2.pocket_cards)
         )
 
-    def test_deal_pocket_cards_to_players_two_cards(self):
+    def test_deal_pocket_cards_to_players_dealt_card(self):
         self.card_dealer.deal_pocket_cards(self.all_players)
+
         self.assertEqual(
-            str, type(self.all_players.player1.pocket_cards[1][1])
+            str, type(self.all_players.player1.pocket_cards[0].suit)
+            )
+        self.assertEqual(
+            int, type(self.all_players.player1.pocket_cards[0].rank)
         )
         self.assertEqual(
-            int, type(self.all_players.player1.pocket_cards[1][0])
+            type(self.all_players.player1.pocket_cards[0]),
+            Card
         )
 
+    def test_deal_pocket_cards_to_players_dealt_two_cards(self):
+        self.card_dealer.deal_pocket_cards(self.all_players)
+        self.assertEqual(
+            len(self.all_players.player1.pocket_cards),
+            2
+        )
+
+
+# Todo:
 # class TestRankHands(unittest.TestCase):
 #     def setUp(self):
 #         n_players = 8
@@ -824,20 +836,20 @@ class TestBoardDealing(unittest.TestCase):
         self.assertEqual(self.game_round.card_dealer.table_cards, [])
         self.game_round.card_dealer.deal_flop()
         self.assertTrue(
-            self.game_round.card_dealer.table_cards[0][0] in self.rank
+            self.game_round.card_dealer.table_cards[0].rank in self.rank
         )
         self.assertTrue(
-            self.game_round.card_dealer.table_cards[0][1] in self.suit
+            self.game_round.card_dealer.table_cards[0].suit in self.suit
         )
 
     def test_deal_card_to_table_deals_card(self):
         self.assertEqual(self.game_round.card_dealer.table_cards, [])
         self.game_round.card_dealer.deal_card_to_table()
         self.assertTrue(
-            self.game_round.card_dealer.table_cards[0][0] in self.rank
+            self.game_round.card_dealer.table_cards[0].rank in self.rank
         )
         self.assertTrue(
-            self.game_round.card_dealer.table_cards[0][1] in self.suit
+            self.game_round.card_dealer.table_cards[0].suit in self.suit
         )
         self.assertEqual(
             1,

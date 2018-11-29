@@ -278,9 +278,16 @@ class CardDealer:
     dealt_cards = []
     table_cards = []
 
+    # Todo: modify this to create a deck of Card instances
     def __init__(self, number_of_starting_players):
         self.number_of_starting_players = number_of_starting_players
-        self.deck = list(itertools.product(range(2, 15), ('H', 'D', 'S', 'C')))
+        self.deck = list(self.generate_cards())
+
+    def generate_cards(self):
+        card_templates = itertools.product(range(2, 15), ('H', 'D', 'S', 'C'))
+        for rank, suit in card_templates:
+            yield Card(rank, suit)
+
 
     def pick_card(self) -> tuple:
         card = random.choice(self.deck)
