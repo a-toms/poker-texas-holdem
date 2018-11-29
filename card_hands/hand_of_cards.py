@@ -9,7 +9,8 @@ logging.basicConfig(level=logging.INFO)
 TODO:
 
 1. Build one working game round (including tests)
-2. Refactor to pass Player instances around, rather than using state
+
+? Refactor to pass a Card class instance around.
 
 """
 
@@ -125,7 +126,7 @@ class ClassifyHand(GetHandRanks):
         return ranked_hands
 
 
-class FindBestHand:
+class FindBestHand(ClassifyHand):
     def get_highest_rank(self, ranked_hands):
         """Find the highest rank from several hands."""
         highest_rank = 0
@@ -152,7 +153,6 @@ class FindBestHand:
         Convert a ranked hand to the hand's card numbers.
         """
         card_numbers = [card[0] for card in ranked_hand[1]]
-        print(card_numbers)
         card_numbers = self.sort_by_frequency_and_size(card_numbers)
         return card_numbers
 
@@ -170,11 +170,6 @@ class FindBestHand:
         card_numbers = self.filter_out_duplicates(card_numbers)
         return self.sort_by_frequency_and_size(card_numbers)[0]
 
-    def get_winner_from_ranked_hands(self, ranked_hands: tuple):
-        card_numbers = self.get_card_numbers_from_cards_in_highest_rank(
-            ranked_hands)
-        best_hand = self.get_highest_card(card_numbers)
-        return best_hand
 
     def filter_out_duplicates(self, iterable):
         filtered = []
@@ -183,27 +178,49 @@ class FindBestHand:
                 filtered.append(x)
         return filtered
 
+    def get_winner_from_ranked_hands(self, ranked_hands: tuple):
+        """
+        Todo: fix this. Refactor the below to assess ranked_hands tuples, rather than the card
+        numbers of those ranked_hand tuples
+        """
+        card_numbers = self.get_card_numbers_from_cards_in_highest_rank(
+            ranked_hands)
+        best_hand = self.get_highest_card(card_numbers)
+        return best_hand
 
-class Player: # Todo: Modify player to incorporate hand ranking within the class
+
+class Player(FindBestHand):  # Todo: Modify player to incorporate hand ranking within the class
     money = 100
     amount_bet_in_round = 0
     pocket_cards = []
-    current_hand = []
+    hand = []
     has_folded_hand = False
     has_acted_in_round = False
     in_big_blind_position = False
     in_small_blind_position = False
     in_dealer_position = False
-
+    is_all_in = False
 
     def __init__(self, name):
         self.name = name
 
-    def get_best_current_hand(self):
-        pass
-    #todo: find the best current hand
-    #itertools.permutations
-
+    def get_hand(self, card_dealer):
+        
+        """
+        #todo: find the best current hand based on permutations
+        """
+        card_pool = self.pocket_cards + card_dealer.table_cards
+        # logging.INFO(f"pocket cards = {self.pocket_cards}")
+        # logging.INFO(f"table cards = {card_dealer.table_cards}")
+        # logging.INFO(f"card pool = {card_pool}")
+        combinations = list(itertools.combinations(
+            card_pool, r=5
+        ))
+        print(combinations)
+        ranked_hand_combinations = super().rank_hands(combinations)
+        self.hand = super().get_winner_from_ranked_hands(
+            ranked_hand_combinations
+        )
 
 
 class Players(Player):
@@ -229,19 +246,17 @@ class CardDealer:
         self.dealt_cards.append(card)
         return card
 
-    def deal_pocket_cards(self, active_players) -> None:
+    def deal_pocket_cards(self, active_players: dict) -> None:  # Todo: write improved test
         for player in active_players.__dict__.values():
-            player.pocket_cards.append(self.pick_card())
-            player.pocket_cards.append(self.pick_card())
-
-    def deal_flop(self):
-        for i in range(3):
-            card = self.pick_card()
-            self.table_cards.append(card)
+            player.pocket_cards = list(self.pick_card() for i in range(2))
 
     def deal_card_to_table(self):
         card = self.pick_card()
         self.table_cards.append(card)
+
+    def deal_flop(self):
+        for i in range(3):
+            self.deal_card_to_table()
 
     def deal_turn(self):
         self.deal_card_to_table()
@@ -249,7 +264,7 @@ class CardDealer:
     def deal_river(self):
         self.deal_card_to_table()
 
-    def show_table(self): # Basic
+    def show_table(self):  # Basic
         print(f"Table cards : \n{self.table_cards}")
 
 
@@ -424,7 +439,7 @@ class GameRound:
         else:
             return True
 
-    def at_least_one_player_has_remaining_action(self) -> bool: #Todo: write test.
+    def at_least_one_player_has_remaining_action(self) -> bool:
         for player in self.players_information.__dict__.values():
             if self.has_remaining_actions(player) is True:
                 return True
@@ -460,7 +475,6 @@ if __name__ == "__main__":
     all_players = Players(n_of_players)
     card_dealer = CardDealer(n_of_players)
     game_round = GameRound(all_players, card_dealer)
-    print(game_round.players_information.player1.hand)
     card_dealer.deal_pocket_cards(all_players)
     game_round.pay_blinds()
     game_round.ask_all_players_for_actions(game_round.playing_order)

@@ -25,22 +25,49 @@ class TestDealingCards(unittest.TestCase):
         self.assertIn(card[1], self.suites)
 
     def test_deal_pocket_cards_to_players_two_cards(self):
+        # Todo: fix test. Currently this is passing because 2 cards are first added.
+        #However, more cards than two are added.
         self.assertTrue(self.all_players.player1.pocket_cards == [])
         self.game_round.card_dealer.deal_pocket_cards()
         self.assertEqual(
             2,
             len(self.all_players.player1.pocket_cards)
         )
+        self.assertEqual(
+            2,
+            len(self.all_players.player2.pocket_cards)
+        )
 
     def test_deal_pocket_cards_to_players_two_cards(self):
         self.card_dealer.deal_pocket_cards(self.all_players)
-        print(self.all_players.player1.pocket_cards)
         self.assertEqual(
             str, type(self.all_players.player1.pocket_cards[1][1])
         )
         self.assertEqual(
             int, type(self.all_players.player1.pocket_cards[1][0])
         )
+
+class TestPlayerFindingHisBestHand(unittest.TestCase):
+
+    def setUp(self):
+        n_players = 8
+        self.card_dealer = CardDealer(n_players)
+        self.all_players = Players(n_players)
+        self.game_round = GameRound(self.all_players, self.card_dealer)
+        self.card_dealer.deal_pocket_cards(self.all_players)
+        self.suites = ('H', 'C', 'S', 'D')
+        self.numbers = [i for i in range(2, 15)]
+
+
+    def test_get_hand_based_on_table_flop_five_objects(self):
+        self.card_dealer.deal_flop()
+        self.card_dealer.deal_card_to_table()
+        self.all_players.player1.get_hand(self.card_dealer)
+        self.assertEqual(
+            5,
+            len(self.all_players.player1.hand)
+        )
+
 
 
 class TestHandRankingSystem(unittest.TestCase):
@@ -670,6 +697,12 @@ class TestPlayerHasRemainingActions(unittest.TestCase):
         self.player1.has_folded_hand = False
         self.player1.has_acted_in_round = True
         self.assertFalse(self.game_round.has_remaining_actions(self.player1))
+
+    def test_at_least_one_player_has_remaining_action(self):
+        self.all_players.player4.has_acted_in_round = False
+        self.assertTrue(
+            self.game_round.at_least_one_player_has_remaining_action
+        )
 
 
 class TestPlayerInput(unittest.TestCase):
