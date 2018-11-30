@@ -8,9 +8,8 @@ logging.basicConfig(level=logging.WARNING)
 """
 TODO:
 
-1. Refactor to pass a Card class instance around.
+1. Refactor to create rankings by sampling the card object ranks.
 
-2. Build one working game round (including tests)
 
 """
 
@@ -143,7 +142,7 @@ class ClassifyHand(GetHandRanks):
         """Get each hand and assign it a rank."""
         ranked_hands = []
         for hand in hands:
-            rank = self.rank_hand(sorted(hand))
+            rank = self.rank_hand(sorted(hand, key=lambda n: n.rank))
             ranked_hands.append((rank, hand))
         return ranked_hands
 
@@ -203,19 +202,17 @@ class FindBestHand(ClassifyHand):
                 filtered.append(x)
         return filtered
 
-    def get_winner_from_ranked_hands(self, ranked_hands: tuple):
+    def get_winner_from_ranked_cards(self, ranked_hands: tuple):
         """
-        Todo: fix this. Refactor the below to assess ranked_hands tuples, rather than the card
-        numbers of those ranked_hand tuples
+        Todo: fix this. Refactor the below to assess card, rather than the card
+        Todo: numbers of those ranked_hand tuples
         """
-        card_numbers = self.get_card_numbers_from_cards_in_highest_rank(
-            ranked_hands)
-        best_hand = self.get_highest_card(card_numbers)
+        best_hand = self.get_winner(ranked_hands)
         return best_hand
 
-    def get_winner(self, ranked_hands: tuple): #Todo: write test
-        pass
 
+    def get_winner(self, ranked_hands: tuple):  # Todo: write test
+        # Todo: Takes ranked hand (number, Card objects). Returns highest hand.
 
     def get_hands_with_highest_rank(self, ranked_hands):
         highest_rank = self.get_highest_rank(ranked_hands)
@@ -223,7 +220,6 @@ class FindBestHand(ClassifyHand):
             if hand[0] == highest_rank:
                 yield hand[1]  # Yield only the hand of cards
 
-    # Get best_card_from_the_cards_with_highest_rank
 
 
 class Player(FindBestHand):  # Todo: Modify player to incorporate hand ranking within the class
@@ -243,26 +239,24 @@ class Player(FindBestHand):  # Todo: Modify player to incorporate hand ranking w
         self.name = name
 
 
-    # def get_hand(self, card_dealer):
-    #     """
-    #     Set the Player hand to the best hand that the Player can form.
-    #     """
-    #     card_pool = self.pocket_cards + card_dealer.table_cards
-    #     # logging.INFO(f"pocket cards = {self.pocket_cards}")
-    #     # logging.INFO(f"table cards = {card_dealer.table_cards}")
-    #     # logging.INFO(f"card pool = {card_pool}")
-    #     combinations = list(itertools.combinations(
-    #         card_pool, r=5
-    #     ))
-    #     ranked_hand_combinations = super().rank_hands(combinations)
-    #     # Fixme: the problem is that get_winner_from_ranked_hands is returning
-    #     # only the card numbers
-    #     self.hand = super().get_winner_from_ranked_hands(
-    #         ranked_hand_combinations
-    #     )
+    def get_hand(self, card_dealer):
+        """
+        Set the Player hand to the best hand that the Player can form.
+        """
+        card_pool = self.pocket_cards + card_dealer.table_cards
+        combinations = list(itertools.combinations(
+            card_pool, r=5
+        ))
+        ranked_hand_combinations = super().rank_hands(combinations)
+        # Fixme: the problem is that get_winner_from_ranked_hands was returning
+        # only the card numbers.
 
-    # def rank_player_hand(self):
-    #     self.hand_rank = super().rank_hand(self.hand)
+        self.hand = super().get_winner_from_ranked_cards(
+            ranked_hand_combinations
+        )
+
+    def rank_player_hand(self):
+        self.hand_rank = super().rank_hand(self.hand)
 
 
 class Players(Player):
@@ -278,7 +272,6 @@ class CardDealer:
     dealt_cards = []
     table_cards = []
 
-    # Todo: modify this to create a deck of Card instances
     def __init__(self, number_of_starting_players):
         self.number_of_starting_players = number_of_starting_players
         self.deck = list(self.generate_cards())
@@ -287,7 +280,6 @@ class CardDealer:
         card_templates = itertools.product(range(2, 15), ('H', 'D', 'S', 'C'))
         for rank, suit in card_templates:
             yield Card(rank, suit)
-
 
     def pick_card(self) -> tuple:
         card = random.choice(self.deck)

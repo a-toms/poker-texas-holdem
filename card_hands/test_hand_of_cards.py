@@ -84,7 +84,6 @@ class TestDealingCards(unittest.TestCase):
         )
 
 
-# Todo:
 # class TestRankHands(unittest.TestCase):
 #     def setUp(self):
 #         n_players = 8
@@ -113,47 +112,44 @@ class TestDealingCards(unittest.TestCase):
 #         )
 
 
+class TestPlayerFindingHisBestHand(unittest.TestCase):
 
+    def setUp(self):
+        n_players = 8
+        self.card_dealer = CardDealer(n_players)
+        self.all_players = Players(n_players)
+        self.game_round = GameRound(self.all_players, self.card_dealer)
+        self.suites = ('H', 'C', 'S', 'D')
+        self.numbers = [i for i in range(2, 15)]
 
+    def test_get_hand_based_on_table_flop_five_objects(self): #Fixme: fix test
+        self.card_dealer.deal_pocket_cards(self.all_players)
+        self.card_dealer.deal_flop()
+        self.card_dealer.deal_card_to_table() # Should this cause a failure?
+        # I think not given the effect of the combinations
+        self.all_players.player1.get_hand(self.card_dealer)
+        self.assertEqual(
+            5,
+            len(self.all_players.player1.hand)
+        )
 
-# class TestPlayerFindingHisBestHand(unittest.TestCase):
+    def test_rank_player_hand(self):
+        self.card_dealer.deal_pocket_cards(self.all_players)
+        self.assertEqual(
+            0,
+            self.all_players.player1.hand_rank
+        )
+        self.card_dealer.deal_pocket_cards(self.all_players)
+        self.card_dealer.deal_flop()
+        self.all_players.player1.get_hand(self.card_dealer)
+        self.all_players.player1.rank_player_hand()
+        self.assertGreater(
+            self.all_players.player1.hand_rank,
+            0
+        )
 
-    # def setUp(self):
-    #     n_players = 8
-    #     self.card_dealer = CardDealer(n_players)
-    #     self.all_players = Players(n_players)
-    #     self.game_round = GameRound(self.all_players, self.card_dealer)
-    #     self.suites = ('H', 'C', 'S', 'D')
-    #     self.numbers = [i for i in range(2, 15)]
-    #
-    # def test_get_hand_based_on_table_flop_five_objects(self): #Fixme: fix test
-    #     self.card_dealer.deal_pocket_cards(self.all_players)
-    #     self.card_dealer.deal_flop()
-    #     self.card_dealer.deal_card_to_table() # Should this cause a failure?
-    #     # I think not given the effect of the combinations
-    #     self.all_players.player1.get_hand(self.card_dealer)
-    #     self.assertEqual(
-    #         5,
-    #         len(self.all_players.player1.hand)
-    #     )
-    #
-    # def test_rank_player_hand(self):
-    #     self.card_dealer.deal_pocket_cards(self.all_players)
-    #     self.assertEqual(
-    #         0,
-    #         self.all_players.player1.hand_rank
-    #     )
-    #     self.card_dealer.deal_pocket_cards(self.all_players)
-    #     self.card_dealer.deal_flop()
-    #     self.all_players.player1.get_hand(self.card_dealer)
-    #     self.all_players.player1.rank_player_hand()
-    #     self.assertGreater(
-    #         self.all_players.player1.hand_rank,
-    #         0
-    #     )
-    #
-    # def tearDown(self):
-    #     self.card_dealer.table_cards = []
+    def tearDown(self):
+        self.card_dealer.table_cards = []
 
 
 
@@ -505,6 +501,7 @@ class TestFindBestHand(unittest.TestCase):
             [[3, 3, 2, 2, 14], [14, 14, 4, 4, 3], [8, 8, 3, 3, 14]]
         )
 
+    # Todo: break this
     def test_get_winner_from_same_ranked_hands(self):
         two_pairs = [
             (3, 3, 2, 2, 14), (14, 14, 4, 4, 3), (8, 8, 3, 3, 14),
