@@ -125,7 +125,7 @@ class TestPlayerFindingHisBestHand(unittest.TestCase):
     def test_get_hand_based_on_table_flop_five_objects(self): #Fixme: fix test
         self.card_dealer.deal_pocket_cards(self.all_players)
         self.card_dealer.deal_flop()
-        self.card_dealer.deal_card_to_table() # Should this cause a failure?
+        self.card_dealer.deal_card_to_table()  # Should this cause a failure?
         # I think not given the effect of the combinations
         self.all_players.player1.get_hand(self.card_dealer)
         self.assertEqual(
@@ -512,6 +512,17 @@ class TestFindBestHand(unittest.TestCase):
             self.find_best_hand.get_highest_card(two_pairs),
             best_of_two_pairs
         )
+
+class TestGetHighestHandFromHandOfCardObjects:
+    def setUp(self):
+        n_players = 3
+        self.all_players = Players(n_players)
+        self.card_dealer = CardDealer(n_players)
+        self.game_round = GameRound(self.all_players, self.card_dealer)
+        self.card_dealer.deal_pocket_cards(self.all_players)
+
+    def test_get_winner(self):
+        self.fail()
 
 
 class TestGameRoundClassInstantiation(unittest.TestCase):

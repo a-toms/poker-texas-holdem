@@ -202,17 +202,36 @@ class FindBestHand(ClassifyHand):
                 filtered.append(x)
         return filtered
 
-    def get_winner_from_ranked_cards(self, ranked_hands: tuple):
+    def get_winner_from_ranked_cards(self, ranked_hands: list):
         """
         Todo: fix this. Refactor the below to assess card, rather than the card
-        Todo: numbers of those ranked_hand tuples
+         numbers of those ranked_hand tuples
         """
         best_hand = self.get_winner(ranked_hands)
         return best_hand
 
 
     def get_winner(self, ranked_hands: tuple):  # Todo: write test
-        # Todo: Takes ranked hand (number, Card objects). Returns highest hand.
+        hands_with_the_highest_rank = self.get_hands_with_equal_highest_rank(ranked_hands)
+        # Todo: Above is working. Now find highest hand(s) from equal ranked hands.
+        #  This involves simply finding the hand containing the card with the highest rank/
+        #   Remember that the hands have already been sorted to be of the same rank.
+        winner =
+
+
+
+
+
+    def get_hands_with_equal_highest_rank(self, ranked_hands):
+        highest_rank = self.get_highest_rank(ranked_hands)
+        highest_ranked_hands = []
+        for i in range(len(ranked_hands)):
+            if ranked_hands[i][0] == highest_rank:
+                highest_ranked_hands.append(ranked_hands[i][1])
+        print(f"highest_ranked_hands = {highest_ranked_hands}")
+        print(f"len highest_ranked_hands = {len(highest_ranked_hands)}")
+        return highest_ranked_hands
+
 
     def get_hands_with_highest_rank(self, ranked_hands):
         highest_rank = self.get_highest_rank(ranked_hands)
@@ -251,9 +270,7 @@ class Player(FindBestHand):  # Todo: Modify player to incorporate hand ranking w
         # Fixme: the problem is that get_winner_from_ranked_hands was returning
         # only the card numbers.
 
-        self.hand = super().get_winner_from_ranked_cards(
-            ranked_hand_combinations
-        )
+        self.hand = super().get_winner_from_ranked_cards(ranked_hand_combinations)
 
     def rank_player_hand(self):
         self.hand_rank = super().rank_hand(self.hand)
