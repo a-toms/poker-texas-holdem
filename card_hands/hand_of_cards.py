@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.WARNING)
 """
 TODO:
 
-1. Refactor to create rankings by sampling the card object ranks.
+1. Refactor to create Hand objects
 
 
 """
@@ -27,14 +27,16 @@ class Card:
         self.rank = rank
         self.suit = suit
 
-    def get_rank_and_suit(self):
+    def return_rank_and_suit(self):
         return (self.rank, self.suit)
 
     def __str__(self):
         return f"{self.ranks_representation[self.rank]} of {self.suit_representation[self.suit]}"
 
 
-class GetHandRanks:
+class HandRanker:
+
+
 
     def get_high_card(self, hand):
         card_numbers = tuple(set([card.rank for card in hand]))
@@ -69,6 +71,8 @@ class GetHandRanks:
     def get_straight_with_low_ace(self, hand):
         """
         Check if a straight exists if the ace is treated as a low ace.
+        @:param
+        hand : iterable of Card instances.
         """
         low_ace, high_ace = 1, 14
         card_numbers = set([card.rank for card in hand])
@@ -118,28 +122,27 @@ class GetHandRanks:
         if self.get_straights(hand) and self.get_flush(hand):
             return sorted(hand, key=lambda n: n.rank)
 
-
-class ClassifyHand(GetHandRanks):
-
     hand_ranks = {
-        GetHandRanks.get_straight_flush: 9,
-        GetHandRanks.get_four_of_a_kind: 8,
-        GetHandRanks.get_full_house: 7,
-        GetHandRanks.get_flush: 6,
-        GetHandRanks.get_straights: 5,
-        GetHandRanks.get_three_of_a_kind: 4,
-        GetHandRanks.get_two_pairs: 3,
-        GetHandRanks.get_pairs: 2,
-        GetHandRanks.get_high_card: 1
+        get_straight_flush: 9,
+        get_four_of_a_kind: 8,
+        get_full_house: 7,
+        get_flush: 6,
+        get_straights: 5,
+        get_three_of_a_kind: 4,
+        get_two_pairs: 3,
+        get_pairs: 2,
+        get_high_card: 1
     }
 
-    def rank_hand(self, hand):
+    def rank_hand(self, hand: list) -> object:
         for f, rank in self.hand_ranks.items():
             if f(self, hand):
                 return rank
 
     def rank_hands(self, hands):
-        """Get each hand and assign it a rank."""
+        """
+        Get each hand and assign it a rank.
+        """
         ranked_hands = []
         for hand in hands:
             rank = self.rank_hand(sorted(hand, key=lambda n: n.rank))
@@ -147,7 +150,8 @@ class ClassifyHand(GetHandRanks):
         return ranked_hands
 
 
-class FindBestHand(ClassifyHand):
+
+class HandClassifier(HandRanker):
 
     def get_highest_rank(self, ranked_hands):
         """
@@ -194,7 +198,6 @@ class FindBestHand(ClassifyHand):
         card_numbers = self.filter_out_duplicates(card_numbers)
         return self.sort_by_frequency_and_size(card_numbers)[0]
 
-
     def filter_out_duplicates(self, iterable):
         filtered = []
         for x in iterable:
@@ -216,9 +219,6 @@ class FindBestHand(ClassifyHand):
         # Todo: Above is working. Now find highest hand(s) from equal ranked hands.
         #  This involves simply finding the hand containing the card with the highest rank/
         #   Remember that the hands have already been sorted to be of the same rank.
-        winner =
-
-
 
 
 
@@ -240,13 +240,67 @@ class FindBestHand(ClassifyHand):
                 yield hand[1]  # Yield only the hand of cards
 
 
+class Hand(HandClassifier):
 
-class Player(FindBestHand):  # Todo: Modify player to incorporate hand ranking within the class
+    best_hand = []
+    pocket_cards = []
+    best_hand_ranking = 0
+
+    def generate_hand_combinations(self, card_dealer) -> itertools:
+        card_pool = self.pocket_cards + card_dealer.table_cards
+        return itertools.combinations(card_pool, r=5)
+
+
+    def get_high_rank(self, hands) -> int:
+        starting_rank = 0
+        for hand in hands:
+            if self.rank_hand(hand) >= starting_rank:
+                starting_rank = self.rank_hand(hand)
+        return starting_rank
+
+
+    def set_best_hand_ranking(self, card_dealer) -> None:
+        self.best_hand_ranking = self.get_high_rank(
+            self.generate_hand_combinations(card_dealer)
+        )
+
+    def get_best_hand_from_combinations(self, combinations: itertools) -> list:
+        pass
+
+    def filter_for_hands_with_highest_rank(self, combinations):
+        return [x for x in combinations]
+
+
+
+
+
+
+
+
+
+
+    def get_hand(self, card_dealer):
+        """
+        Set the Player hand to the best hand that the Player can form.
+        """
+
+        for hands in combinations:
+            Hand
+        print(f"combinations = {combinations}")
+        ranked_hand_combinations = super().rank_hands(combinations)
+        # Fixme: the problem is that get_winner_from_ranked_hands was returning
+        # only the card numbers.
+
+    def rank_player_hand(self):
+        #self.hand_rank = super().rank_hand(self.cards)
+        pass
+
+class Player:
     money = 100
     amount_bet_in_round = 0
-    pocket_cards = []
-    hand = []
-    hand_rank = 0
+    hand = False
+
+
     has_folded_hand = False
     has_acted_in_round = False
     in_big_blind_position = False
@@ -256,27 +310,15 @@ class Player(FindBestHand):  # Todo: Modify player to incorporate hand ranking w
 
     def __init__(self, name):
         self.name = name
+        self.hand = Hand()
 
 
-    def get_hand(self, card_dealer):
-        """
-        Set the Player hand to the best hand that the Player can form.
-        """
-        card_pool = self.pocket_cards + card_dealer.table_cards
-        combinations = list(itertools.combinations(
-            card_pool, r=5
-        ))
-        ranked_hand_combinations = super().rank_hands(combinations)
-        # Fixme: the problem is that get_winner_from_ranked_hands was returning
-        # only the card numbers.
-
-        self.hand = super().get_winner_from_ranked_cards(ranked_hand_combinations)
-
-    def rank_player_hand(self):
-        self.hand_rank = super().rank_hand(self.hand)
 
 
-class Players(Player):
+
+
+
+class Players:
     """
     Use __dict__ to access the different players in Players.
     """
@@ -306,7 +348,7 @@ class CardDealer:
 
     def deal_pocket_cards(self, active_players: dict) -> None:  # Todo: write improved test
         for player in active_players.__dict__.values():
-            player.pocket_cards = list(self.pick_card() for i in range(2))
+            player.hand.pocket_cards = list(self.pick_card() for i in range(2))
 
     def deal_card_to_table(self):
         card = self.pick_card()

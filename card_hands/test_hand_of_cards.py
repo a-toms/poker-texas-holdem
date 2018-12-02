@@ -1,6 +1,6 @@
 from hand_of_cards import (
-    Card, Player, Players, CardDealer, GetHandRanks, ClassifyHand,
-    FindBestHand, GameRound
+    Card, Player, Players, CardDealer, HandRanker,
+    HandClassifier, GameRound, Hand
 )
 import unittest
 from unittest.mock import patch
@@ -51,112 +51,134 @@ class TestDealingCards(unittest.TestCase):
         self.assertIn(card.suit, self.suites)
 
     def test_deal_pocket_cards_to_players_two_cards(self):
-        self.assertTrue(self.all_players.player1.pocket_cards == [])
+        self.assertTrue(self.all_players.player1.hand.pocket_cards == [])
         self.game_round.card_dealer.deal_pocket_cards(self.all_players)
         self.assertEqual(
             2,
-            len(self.all_players.player1.pocket_cards)
+            len(self.all_players.player1.hand.pocket_cards)
         )
         self.assertEqual(
             2,
-            len(self.all_players.player2.pocket_cards)
+            len(self.all_players.player2.hand.pocket_cards)
         )
 
     def test_deal_pocket_cards_to_players_dealt_card(self):
         self.card_dealer.deal_pocket_cards(self.all_players)
-
         self.assertEqual(
-            str, type(self.all_players.player1.pocket_cards[0].suit)
+            str,
+            type(self.all_players.player1.hand.pocket_cards[0].suit)
             )
         self.assertEqual(
-            int, type(self.all_players.player1.pocket_cards[0].rank)
+            int,
+            type(self.all_players.player1.hand.pocket_cards[0].rank)
         )
         self.assertEqual(
-            type(self.all_players.player1.pocket_cards[0]),
+            type(self.all_players.player1.hand.pocket_cards[0]),
             Card
         )
 
     def test_deal_pocket_cards_to_players_dealt_two_cards(self):
         self.card_dealer.deal_pocket_cards(self.all_players)
         self.assertEqual(
-            len(self.all_players.player1.pocket_cards),
+            len(self.all_players.player1.hand.pocket_cards),
             2
         )
 
 
-# class TestRankHands(unittest.TestCase):
-#     def setUp(self):
-#         n_players = 8
-#         self.card_dealer = CardDealer(n_players)
-#         self.all_players = Players(n_players)
-#         self.game_round = GameRound(self.all_players, self.card_dealer)
-#         self.suites = ('H', 'C', 'S', 'D')
-#         self.numbers = [i for i in range(2, 15)]
-#         self.example_ranked_hands = ExampleHands().full_house_ranked_hands
-#
-#
-#     def test_get_hands_with_highest_rank(self):
-#         target_hands = (
-#             [(12, 'H'), (12, 'C'), (12, 'D'), (8, 'C'), (8, 'H')],
-#             [(12, 'H'), (12, 'C'), (12, 'S'), (7, 'C'), (7, 'S')]
-#         )
-#         output = tuple(
-#             self.card_dealer.get_hands_with_highest_rank(
-#                 self.example_ranked_hands
-#             )
-#         )
-#         print(output)
-#         self.assertEqual(
-#             target_hands,
-#             output
-#         )
-
-
-class TestPlayerFindingHisBestHand(unittest.TestCase):
+class TestPlayerHandCreation(unittest.TestCase):
 
     def setUp(self):
         n_players = 8
         self.card_dealer = CardDealer(n_players)
         self.all_players = Players(n_players)
-        self.game_round = GameRound(self.all_players, self.card_dealer)
-        self.suites = ('H', 'C', 'S', 'D')
-        self.numbers = [i for i in range(2, 15)]
 
-    def test_get_hand_based_on_table_flop_five_objects(self): #Fixme: fix test
-        self.card_dealer.deal_pocket_cards(self.all_players)
-        self.card_dealer.deal_flop()
-        self.card_dealer.deal_card_to_table()  # Should this cause a failure?
-        # I think not given the effect of the combinations
-        self.all_players.player1.get_hand(self.card_dealer)
+    def test_player_creates_hand_object(self):
         self.assertEqual(
-            5,
-            len(self.all_players.player1.hand)
+            type(self.all_players.player1.hand),
+            Hand
         )
 
-    def test_rank_player_hand(self):
+    def test_dealer_deals_two_objects_to_player_hand(self):
         self.card_dealer.deal_pocket_cards(self.all_players)
         self.assertEqual(
-            0,
-            self.all_players.player1.hand_rank
+            len(self.all_players.player1.hand.pocket_cards),
+            2
         )
+
+    def test_dealer_deals_cards_to_player_hand(self):
         self.card_dealer.deal_pocket_cards(self.all_players)
-        self.card_dealer.deal_flop()
-        self.all_players.player1.get_hand(self.card_dealer)
-        self.all_players.player1.rank_player_hand()
-        self.assertGreater(
-            self.all_players.player1.hand_rank,
-            0
+        hand = self.all_players.player1.hand
+        self.assertEqual(
+            type(hand.pocket_cards[0]),
+            Card
         )
+        self.assertEqual(
+            type(hand.pocket_cards[1]),
+            Card
+        )
+
+class TestPlayerHandRanking(unittest.TestCase):
+
+    def setUp(self):
+        n_players = 8
+        self.card_dealer = CardDealer(n_players)
+        self.all_players = Players(n_players)
+        self.card_dealer.table_cards = [
+            Card(3, "H"), Card(2, "H"), Card(6, "H"),
+            Card(10, "H"), Card(10, "D")
+        ]
+        self.all_players.player1.hand.pocket_cards = [
+            Card(10, 'S'), Card(8, 'C')
+        ]
+        self.player_1_hand = self.all_players.player1.hand
+
+    def test_generate_possible_combinations(self):
+        """
+        There are 21 combinations when taking a sample of 5 from 7 objects.
+        """
+        self.assertEqual(
+            21,
+            len(list(self.player_1_hand.generate_hand_combinations(
+                    self.card_dealer)))
+        )
+
+    def test_get_highest_rank_from_combinations(self):
+        possible_combinations = self.player_1_hand.generate_hand_combinations(
+            self.card_dealer
+        )
+        three_of_a_kind_rank = 4
+        self.assertEqual(
+            three_of_a_kind_rank,
+            self.player_1_hand.get_high_rank(possible_combinations)
+        )
+
+    def test_set_best_hand_ranking(self):
+        three_of_a_kind_rank = 4
+        self.assertTrue(self.player_1_hand.best_hand_ranking == 0)
+        self.player_1_hand.set_best_hand_ranking(self.card_dealer)
+        self.assertEqual(
+            self.player_1_hand.best_hand_ranking,
+            three_of_a_kind_rank,
+        )
+
+
+    # Todo: Write more tests
+
+
+
 
     def tearDown(self):
         self.card_dealer.table_cards = []
+
+
+#
 
 
 
 
 class TestHandRankingSystem(unittest.TestCase):
     def setUp(self):
-        self.ranker = GetHandRanks()
+        self.ranker = HandRanker()
 
     def test_get_high_card(self):
         assert self.ranker.get_high_card(ExampleHands.test_high_card) == (
@@ -238,7 +260,7 @@ class TestHandRankingSystem(unittest.TestCase):
     def test_straight_flush(self):
         straight_flush_cards = self.ranker.get_straight_flush(ExampleHands.test_straight_flush)
         rank_and_suit_of_cards = [
-            card.get_rank_and_suit() for card in straight_flush_cards
+            card.return_rank_and_suit() for card in straight_flush_cards
         ]
         self.assertEqual(
             [(1, 'C'), (2, 'C'), (3, 'C'), (4, 'C'), (5, 'C')],
@@ -375,12 +397,12 @@ class ExampleHands:
     ]
 
 
-class TestHandClassifier(unittest.TestCase):
+class TestHandRanker(unittest.TestCase):
     """
     Check that rank numbers are correctly output for each hand.
     """
     def setUp(self):
-        self.hand_classifier = ClassifyHand()
+        self.hand_classifier = HandRanker()
         self.hand_and_rank = {
             'straight flush': 9,
             'four of a kind': 8,
@@ -393,71 +415,71 @@ class TestHandClassifier(unittest.TestCase):
             'high card': 1
         }
 
-    def check_straight_flush(self):
+    def test_check_straight_flush(self):
         self.assertEqual(
             self.hand_classifier.rank_hand(ExampleHands.test_straight_flush),
             self.hand_and_rank['straight flush']
         )
 
-    def check_quads(self):
+    def test_check_quads(self):
         self.assertEqual(
             self.hand_classifier.rank_hand(ExampleHands.test_quads),
             self.hand_and_rank['four of a kind']
         )
 
-    def check_full_house(self):
+    def test_check_full_house(self):
         self.assertEqual(
             self.hand_classifier.rank_hand(ExampleHands.test_full_house),
             self.hand_and_rank['full house']
         )
 
-    def check_flush_classifier(self):
+    def test_check_flush_classifier(self):
         self.assertEqual(
             self.hand_classifier.rank_hand(ExampleHands.test_flush),
             self.hand_and_rank['flush']
         )
 
-    def check_straight(self):
+    def test_check_straight(self):
         self.assertEqual(
             self.hand_classifier.rank_hand(ExampleHands.test_straight),
             self.hand_and_rank['straight']
         )
 
-    def check_triples(self):
+    def test_check_triples(self):
         self.assertEqual(
             self.hand_classifier.rank_hand(ExampleHands.test_triples),
             self.hand_and_rank['three of a kind']
         )
 
-    def check_two_pairs(self):
+    def test_check_two_pairs(self):
         self.assertEqual(
             self.hand_classifier.rank_hand(ExampleHands.test_two_pairs),
             self.hand_and_rank['two pairs']
         )
 
-    def check_paid(self):
+    def test_check_pair(self):
         self.assertEqual(
             self.hand_classifier.rank_hand(ExampleHands.test_pair),
             self.hand_and_rank['pair']
         )
 
-    def check_high_card(self):
+    def test_check_high_card(self):
         self.assertEqual(
             self.hand_classifier.rank_hand(ExampleHands.test_high_card),
             self.hand_and_rank['high card']
         )
 
-    def check_all_hands(self):
+    def test_check_all_hands(self):
         self.assertEqual(
-            ClassifyHand().rank_hands(ExampleHands().sample_hands),
+            self.hand_classifier.rank_hands(ExampleHands().sample_hands),
             ExampleHands().all_ranked_hands
         )
 
 
-class TestFindBestHand(unittest.TestCase):
+class TestHandClassifier(unittest.TestCase):
 
     def setUp(self):
-        self.find_best_hand = FindBestHand()
+        self.find_best_hand = HandClassifier()
 
     def test_get_highest_rank(self):
         self.assertEqual(
