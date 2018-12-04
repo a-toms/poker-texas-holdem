@@ -13,6 +13,10 @@ TODO:
 
 """
 
+# Todo: Refactor to use the term "score" to describe the hierarchical
+#  ordering of hands. The term "score" does not refer to cards' relative
+#  numerical orderings.
+
 
 class Card:
     ranks_representation = (
@@ -228,8 +232,6 @@ class HandClassifier(HandRanker):
         for i in range(len(ranked_hands)):
             if ranked_hands[i][0] == highest_rank:
                 highest_ranked_hands.append(ranked_hands[i][1])
-        print(f"highest_ranked_hands = {highest_ranked_hands}")
-        print(f"len highest_ranked_hands = {len(highest_ranked_hands)}")
         return highest_ranked_hands
 
 
@@ -245,30 +247,42 @@ class Hand(HandClassifier):
     best_hand = []
     pocket_cards = []
     best_hand_ranking = 0
+    cards = []
+
+
+    def __init__(self, *args):
+        self.cards.append(args)
+
+
+    # Todo: Refactor so that class instance automatically finds the best hand
+    #  when new cards are added to the instances, just as a human player would.
+    #   :D
 
     def generate_hand_combinations(self, card_dealer) -> itertools:
         card_pool = self.pocket_cards + card_dealer.table_cards
-        return itertools.combinations(card_pool, r=5)
+        return list(itertools.combinations(card_pool, r=5))
 
-
-    def get_high_rank(self, hands) -> int:
-        starting_rank = 0
+    def get_highest_hand_score(self, hands) -> int:
+        highest_hand_score = 0
         for hand in hands:
-            if self.rank_hand(hand) >= starting_rank:
-                starting_rank = self.rank_hand(hand)
-        return starting_rank
-
+            if self.rank_hand(hand) >= highest_hand_score:
+                highest_hand_score = self.rank_hand(hand)
+        return highest_hand_score
 
     def set_best_hand_ranking(self, card_dealer) -> None:
-        self.best_hand_ranking = self.get_high_rank(
+        self.best_hand_ranking = self.get_highest_hand_score(
             self.generate_hand_combinations(card_dealer)
         )
 
     def get_best_hand_from_combinations(self, combinations: itertools) -> list:
         pass
 
-    def filter_for_hands_with_highest_rank(self, combinations):
-        return [x for x in combinations]
+    def filter_hands_by_highest_score(self, combinations):
+        score = self.get_highest_hand_score(combinations)
+        return [
+            hand for hand in combinations
+            if self.rank_hand(hand) == score
+        ]
 
 
 
@@ -279,21 +293,9 @@ class Hand(HandClassifier):
 
 
 
-    def get_hand(self, card_dealer):
-        """
-        Set the Player hand to the best hand that the Player can form.
-        """
 
-        for hands in combinations:
-            Hand
-        print(f"combinations = {combinations}")
-        ranked_hand_combinations = super().rank_hands(combinations)
-        # Fixme: the problem is that get_winner_from_ranked_hands was returning
-        # only the card numbers.
 
-    def rank_player_hand(self):
-        #self.hand_rank = super().rank_hand(self.cards)
-        pass
+
 
 class Player:
     money = 100
