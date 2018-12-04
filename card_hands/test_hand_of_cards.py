@@ -174,6 +174,13 @@ class TestPlayerHandRanking(unittest.TestCase):
             )
         )
 
+    def test_get_card_ranks(self):
+        self.assertListEqual(
+            [10, 10, 6, 3, 2],
+            self.player_1_hand.get_card_ranks(self.card_dealer.table_cards)
+        )
+
+
     def tearDown(self):
         self.card_dealer.table_cards = []
 

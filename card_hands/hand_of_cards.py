@@ -2,6 +2,7 @@ import itertools
 from collections import deque
 import random
 import logging
+from functools import reduce
 
 logging.basicConfig(level=logging.WARNING)
 
@@ -246,15 +247,16 @@ class Hand(HandClassifier):
 
     best_hand = []
     pocket_cards = []
-    best_hand_ranking = 0
+
     cards = []
 
+    best_hand_ranking = 0
 
     def __init__(self, *args):
         self.cards.append(args)
 
 
-    # Todo: Refactor so that class instance automatically finds the best hand
+    # Todo: Refactor so that class instance finds the best hand
     #  when new cards are added to the instances, just as a human player would.
     #   :D
 
@@ -274,15 +276,37 @@ class Hand(HandClassifier):
             self.generate_hand_combinations(card_dealer)
         )
 
-    def get_best_hand_from_combinations(self, combinations: itertools) -> list:
-        pass
-
-    def filter_hands_by_highest_score(self, combinations):
-        score = self.get_highest_hand_score(combinations)
+    def filter_hands_by_highest_score(self, combinations) -> list:
+        high_score = self.get_highest_hand_score(combinations)
         return [
             hand for hand in combinations
-            if self.rank_hand(hand) == score
+            if self.rank_hand(hand) == high_score
         ]
+
+    def get_card_ranks(self, hand: list) -> list:
+        """
+        :return: list of hand card ranks in descending order
+        """
+        # There must be a smoother way of doing this.
+        return sorted([card.rank for card in hand], reverse=True)
+
+    def get_hand_with_highest_card_rank(self, hands: list): # Todo: write test
+        # Todo: Write tests. Refactor later when tests are passing.
+        best_hand, best_hand_card_ranks = None, self.get_card_ranks(hands[0])
+        for hand in hands:
+            for a, b in self.get_card_ranks(hand), best_hand_card_ranks:
+                if a > b:
+                    best_hand = hand, best_hand_card_ranks = self.get_card_ranks(hand)
+                    break
+                if a < b:
+                    break
+        return best_hand
+
+    def calculate_best_hand(self) -> None:
+        #  Todo: Combine f to allow the Hand class to get the best hand from the possibilities
+
+
+
 
 
 
