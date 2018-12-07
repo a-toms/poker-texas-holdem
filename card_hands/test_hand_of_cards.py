@@ -32,6 +32,7 @@ class TestCard(unittest.TestCase):
             "Ace of Diamonds"
         )
 
+
 class TestDealingCards(unittest.TestCase):
 
     def setUp(self):
@@ -117,6 +118,7 @@ class TestPlayerHandCreation(unittest.TestCase):
             Card
         )
 
+
 class TestPlayerHandRanking(unittest.TestCase):
 
     def setUp(self):
@@ -131,6 +133,7 @@ class TestPlayerHandRanking(unittest.TestCase):
             Card(10, 'S'), Card(8, 'C')
         ]
         self.player_1_hand = self.all_players.player1.hand
+
 
     def test_generate_possible_combinations(self):
         """
@@ -152,15 +155,6 @@ class TestPlayerHandRanking(unittest.TestCase):
             self.player_1_hand.get_highest_hand_score(possible_combinations)
         )
 
-    def test_set_best_hand_ranking(self):
-        three_of_a_kind_rank = 4
-        self.assertTrue(self.player_1_hand.best_hand_ranking == 0)
-        self.player_1_hand.set_best_hand_ranking(self.card_dealer)
-        self.assertEqual(
-            self.player_1_hand.best_hand_ranking,
-            three_of_a_kind_rank,
-        )
-
     def test_filter_for_hands_with_highest_rank(self):
         # Itertools object appears to be depleted when called! Yes! Note this.
         sample_combinations = list(self.player_1_hand.generate_hand_combinations(
@@ -170,8 +164,7 @@ class TestPlayerHandRanking(unittest.TestCase):
         self.assertEqual(
             highest_score_hands_in_sample,
             len(self.player_1_hand.filter_hands_by_highest_score(
-                sample_combinations)
-            )
+                sample_combinations))
         )
 
     def test_get_card_ranks(self):
@@ -180,12 +173,60 @@ class TestPlayerHandRanking(unittest.TestCase):
             self.player_1_hand.get_card_ranks(self.card_dealer.table_cards)
         )
 
+    def test_get_hand_with_highest_card_rank_same_pair(self):
+        test_hand_1 = [
+            Card(10, "H"), Card(6, "D"), Card(6, "H"),
+            Card(9, "H"), Card(2, "C")
+        ]
+        test_hand_2 = [
+            Card(14, "C"), Card(6, "D"), Card(6, "H"),
+            Card(3, "H"), Card(2, "H")
+        ]
+        test_input = [test_hand_1, test_hand_2]
+        # test_hand_2 is the higher hand
+        self.assertEqual(
+            self.player_1_hand.get_hand_with_highest_card_rank(test_input),
+            test_hand_2
+        )
+
+    def test_get_hand_with_highest_card_rank_different_pair(self):
+        test_hand_1 = [
+            Card(10, "H"), Card(2, "D"), Card(2, "H"),
+            Card(9, "H"), Card(6, "C")
+        ]
+        test_hand_2 = [
+            Card(3, "H"), Card(6, "D"), Card(6, "H"),
+            Card(2, "H"), Card(14, "C")
+        ]
+        test_input = [test_hand_1, test_hand_2]
+        # test_hand_2 is the higher hand
+        self.assertEqual(
+            self.player_1_hand.get_hand_with_highest_card_rank(test_input),
+            test_hand_2
+        )
+        # I do not
+
+    def test_calculate_best_hand(self):
+        self.player_1_hand.pocket_cards = [Card(6, 'D'), Card(6, 'H')]
+        self.card_dealer.table_cards = [
+            Card(6, 'S'), Card(12, 'H'), Card(12, 'D'), Card(12, 'S'),
+            Card(14, 'D')
+        ]
+        # The best hand from player1's pocket cards and the table cards is
+        # a full house with three 12s and two 6s
+        suit_and_rank = [
+            x.return_rank_and_suit()
+            for x in self.player_1_hand.calculate_best_hand(self.card_dealer)
+        ]
+        self.assertCountEqual(
+            [(12, 'H'), (12, 'D'), (12, 'S'),
+             (6, 'D'), (6, 'H')],
+            suit_and_rank
+        )
 
     def tearDown(self):
         self.card_dealer.table_cards = []
 
-
-#
 
 
 
@@ -548,17 +589,6 @@ class TestHandClassifier(unittest.TestCase):
             best_of_two_pairs
         )
 
-class TestGetHighestHandFromHandOfCardObjects:
-    def setUp(self):
-        n_players = 3
-        self.all_players = Players(n_players)
-        self.card_dealer = CardDealer(n_players)
-        self.game_round = GameRound(self.all_players, self.card_dealer)
-        self.card_dealer.deal_pocket_cards(self.all_players)
-
-    def test_get_winner(self):
-        pass
-
 
 class TestGameRoundClassInstantiation(unittest.TestCase):
     def test_game_round_instantiates_to_include_player_class_instantiation(self):
@@ -850,7 +880,7 @@ class TestBetting(unittest.TestCase):
         self.game_round.reset_players_status_at_round_end()
         self.assertFalse(self.player1.has_acted_in_round)
 
-    def test_rest_highest_round_bet(self):
+    def test_reset_highest_round_bet(self):
         self.game_round.highest_round_bet = 100
         self.game_round.reset_highest_round_bet()
         self.assertEqual(

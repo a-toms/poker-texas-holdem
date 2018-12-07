@@ -2,7 +2,6 @@ import itertools
 from collections import deque
 import random
 import logging
-from functools import reduce
 
 logging.basicConfig(level=logging.WARNING)
 
@@ -35,13 +34,11 @@ class Card:
     def return_rank_and_suit(self):
         return (self.rank, self.suit)
 
-    def __str__(self):
+    def __repr__(self):
         return f"{self.ranks_representation[self.rank]} of {self.suit_representation[self.suit]}"
 
 
 class HandRanker:
-
-
 
     def get_high_card(self, hand):
         card_numbers = tuple(set([card.rank for card in hand]))
@@ -155,7 +152,6 @@ class HandRanker:
         return ranked_hands
 
 
-
 class HandClassifier(HandRanker):
 
     def get_highest_rank(self, ranked_hands):
@@ -199,6 +195,8 @@ class HandClassifier(HandRanker):
         )
         return card_numbers
 
+
+
     def get_highest_card(self, card_numbers):
         card_numbers = self.filter_out_duplicates(card_numbers)
         return self.sort_by_frequency_and_size(card_numbers)[0]
@@ -211,20 +209,13 @@ class HandClassifier(HandRanker):
         return filtered
 
     def get_winner_from_ranked_cards(self, ranked_hands: list):
-        """
-        Todo: fix this. Refactor the below to assess card, rather than the card
-         numbers of those ranked_hand tuples
-        """
         best_hand = self.get_winner(ranked_hands)
         return best_hand
 
 
-    def get_winner(self, ranked_hands: tuple):  # Todo: write test
+    def get_winner(self, ranked_hands: tuple):  # Remove
         hands_with_the_highest_rank = self.get_hands_with_equal_highest_rank(ranked_hands)
-        # Todo: Above is working. Now find highest hand(s) from equal ranked hands.
-        #  This involves simply finding the hand containing the card with the highest rank/
-        #   Remember that the hands have already been sorted to be of the same rank.
-
+        # Todo: Several of the methods in this class now seem superfluous. Remove.
 
 
     def get_hands_with_equal_highest_rank(self, ranked_hands):
@@ -248,33 +239,27 @@ class Hand(HandClassifier):
     best_hand = []
     pocket_cards = []
 
-    cards = []
-
-    best_hand_ranking = 0
+    highest_hand_score = 0
 
     def __init__(self, *args):
-        self.cards.append(args)
+        #  self.cards.append(*args)
+        pass
 
 
     # Todo: Refactor so that class instance finds the best hand
     #  when new cards are added to the instances, just as a human player would.
     #   :D
 
+    def print_output(func):  # My first decorator!
+        def wrapper(*args):
+            results = func(*args)
+            print(f"output for {func.__name__} :\n{results} ")
+            return results
+        return wrapper
+
     def generate_hand_combinations(self, card_dealer) -> itertools:
         card_pool = self.pocket_cards + card_dealer.table_cards
         return list(itertools.combinations(card_pool, r=5))
-
-    def get_highest_hand_score(self, hands) -> int:
-        highest_hand_score = 0
-        for hand in hands:
-            if self.rank_hand(hand) >= highest_hand_score:
-                highest_hand_score = self.rank_hand(hand)
-        return highest_hand_score
-
-    def set_best_hand_ranking(self, card_dealer) -> None:
-        self.best_hand_ranking = self.get_highest_hand_score(
-            self.generate_hand_combinations(card_dealer)
-        )
 
     def filter_hands_by_highest_score(self, combinations) -> list:
         high_score = self.get_highest_hand_score(combinations)
@@ -283,28 +268,43 @@ class Hand(HandClassifier):
             if self.rank_hand(hand) == high_score
         ]
 
-    def get_card_ranks(self, hand: list) -> list:
-        """
-        :return: list of hand card ranks in descending order
-        """
-        # There must be a smoother way of doing this.
-        return sorted([card.rank for card in hand], reverse=True)
-
-    def get_hand_with_highest_card_rank(self, hands: list): # Todo: write test
-        # Todo: Write tests. Refactor later when tests are passing.
-        best_hand, best_hand_card_ranks = None, self.get_card_ranks(hands[0])
+    def get_highest_hand_score(self, hands) -> int:
+        highest_hand_score = 0
         for hand in hands:
-            for a, b in self.get_card_ranks(hand), best_hand_card_ranks:
-                if a > b:
-                    best_hand = hand, best_hand_card_ranks = self.get_card_ranks(hand)
-                    break
-                if a < b:
-                    break
+            if self.rank_hand(hand) >= highest_hand_score:
+                highest_hand_score = self.rank_hand(hand)
+                self.highest_hand_score = highest_hand_score
+        return highest_hand_score
+
+
+
+    @print_output
+    def get_hand_with_highest_card_rank(self, filtered_hands: list) -> list:
+        best_hand = filtered_hands[0]
+        highest_ranks = self.get_card_ranks(filtered_hands[0])
+        for hand in filtered_hands:
+            challenger_ranks = self.get_card_ranks(hand)
+            if self.is_challenger_higher(highest_ranks, challenger_ranks) is True:
+                best_hand = hand
+                highest_ranks = challenger_ranks
         return best_hand
 
-    def calculate_best_hand(self) -> None:
-        #  Todo: Combine f to allow the Hand class to get the best hand from the possibilities
+    def is_challenger_higher(self, current: list, challenger: list) -> bool:
+        for a, b in zip(current, challenger):
+            if a > b:
+                return False
+            if b > a:
+                return True
+        return False
 
+    def get_card_ranks(self, hand: list) -> list:
+        return self.sort_by_frequency_and_size([card.rank for card in hand])
+
+    def calculate_best_hand(self, card_dealer) -> list:
+        combinations = self.generate_hand_combinations(card_dealer)
+        filtered = self.filter_hands_by_highest_score(combinations)
+        best_hand = self.get_hand_with_highest_card_rank(filtered)
+        return best_hand
 
 
 
@@ -337,11 +337,6 @@ class Player:
     def __init__(self, name):
         self.name = name
         self.hand = Hand()
-
-
-
-
-
 
 
 class Players:
@@ -589,8 +584,6 @@ class GameRound:
 
 
 
-
-
 if __name__ == "__main__":
     """
     3 main objects: 1. all_players, 2. card_dealer; 3. game_round.
@@ -605,17 +598,20 @@ if __name__ == "__main__":
     game_round.pay_blinds()
     game_round.ask_all_players_for_actions(game_round.playing_order)
     game_round.reset_players_status_at_round_end()
+    game_round.reset_highest_round_bet()
     game_round.rotate_playing_order_before_flop()
 
     game_round.card_dealer.deal_flop()
     game_round.card_dealer.show_table()
     game_round.ask_all_players_for_actions(game_round.playing_order)
     game_round.reset_players_status_at_round_end()
+    game_round.reset_highest_round_bet()
 
     game_round.card_dealer.deal_turn()
     game_round.card_dealer.show_table()
     game_round.ask_all_players_for_actions(game_round.playing_order)
     game_round.reset_players_status_at_round_end()
+    game_round.reset_highest_round_bet()
 
     game_round.card_dealer.deal_river()
     game_round.card_dealer.show_table()
