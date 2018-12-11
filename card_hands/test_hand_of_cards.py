@@ -229,8 +229,6 @@ class TestPlayerHandRanking(unittest.TestCase):
 
 
 
-
-
 class TestHandRankingSystem(unittest.TestCase):
     def setUp(self):
         self.ranker = HandRanker()
@@ -592,13 +590,62 @@ class TestHandClassifier(unittest.TestCase):
 
 class TestGameRoundClassInstantiation(unittest.TestCase):
     def test_game_round_instantiates_to_include_player_class_instantiation(self):
-        all_players = Players(6)
-        card_dealer = CardDealer(6)
+        n_players = 6
+        all_players = Players(n_players)
+        card_dealer = CardDealer(n_players)
         game_round = GameRound(all_players, card_dealer)
         self.assertEqual(
             Player,
             type(game_round.players_information.player1)
         )
+
+
+class TestPlayerPaymentsAfterAllIn(unittest.TestCase):
+    def setUp(self):
+        self.n_players = 8
+        self.all_players = Players(self.n_players)
+        self.card_dealer = CardDealer(self.n_players)
+        self.game_round = GameRound(self.all_players, self.card_dealer)
+
+
+    def test_get_any_player_that_is_all_in(self):
+        # no player is all_in
+        self.assertEqual(
+            (),
+            tuple(self.all_players.get_any_player_that_is_all_in())
+        )
+        # player8 is all_in
+        self.all_players.player8.is_all_in = True
+        self.assertEqual(
+            self.all_players.player8,
+            tuple(self.all_players.get_any_player_that_is_all_in())[0]
+        )
+
+    def test_set_max_winnings(self):
+        player1 = self.all_players.player1
+        player1.amount_bet_in_round = 40
+        player1.is_all_in = False
+        player2 = self.all_players.player2
+        player2.amount_bet_in_round = 65
+        player2.is_all_in = False
+        player3 = self.all_players.player3
+        player3.amount_bet_in_round = 20
+        player3.is_all_in = True
+
+        self.assertEqual(
+            0,
+            player3.max_winnings
+        )
+        self.all_players.set_max_winnings(player3)
+        self.assertEqual(
+            player3.amount_bet_in_round * self.n_players,
+            player3.max_winnings
+        )
+
+
+
+
+
 
 
 class TestGameRoundPayingBlinds(unittest.TestCase):

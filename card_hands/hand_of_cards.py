@@ -195,8 +195,6 @@ class HandClassifier(HandRanker):
         )
         return card_numbers
 
-
-
     def get_highest_card(self, card_numbers):
         card_numbers = self.filter_out_duplicates(card_numbers)
         return self.sort_by_frequency_and_size(card_numbers)[0]
@@ -212,11 +210,9 @@ class HandClassifier(HandRanker):
         best_hand = self.get_winner(ranked_hands)
         return best_hand
 
-
     def get_winner(self, ranked_hands: tuple):  # Remove
         hands_with_the_highest_rank = self.get_hands_with_equal_highest_rank(ranked_hands)
         # Todo: Several of the methods in this class now seem superfluous. Remove.
-
 
     def get_hands_with_equal_highest_rank(self, ranked_hands):
         highest_rank = self.get_highest_rank(ranked_hands)
@@ -225,7 +221,6 @@ class HandClassifier(HandRanker):
             if ranked_hands[i][0] == highest_rank:
                 highest_ranked_hands.append(ranked_hands[i][1])
         return highest_ranked_hands
-
 
     def get_hands_with_highest_rank(self, ranked_hands):
         highest_rank = self.get_highest_rank(ranked_hands)
@@ -244,7 +239,6 @@ class Hand(HandClassifier):
     def __init__(self, *args):
         #  self.cards.append(*args)
         pass
-
 
     # Todo: Refactor so that class instance finds the best hand
     #  when new cards are added to the instances, just as a human player would.
@@ -275,8 +269,6 @@ class Hand(HandClassifier):
                 highest_hand_score = self.rank_hand(hand)
                 self.highest_hand_score = highest_hand_score
         return highest_hand_score
-
-
 
     @print_output
     def get_hand_with_highest_card_rank(self, filtered_hands: list) -> list:
@@ -310,42 +302,74 @@ class Hand(HandClassifier):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 class Player:
+    """
+    Contains explicit player actions.
+    """
     money = 100
     amount_bet_in_round = 0
     hand = False
-
-
     has_folded_hand = False
     has_acted_in_round = False
     in_big_blind_position = False
     in_small_blind_position = False
     in_dealer_position = False
     is_all_in = False
+    max_winnings = 0 # Todo: integrate this with the awarding of the pot
 
     def __init__(self, name):
         self.name = name
         self.hand = Hand()
 
 
+
+
+
+
 class Players:
     """
+    Includes functions that apply to multiple players
     Use __dict__ to access the different players in Players.
     """
     def __init__(self, number_of_players):
         for i in range(1, number_of_players + 1):
             setattr(self, f'player{i}', Player(f'player{i}'))
+
+    def get_any_player_that_is_all_in(self):
+        for player in self.__dict__.values():
+            if player.is_all_in:
+                yield player
+
+    def find_max_all_in_players_can_win(self):  # Todo: write test
+        """
+        Desc: ...
+        Run at each round's end.
+        :return:
+        """
+        if self.get_any_player_that_is_all_in() is not None:
+            for all_in_player in self.get_any_player_that_is_all_in():
+                self.set_max_winnings(all_in_player)
+
+    def set_max_winnings(self, all_in_player: Player) -> None:  # Todo: write test
+        max_winnings = all_in_player.max_winnings
+        for other_player in self.__dict__.values():
+            if other_player.amount_bet_in_round >= all_in_player.amount_bet_in_round:
+                max_winnings += all_in_player.amount_bet_in_round
+            else:
+                max_winnings += other_player.amount_bet_in_round
+
+    # Todo: if only one player not all in or folded, round ends
+
+
+
+
+
+
+
+
+
+
+
 
 
 class CardDealer:
@@ -543,6 +567,8 @@ class GameRound:
                   f"of {self.highest_round_bet} to check")
             return False
 
+
+    # Todo: change to pass in the players still in the hand by order of best hand
     def give_pot_to_winners(self, winners: tuple) -> None:  # Pass in the Player objects
         winnings = self.pot // len(winners)
         for player in winners:
@@ -566,10 +592,12 @@ class GameRound:
                 return True
         return False
 
-    def ask_all_players_for_actions(self, player_order: dict) -> None:  #Todo: write test.
+    def ask_all_players_for_actions(self, player_order, card_dealer) -> None:
         while self.at_least_one_player_has_remaining_action() is True:
             for player in player_order:
                 if self.has_remaining_actions(player) is True:
+                    player.hand.print_pocket_cards() # Todo: move this
+                    player.hand.calculate_best_hand(card_dealer)
                     self.get_player_command(player)
                     self.mark_player_as_having_made_action(player)
 
@@ -586,33 +614,33 @@ class GameRound:
 
 if __name__ == "__main__":
     """
-    3 main objects: 1. all_players, 2. card_dealer; 3. game_round.
-    
-    May refactor the below to reduce the sprawling dominance of game_round.
+    3 main objects: 1. all_players, 2. card_dealer; 3. game_round.    
     """
+
+    # Todo: refactor the below to reduce the sprawling dominance of game_round.
     n_of_players = 8
     all_players = Players(n_of_players)
     card_dealer = CardDealer(n_of_players)
     game_round = GameRound(all_players, card_dealer)
     card_dealer.deal_pocket_cards(all_players)
     game_round.pay_blinds()
-    game_round.ask_all_players_for_actions(game_round.playing_order)
+    game_round.ask_all_players_for_actions(game_round.playing_order, card_dealer)
     game_round.reset_players_status_at_round_end()
     game_round.reset_highest_round_bet()
     game_round.rotate_playing_order_before_flop()
 
     game_round.card_dealer.deal_flop()
     game_round.card_dealer.show_table()
-    game_round.ask_all_players_for_actions(game_round.playing_order)
+    game_round.ask_all_players_for_actions(game_round.playing_order, card_dealer)
     game_round.reset_players_status_at_round_end()
     game_round.reset_highest_round_bet()
 
     game_round.card_dealer.deal_turn()
     game_round.card_dealer.show_table()
-    game_round.ask_all_players_for_actions(game_round.playing_order)
+    game_round.ask_all_players_for_actions(game_round.playing_order, card_dealer)
     game_round.reset_players_status_at_round_end()
     game_round.reset_highest_round_bet()
 
     game_round.card_dealer.deal_river()
     game_round.card_dealer.show_table()
-    game_round.ask_all_players_for_actions(game_round.playing_order)
+    game_round.ask_all_players_for_actions(game_round.playing_order, card_dealer)
