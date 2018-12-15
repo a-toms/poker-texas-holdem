@@ -614,6 +614,7 @@ class TestPlayerPaymentsAfterAllIn(unittest.TestCase):
             (),
             tuple(self.all_players.get_any_player_that_is_all_in())
         )
+
         # player8 is all_in
         self.all_players.player8.is_all_in = True
         self.assertEqual(
@@ -622,14 +623,23 @@ class TestPlayerPaymentsAfterAllIn(unittest.TestCase):
         )
 
     def test_set_max_winnings(self):
-        player1 = self.all_players.player1
-        player1.amount_bet_in_round = 40
-        player1.is_all_in = False
-        player2 = self.all_players.player2
-        player2.amount_bet_in_round = 65
-        player2.is_all_in = False
+        """
+        This tests that an all_in player's max winnings are capped after
+        he goes all_in at his highest bet * number of players.
+        """
+        # Assign bets to players.
+        for player in self.all_players.__dict__.values():
+            player.amount_bet_in_round = 20
+
+        # Assign larger bets to some players.
+        self.all_players.player1.amount_bet_in_round = 40
+        self.all_players.player2.amount_bet_in_round = 40
         player3 = self.all_players.player3
-        player3.amount_bet_in_round = 20
+        player3.amount_bet_in_round = 30
+
+        sum_of_bets_for_each_player_equal_or_less_than_all_in_players_bet = 190
+
+        # player3 is the only all_in player.
         player3.is_all_in = True
 
         self.assertEqual(
@@ -638,13 +648,9 @@ class TestPlayerPaymentsAfterAllIn(unittest.TestCase):
         )
         self.all_players.set_max_winnings(player3)
         self.assertEqual(
-            player3.amount_bet_in_round * self.n_players,
+            sum_of_bets_for_each_player_equal_or_less_than_all_in_players_bet,
             player3.max_winnings
         )
-
-
-
-
 
 
 

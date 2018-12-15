@@ -215,6 +215,7 @@ class HandClassifier(HandRanker):
         # Todo: Several of the methods in this class now seem superfluous. Remove.
 
     def get_hands_with_equal_highest_rank(self, ranked_hands):
+        # This function is unclear. Suggest renaming
         highest_rank = self.get_highest_rank(ranked_hands)
         highest_ranked_hands = []
         for i in range(len(ranked_hands)):
@@ -292,11 +293,23 @@ class Hand(HandClassifier):
     def get_card_ranks(self, hand: list) -> list:
         return self.sort_by_frequency_and_size([card.rank for card in hand])
 
+    # Todo: return_pocket_cards_if_no_table_cards
     def calculate_best_hand(self, card_dealer) -> list:
-        combinations = self.generate_hand_combinations(card_dealer)
-        filtered = self.filter_hands_by_highest_score(combinations)
-        best_hand = self.get_hand_with_highest_card_rank(filtered)
-        return best_hand
+        if not card_dealer.table_cards:
+            return self.pocket_cards
+        else:
+            combinations = self.generate_hand_combinations(card_dealer)
+            filtered = self.filter_hands_by_highest_score(combinations)
+            best_hand = self.get_hand_with_highest_card_rank(filtered)
+            self.best_hand = best_hand
+            return best_hand
+
+    def print_best_hand(self):
+        print(self.best_hand)
+
+    def print_pocket_cards(self):
+        print(self.pocket_cards)
+
 
 
 
@@ -342,23 +355,24 @@ class Players:
 
     def find_max_all_in_players_can_win(self):  # Todo: write test
         """
-        Desc: ...
         Run at each round's end.
-        :return:
         """
         if self.get_any_player_that_is_all_in() is not None:
             for all_in_player in self.get_any_player_that_is_all_in():
                 self.set_max_winnings(all_in_player)
 
-    def set_max_winnings(self, all_in_player: Player) -> None:  # Todo: write test
-        max_winnings = all_in_player.max_winnings
+    def set_max_winnings(self, all_in_player: Player) -> None:
+        """
+        Creates an max winnings attribute for an all_in player. This threshold
+        is the all_in player's highest bet * number of players.
+        """
         for other_player in self.__dict__.values():
             if other_player.amount_bet_in_round >= all_in_player.amount_bet_in_round:
-                max_winnings += all_in_player.amount_bet_in_round
+                all_in_player.max_winnings += all_in_player.amount_bet_in_round
             else:
-                max_winnings += other_player.amount_bet_in_round
+                all_in_player.max_winnings += other_player.amount_bet_in_round
 
-    # Todo: if only one player not all in or folded, round ends
+
 
 
 
@@ -410,7 +424,9 @@ class CardDealer:
         self.deal_card_to_table()
 
     def show_table(self):  # Basic
+        print("______________________\n")
         print(f"Table cards : \n{self.table_cards}")
+        print("______________________\n")
 
 
 class GameRound:
@@ -579,7 +595,7 @@ class GameRound:
         player_who_made_action.has_acted_in_round = True
 
     def has_remaining_actions(self, player: Player) -> bool:
-        if player.has_folded_hand is True:
+        if player.has_folded_hand or player.is_all_in is True:
             return False
         elif player.amount_bet_in_round == self.highest_round_bet and player.has_acted_in_round is True:
             return False
@@ -596,8 +612,7 @@ class GameRound:
         while self.at_least_one_player_has_remaining_action() is True:
             for player in player_order:
                 if self.has_remaining_actions(player) is True:
-                    player.hand.print_pocket_cards() # Todo: move this
-                    player.hand.calculate_best_hand(card_dealer)
+                    print(player.hand.calculate_best_hand(card_dealer))
                     self.get_player_command(player)
                     self.mark_player_as_having_made_action(player)
 
