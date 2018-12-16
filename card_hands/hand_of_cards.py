@@ -73,8 +73,7 @@ class HandRanker:
     def get_straight_with_low_ace(self, hand):
         """
         Check if a straight exists if the ace is treated as a low ace.
-        @:param
-        hand : iterable of Card instances.
+        hand is an iterable of Card instances.
         """
         low_ace, high_ace = 1, 14
         card_numbers = set([card.rank for card in hand])
@@ -206,13 +205,6 @@ class HandClassifier(HandRanker):
                 filtered.append(x)
         return filtered
 
-    def get_winner_from_ranked_cards(self, ranked_hands: list):
-        best_hand = self.get_winner(ranked_hands)
-        return best_hand
-
-    def get_winner(self, ranked_hands: tuple):  # Remove
-        hands_with_the_highest_rank = self.get_hands_with_equal_highest_rank(ranked_hands)
-        # Todo: Several of the methods in this class now seem superfluous. Remove.
 
     def get_hands_with_equal_highest_rank(self, ranked_hands):
         # This function is unclear. Suggest renaming
@@ -314,14 +306,12 @@ class Hand(HandClassifier):
 
 
 
-
 class Player:
     """
     Contains explicit player actions.
     """
     money = 100
     amount_bet_in_round = 0
-    hand = False
     has_folded_hand = False
     has_acted_in_round = False
     in_big_blind_position = False
@@ -334,6 +324,8 @@ class Player:
         self.name = name
         self.hand = Hand()
 
+    def __repr__(self):
+        return f"{self.name} instance"
 
 
 
@@ -344,109 +336,18 @@ class Players:
     Includes functions that apply to multiple players
     Use __dict__ to access the different players in Players.
     """
-    def __init__(self, number_of_players):
-        for i in range(1, number_of_players + 1):
-            setattr(self, f'player{i}', Player(f'player{i}'))
 
-    def get_any_player_that_is_all_in(self):
-        for player in self.__dict__.values():
-            if player.is_all_in:
-                yield player
-
-    def find_max_all_in_players_can_win(self):  # Todo: write test
-        """
-        Run at each round's end.
-        """
-        if self.get_any_player_that_is_all_in() is not None:
-            for all_in_player in self.get_any_player_that_is_all_in():
-                self.set_max_winnings(all_in_player)
-
-    def set_max_winnings(self, all_in_player: Player) -> None:
-        """
-        Creates an max winnings attribute for an all_in player. This threshold
-        is the all_in player's highest bet * number of players.
-        """
-        for other_player in self.__dict__.values():
-            if other_player.amount_bet_in_round >= all_in_player.amount_bet_in_round:
-                all_in_player.max_winnings += all_in_player.amount_bet_in_round
-            else:
-                all_in_player.max_winnings += other_player.amount_bet_in_round
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-class CardDealer:
-    dealt_cards = []
-    table_cards = []
-
-    def __init__(self, number_of_starting_players):
-        self.number_of_starting_players = number_of_starting_players
-        self.deck = list(self.generate_cards())
-
-    def generate_cards(self):
-        card_templates = itertools.product(range(2, 15), ('H', 'D', 'S', 'C'))
-        for rank, suit in card_templates:
-            yield Card(rank, suit)
-
-    def pick_card(self) -> tuple:
-        card = random.choice(self.deck)
-        self.deck.remove(card)
-        self.dealt_cards.append(card)
-        return card
-
-    def deal_pocket_cards(self, active_players: dict) -> None:  # Todo: write improved test
-        for player in active_players.__dict__.values():
-            player.hand.pocket_cards = list(self.pick_card() for i in range(2))
-
-    def deal_card_to_table(self):
-        card = self.pick_card()
-        self.table_cards.append(card)
-
-    def deal_flop(self):
-        for i in range(3):
-            self.deal_card_to_table()
-
-    def deal_turn(self):
-        self.deal_card_to_table()
-
-    def deal_river(self):
-        self.deal_card_to_table()
-
-    def show_table(self):  # Basic
-        print("______________________\n")
-        print(f"Table cards : \n{self.table_cards}")
-        print("______________________\n")
-
-
-class GameRound:
-    """
-    .players_information contains all of the Player instances.
-    .card_dealer contains card dealer functions.
-    .player_position_order contains a deque of Player instances.
-    .player_order contains a deque of Player instances.
-
-    """
     highest_round_bet = 0
     pot = 0
     small_blind = 20
     big_blind = 40
 
-    def __init__(self, instantiated_players, instantiated_dealer):
-        self.players_information = instantiated_players
-        self.card_dealer = instantiated_dealer
+    def __init__(self, number_of_players):
+        self.number_of_players = number_of_players
+        self.instantiate_all_players()
+        print(self.__dict__) # Todo: remove once bug solved.
         self.playing_order = deque(
-            player for player in self.players_information.__dict__.values()
+            player for player in self.__dict__.values()
         )
         self.assign_big_blind_player()
         self.assign_small_blind_player()
@@ -454,6 +355,10 @@ class GameRound:
             self.dealer_player = self.playing_order[-3]
         except IndexError:  # Applies where there are only two players
             self.dealer_player = self.playing_order[-1]
+
+    def instantiate_all_players(self):
+        for i in range(1, self.number_of_players + 1):
+            setattr(self, f'player{i}', Player(f'player{i}'))
 
     def assign_small_blind_player(self):
         """
@@ -503,6 +408,72 @@ class GameRound:
               f"The highest bet of the round so far " +
               f"is {self.highest_round_bet}.\n"
               )
+
+
+
+
+    # Todo: change to pass in the players still in the hand by order of best hand
+    def give_pot_to_winners(self, winners: tuple) -> None:  # Pass in the Player objects
+        winnings = self.pot // len(winners)
+        for player in winners:
+            self.__dict__[player].money += winnings
+        self.pot = 0
+
+
+
+    def reset_players_status_at_round_end(self):
+        for player_at_round_end in self.playing_order:
+            player_at_round_end.amount_bet_in_round = 0
+            player_at_round_end.has_acted_in_round = False
+
+    def reset_highest_round_bet(self):
+        self.highest_round_bet = 0
+
+    def get_any_player_that_is_all_in(self):
+        for player in self.__dict__.values():
+            if player.is_all_in:
+                yield player
+
+    def find_max_all_in_players_can_win(self):  # Todo: write test
+        """
+        Run at each round's end.
+        """
+        if self.get_any_player_that_is_all_in() is not None:
+            for all_in_player in self.get_any_player_that_is_all_in():
+                self.set_max_winnings(all_in_player)
+
+    def set_max_winnings(self, all_in_player: Player) -> None:
+        """
+        Creates an max winnings attribute for an all_in player. This threshold
+        is the all_in player's highest bet * number of players.
+        """
+        for other_player in self.__dict__.values():
+            if other_player.amount_bet_in_round >= all_in_player.amount_bet_in_round:
+                all_in_player.max_winnings += all_in_player.amount_bet_in_round
+            else:
+                all_in_player.max_winnings += other_player.amount_bet_in_round
+
+    def ask_all_players_for_actions(self, player_order, card_dealer) -> None:
+        while self.at_least_one_player_has_remaining_action() is True:
+            for player in player_order:
+                if self.has_remaining_actions(player) is True:
+                    print(player.hand.calculate_best_hand(card_dealer))
+                    self.get_player_command(player)
+                    self.mark_player_as_having_made_action(player)
+
+    def has_remaining_actions(self, player: Player) -> bool:
+        if player.has_folded_hand or player.is_all_in is True:
+            return False
+        elif player.amount_bet_in_round == self.highest_round_bet and player.has_acted_in_round is True:
+            return False
+        else:
+            return True
+
+    def at_least_one_player_has_remaining_action(self) -> bool:  # Todo: check that test exists
+        for player in self.__dict__.values():
+            if self.has_remaining_actions(player) is True:
+                return True
+        return False
 
     def get_player_command(self, player: Player) -> None:
         action = self.get_player_input(player)
@@ -583,53 +554,58 @@ class GameRound:
                   f"of {self.highest_round_bet} to check")
             return False
 
-
-    # Todo: change to pass in the players still in the hand by order of best hand
-    def give_pot_to_winners(self, winners: tuple) -> None:  # Pass in the Player objects
-        winnings = self.pot // len(winners)
-        for player in winners:
-            self.players_information.__dict__[player].money += winnings
-        self.pot = 0
-
     def mark_player_as_having_made_action(self, player_who_made_action: Player):
         player_who_made_action.has_acted_in_round = True
 
-    def has_remaining_actions(self, player: Player) -> bool:
-        if player.has_folded_hand or player.is_all_in is True:
-            return False
-        elif player.amount_bet_in_round == self.highest_round_bet and player.has_acted_in_round is True:
-            return False
-        else:
-            return True
 
-    def at_least_one_player_has_remaining_action(self) -> bool:
-        for player in self.players_information.__dict__.values():
-            if self.has_remaining_actions(player) is True:
-                return True
-        return False
+class CardDealer:
+    dealt_cards = []
+    table_cards = []
 
-    def ask_all_players_for_actions(self, player_order, card_dealer) -> None:
-        while self.at_least_one_player_has_remaining_action() is True:
-            for player in player_order:
-                if self.has_remaining_actions(player) is True:
-                    print(player.hand.calculate_best_hand(card_dealer))
-                    self.get_player_command(player)
-                    self.mark_player_as_having_made_action(player)
+    def __init__(self, number_of_starting_players):
+        self.number_of_starting_players = number_of_starting_players
+        self.deck = list(self.generate_cards())
 
-    def reset_players_status_at_round_end(self):
-        for player_at_round_end in self.playing_order:
-            player_at_round_end.amount_bet_in_round = 0
-            player_at_round_end.has_acted_in_round = False
+    def generate_cards(self):
+        card_templates = itertools.product(range(2, 15), ('H', 'D', 'S', 'C'))
+        for rank, suit in card_templates:
+            yield Card(rank, suit)
 
-    def reset_highest_round_bet(self):
-        self.highest_round_bet = 0
+    def pick_card(self) -> tuple:
+        card = random.choice(self.deck)
+        self.deck.remove(card)
+        self.dealt_cards.append(card)
+        return card
 
+    def deal_pocket_cards(self, active_players: dict) -> None:  # Todo: write improved test
+        for player in active_players.__dict__.values():
+            player.hand.pocket_cards.append(tuple(self.pick_card() for i in range(2)))
+            print(player.hand.pocket_cards)
+
+    def deal_card_to_table(self):
+        card = self.pick_card()
+        self.table_cards.append(card)
+
+    def deal_flop(self):
+        for i in range(3):
+            self.deal_card_to_table()
+
+    def deal_turn(self):
+        self.deal_card_to_table()
+
+    def deal_river(self):
+        self.deal_card_to_table()
+
+    def show_table(self):  # Basic
+        print("______________________\n")
+        print(f"Table cards : \n{self.table_cards}")
+        print("______________________\n")
 
 
 
 if __name__ == "__main__":
     """
-    3 main objects: 1. all_players, 2. card_dealer; 3. game_round.    
+    3 main objects: 1. player; 2. all_players, 3. card_dealer;    
     """
 
     # Todo: refactor the below to reduce the sprawling dominance of game_round.
@@ -639,23 +615,23 @@ if __name__ == "__main__":
     game_round = GameRound(all_players, card_dealer)
     card_dealer.deal_pocket_cards(all_players)
     game_round.pay_blinds()
-    game_round.ask_all_players_for_actions(game_round.playing_order, card_dealer)
+    all_players.ask_all_players_for_actions(game_round.playing_order, card_dealer)
     game_round.reset_players_status_at_round_end()
     game_round.reset_highest_round_bet()
     game_round.rotate_playing_order_before_flop()
 
     game_round.card_dealer.deal_flop()
     game_round.card_dealer.show_table()
-    game_round.ask_all_players_for_actions(game_round.playing_order, card_dealer)
+    all_players.ask_all_players_for_actions(game_round.playing_order, card_dealer)
     game_round.reset_players_status_at_round_end()
     game_round.reset_highest_round_bet()
 
     game_round.card_dealer.deal_turn()
     game_round.card_dealer.show_table()
-    game_round.ask_all_players_for_actions(game_round.playing_order, card_dealer)
+    all_players.ask_all_players_for_actions(game_round.playing_order, card_dealer)
     game_round.reset_players_status_at_round_end()
     game_round.reset_highest_round_bet()
 
     game_round.card_dealer.deal_river()
     game_round.card_dealer.show_table()
-    game_round.ask_all_players_for_actions(game_round.playing_order, card_dealer)
+    all_players.ask_all_players_for_actions(game_round.playing_order, card_dealer)
