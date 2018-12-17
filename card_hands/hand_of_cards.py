@@ -341,12 +341,14 @@ class Players:
     pot = 0
     small_blind = 20
     big_blind = 40
+    register = []
 
     def __init__(self, number_of_players):
         self.number_of_players = number_of_players
         self.instantiate_all_players()
+        self.store_players_in_register()
         print(self.__dict__) # Todo: remove once bug solved.
-        self.playing_order = deque(
+        self.playing_order = deque(  # Fixme - Currently adding objects other than Player instances here.
             player for player in self.__dict__.values()
         )
         self.assign_big_blind_player()
@@ -356,18 +358,24 @@ class Players:
         except IndexError:  # Applies where there are only two players
             self.dealer_player = self.playing_order[-1]
 
-    def instantiate_all_players(self):
+    def instantiate_all_players(self) -> None:
+        print(self.register)
         for i in range(1, self.number_of_players + 1):
             setattr(self, f'player{i}', Player(f'player{i}'))
+            self.register.append(self.__dict__[f'player{i}']) # Fixme: FIx this
 
-    def assign_small_blind_player(self):
+
+    def store_players_in_register(self) -> None:
+        print(self.register)
+
+    def assign_small_blind_player(self) -> None:
         """
         The small blind is second-last pre-flop and first post-flop.
         """
         self.small_blind_player: Player = self.playing_order[-2]
         self.small_blind_player.in_small_blind_position = True
 
-    def assign_big_blind_player(self):
+    def assign_big_blind_player(self) -> None:
         """
         The big blind is last to act pre-flop and second to act post flop.
         """
@@ -579,6 +587,7 @@ class CardDealer:
 
     def deal_pocket_cards(self, active_players: dict) -> None:  # Todo: write improved test
         for player in active_players.__dict__.values():
+            print(player)
             player.hand.pocket_cards.append(tuple(self.pick_card() for i in range(2)))
             print(player.hand.pocket_cards)
 
