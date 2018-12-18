@@ -41,7 +41,6 @@ class TestDealingCards(unittest.TestCase):
         self.all_players = Players(n_players)
         self.suites = ('H', 'C', 'S', 'D')
         self.numbers = [i for i in range(2, 15)]
-    
 
     def test_52_cards_in_deck(self):
         self.assertIs(52, len(self.card_dealer.deck))
@@ -52,7 +51,10 @@ class TestDealingCards(unittest.TestCase):
         self.assertIn(card.suit, self.suites)
 
     def test_deal_pocket_cards_to_players_two_cards(self):
-        self.assertTrue(self.all_players.player1.hand.pocket_cards == [])
+        self.assertEqual(
+            [],
+            self.all_players.player1.hand.pocket_cards
+        )
         self.card_dealer.deal_pocket_cards(self.all_players)
         self.assertEqual(
             2,
@@ -64,7 +66,6 @@ class TestDealingCards(unittest.TestCase):
         )
 
     def test_deal_pocket_cards_to_players_dealt_card(self):
-        print(f"all_players playeing order deque = {self.all_players.playing_order}")
         self.card_dealer.deal_pocket_cards(self.all_players)
         self.assertEqual(
             str,
@@ -134,7 +135,6 @@ class TestPlayerHandRanking(unittest.TestCase):
             Card(10, 'S'), Card(8, 'C')
         ]
         self.player_1_hand = self.all_players.player1.hand
-
 
     def test_generate_possible_combinations(self):
         """
@@ -227,7 +227,6 @@ class TestPlayerHandRanking(unittest.TestCase):
 
     def tearDown(self):
         self.card_dealer.table_cards = []
-
 
 
 class TestHandRankingSystem(unittest.TestCase):
@@ -595,7 +594,6 @@ class TestPlayerPaymentsAfterAllIn(unittest.TestCase):
         self.all_players = Players(self.n_players)
         self.card_dealer = CardDealer(self.n_players)
 
-
     def test_get_any_player_that_is_all_in(self):
         # no player is all_in
         self.assertEqual(
@@ -616,7 +614,7 @@ class TestPlayerPaymentsAfterAllIn(unittest.TestCase):
         he goes all_in at his highest bet * number of players.
         """
         # Assign bets to players.
-        for player in self.all_players.__dict__.values():
+        for player in self.all_players.register:
             player.amount_bet_in_round = 20
 
         # Assign larger bets to some players.
@@ -640,6 +638,20 @@ class TestPlayerPaymentsAfterAllIn(unittest.TestCase):
             player3.max_winnings
         )
 
+
+class TestRegisterOfPlayers(unittest.TestCase):
+
+    def setUp(self):
+        n_players = 8
+        self.all_players = Players(n_players)
+        self.card_dealer = CardDealer(n_players)
+
+    def test_store_players_in_register(self):
+        self.assertEqual(
+            8,
+            len(self.all_players.register)
+        )
+        self.assertTrue(type(self.all_players.register[0]) is Player)
 
 
 class TestPayBlinds(unittest.TestCase):

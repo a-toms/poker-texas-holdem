@@ -334,7 +334,7 @@ class Player:
 class Players:
     """
     Includes functions that apply to multiple players
-    Use __dict__ to access the different players in Players.
+    Use .register to access the different players in Players.
     """
 
     highest_round_bet = 0
@@ -347,9 +347,8 @@ class Players:
         self.number_of_players = number_of_players
         self.instantiate_all_players()
         self.store_players_in_register()
-        print(self.__dict__) # Todo: remove once bug solved.
-        self.playing_order = deque(  # Fixme - Currently adding objects other than Player instances here.
-            player for player in self.__dict__.values()
+        self.playing_order = deque(
+            player for player in self.register
         )
         self.assign_big_blind_player()
         self.assign_small_blind_player()
@@ -358,15 +357,16 @@ class Players:
         except IndexError:  # Applies where there are only two players
             self.dealer_player = self.playing_order[-1]
 
-    def instantiate_all_players(self) -> None:
-        print(self.register)
+    def instantiate_all_players(self) -> None: # Todo: write test
         for i in range(1, self.number_of_players + 1):
             setattr(self, f'player{i}', Player(f'player{i}'))
-            self.register.append(self.__dict__[f'player{i}']) # Fixme: FIx this
 
-
-    def store_players_in_register(self) -> None:
-        print(self.register)
+    def store_players_in_register(self):
+        """Creates register of player instances."""
+        self.register = [
+            value for value in self.__dict__.values()
+            if type(value) == Player
+                         ]
 
     def assign_small_blind_player(self) -> None:
         """
@@ -438,7 +438,7 @@ class Players:
         self.highest_round_bet = 0
 
     def get_any_player_that_is_all_in(self):
-        for player in self.__dict__.values():
+        for player in self.register:
             if player.is_all_in:
                 yield player
 
@@ -455,7 +455,7 @@ class Players:
         Creates an max winnings attribute for an all_in player. This threshold
         is the all_in player's highest bet * number of players.
         """
-        for other_player in self.__dict__.values():
+        for other_player in self.register:
             if other_player.amount_bet_in_round >= all_in_player.amount_bet_in_round:
                 all_in_player.max_winnings += all_in_player.amount_bet_in_round
             else:
@@ -478,7 +478,7 @@ class Players:
             return True
 
     def at_least_one_player_has_remaining_action(self) -> bool:  # Todo: check that test exists
-        for player in self.__dict__.values():
+        for player in self.register:
             if self.has_remaining_actions(player) is True:
                 return True
         return False
@@ -585,10 +585,10 @@ class CardDealer:
         self.dealt_cards.append(card)
         return card
 
-    def deal_pocket_cards(self, active_players: dict) -> None:  # Todo: write improved test
-        for player in active_players.__dict__.values():
-            print(player)
-            player.hand.pocket_cards.append(tuple(self.pick_card() for i in range(2)))
+    def deal_pocket_cards(self, active_players) -> None:  # Todo: write improved test
+        for player in active_players.register:
+            print(f"player = {player}")
+            player.hand.pocket_cards.append(list(self.pick_card() for i in range(2)))
             print(player.hand.pocket_cards)
 
     def deal_card_to_table(self):
