@@ -229,13 +229,12 @@ class Hand(HandClassifier):
 
     highest_hand_score = 0
 
-    def __init__(self, *args):
-        #  self.cards.append(*args)
+    def __init__(self):
         pass
 
     # Todo: Refactor so that class instance finds the best hand
     #  when new cards are added to the instances, just as a human player would.
-    #   :D
+
 
     def print_output(func):  # My first decorator!
         def wrapper(*args):
@@ -328,9 +327,6 @@ class Player:
         return f"{self.name} instance"
 
 
-
-
-
 class Players:
     """
     Includes functions that apply to multiple players
@@ -417,17 +413,12 @@ class Players:
               f"is {self.highest_round_bet}.\n"
               )
 
-
-
-
     # Todo: change to pass in the players still in the hand by order of best hand
     def give_pot_to_winners(self, winners: tuple) -> None:  # Pass in the Player objects
         winnings = self.pot // len(winners)
         for player in winners:
             self.__dict__[player].money += winnings
         self.pot = 0
-
-
 
     def reset_players_status_at_round_end(self):
         for player_at_round_end in self.playing_order:
@@ -567,28 +558,26 @@ class Players:
 
 
 class CardDealer:
-    dealt_cards = []
     table_cards = []
 
     def __init__(self, number_of_starting_players):
         self.number_of_starting_players = number_of_starting_players
-        self.deck = list(self.generate_cards())
+        self.deck = self.generate_cards()
 
-    def generate_cards(self):
+    def generate_cards(self):  # Todo: write test
         card_templates = itertools.product(range(2, 15), ('H', 'D', 'S', 'C'))
-        for rank, suit in card_templates:
-            yield Card(rank, suit)
+        return [Card(rank, suit) for rank, suit in card_templates]
 
-    def pick_card(self) -> tuple:
+    def pick_card(self) -> tuple:  # Todo: write test
         card = random.choice(self.deck)
         self.deck.remove(card)
-        self.dealt_cards.append(card)
         return card
 
     def deal_pocket_cards(self, active_players) -> None:  # Todo: write improved test
+        # Note: My tests show that the players are given 2 Cards each before the below.
         for player in active_players.register:
-            print(f"player = {player}")
-            player.hand.pocket_cards.append(list(self.pick_card() for i in range(2)))
+            picked_cards  = self.pick_card()
+            player.hand.pocket_cards.append(picked_cards)
             print(player.hand.pocket_cards)
 
     def deal_card_to_table(self):
