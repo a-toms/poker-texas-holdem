@@ -32,7 +32,7 @@ class Card:
         self.suit = suit
 
     def return_rank_and_suit(self):
-        return (self.rank, self.suit)
+        return self.rank, self.suit
 
     def __repr__(self):
         return f"{self.ranks_representation[self.rank]} of {self.suit_representation[self.suit]}"
@@ -452,9 +452,9 @@ class Players:
             else:
                 all_in_player.max_winnings += other_player.amount_bet_in_round
 
-    def ask_all_players_for_actions(self, player_order, card_dealer) -> None:
+    def ask_all_players_for_actions(self, card_dealer) -> None:
         while self.at_least_one_player_has_remaining_action() is True:
-            for player in player_order:
+            for player in self.playing_order:
                 if self.has_remaining_actions(player) is True:
                     print(player.hand.calculate_best_hand(card_dealer))
                     self.get_player_command(player)
@@ -564,21 +564,26 @@ class CardDealer:
         self.number_of_starting_players = number_of_starting_players
         self.deck = self.generate_cards()
 
-    def generate_cards(self):  # Todo: write test
+    def generate_cards(self):
         card_templates = itertools.product(range(2, 15), ('H', 'D', 'S', 'C'))
         return [Card(rank, suit) for rank, suit in card_templates]
 
     def pick_card(self) -> tuple:  # Todo: write test
-        card = random.choice(self.deck)
-        self.deck.remove(card)
-        return card
+        random.shuffle(self.deck)
+        return self.deck.pop()
 
-    def deal_pocket_cards(self, active_players) -> None:  # Todo: write improved test
-        # Note: My tests show that the players are given 2 Cards each before the below.
-        for player in active_players.register:
-            picked_cards  = self.pick_card()
-            player.hand.pocket_cards.append(picked_cards)
-            print(player.hand.pocket_cards)
+
+    def deal_pocket_cards_to_player(self, receiving_player: Player) -> None:
+        for i in range(2):
+            picked_card = self.pick_card()
+            receiving_player.hand.pocket_cards.append(picked_card)
+
+    # Fixme: Why are so many cards being returned?
+    def deal_pocket_cards_to_players(self, receiving_players: Players) -> None:
+        for receiving_player in receiving_players.register:
+            self.deal_pocket_cards_to_player(receiving_player)
+
+
 
     def deal_card_to_table(self):
         card = self.pick_card()
@@ -610,26 +615,28 @@ if __name__ == "__main__":
     n_of_players = 8
     all_players = Players(n_of_players)
     card_dealer = CardDealer(n_of_players)
-    game_round = GameRound(all_players, card_dealer)
-    card_dealer.deal_pocket_cards(all_players)
-    game_round.pay_blinds()
-    all_players.ask_all_players_for_actions(game_round.playing_order, card_dealer)
-    game_round.reset_players_status_at_round_end()
-    game_round.reset_highest_round_bet()
-    game_round.rotate_playing_order_before_flop()
+    card_dealer.deal_pocket_cards_to_players(all_players)
 
-    game_round.card_dealer.deal_flop()
-    game_round.card_dealer.show_table()
-    all_players.ask_all_players_for_actions(game_round.playing_order, card_dealer)
-    game_round.reset_players_status_at_round_end()
-    game_round.reset_highest_round_bet()
+    all_players.pay_blinds()
+    all_players.ask_all_players_for_actions(card_dealer)
+    all_players.reset_players_status_at_round_end()
+    all_players.reset_highest_round_bet()
+    all_players.rotate_playing_order_before_flop()
 
-    game_round.card_dealer.deal_turn()
-    game_round.card_dealer.show_table()
-    all_players.ask_all_players_for_actions(game_round.playing_order, card_dealer)
-    game_round.reset_players_status_at_round_end()
-    game_round.reset_highest_round_bet()
+    card_dealer.deal_flop()
+    card_dealer.show_table()
+    all_players.ask_all_players_for_actions(card_dealer)
+    all_players.reset_players_status_at_round_end()
+    all_players.reset_highest_round_bet()
 
-    game_round.card_dealer.deal_river()
-    game_round.card_dealer.show_table()
-    all_players.ask_all_players_for_actions(game_round.playing_order, card_dealer)
+    card_dealer.deal_turn()
+    card_dealer.show_table()
+    all_players.ask_all_players_for_actions(card_dealer)
+    all_players.reset_players_status_at_round_end()
+    all_players.reset_highest_round_bet()
+
+    card_dealer.deal_river()
+    card_dealer.show_table()
+    all_players.ask_all_players_for_actions(card_dealer)
+
+    # Todo: announce winner and pay pot

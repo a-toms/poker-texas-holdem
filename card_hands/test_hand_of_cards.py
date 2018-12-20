@@ -56,7 +56,7 @@ class TestDealingCards(unittest.TestCase):
             [],
             self.all_players.player1.hand.pocket_cards
         )
-        self.card_dealer.deal_pocket_cards(self.all_players)
+        self.card_dealer.deal_pocket_cards_to_players(self.all_players)
         self.assertEqual(
             2,
             len(self.all_players.player1.hand.pocket_cards)
@@ -67,7 +67,7 @@ class TestDealingCards(unittest.TestCase):
         )
 
     def test_deal_pocket_cards_to_players_dealt_card(self):
-        self.card_dealer.deal_pocket_cards(self.all_players)
+        self.card_dealer.deal_pocket_cards_to_players(self.all_players)
         self.assertEqual(
             str,
             type(self.all_players.player1.hand.pocket_cards[0].suit)
@@ -91,10 +91,7 @@ class TestDealingPocketCards(unittest.TestCase):
 
 
     def test_deal_pocket_cards_to_players_dealt_two_cards(self):
-        print(self.all_players.player3.hand.pocket_cards)
-        # Fixme: The players are being dealt two cards before deal_pocket_cards
-        #  is called. Why?
-        self.card_dealer.deal_pocket_cards(self.all_players)
+        self.card_dealer.deal_pocket_cards_to_player(self.all_players.player1)
         self.assertEqual(
             2,
             len(self.all_players.player1.hand.pocket_cards)
@@ -115,14 +112,14 @@ class TestPlayerHandCreation(unittest.TestCase):
         )
 
     def test_dealer_deals_two_objects_to_player_hand(self):
-        self.card_dealer.deal_pocket_cards(self.all_players)
+        self.card_dealer.deal_pocket_cards_to_players(self.all_players)
         self.assertEqual(
             len(self.all_players.player1.hand.pocket_cards),
             2
         )
 
     def test_dealer_deals_cards_to_player_hand(self):
-        self.card_dealer.deal_pocket_cards(self.all_players)
+        self.card_dealer.deal_pocket_cards_to_players(self.all_players)
         hand = self.all_players.player1.hand
         self.assertEqual(
             type(hand.pocket_cards[0]),
