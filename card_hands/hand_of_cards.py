@@ -207,7 +207,7 @@ class HandClassifier(HandRanker):
 
 
     def get_hands_with_equal_highest_rank(self, ranked_hands):
-        # This function is unclear. Suggest renaming
+        # Todo: Suggest renaming
         highest_rank = self.get_highest_rank(ranked_hands)
         highest_ranked_hands = []
         for i in range(len(ranked_hands)):
@@ -234,7 +234,6 @@ class Hand(HandClassifier):
 
     # Todo: Refactor so that class instance finds the best hand
     #  when new cards are added to the instances, just as a human player would.
-
 
     def print_output(func):  # My first decorator!
         def wrapper(*args):
@@ -302,9 +301,6 @@ class Hand(HandClassifier):
         print(self.pocket_cards)
 
 
-
-
-
 class Player:
     """
     Contains explicit player actions.
@@ -317,7 +313,7 @@ class Player:
     in_small_blind_position = False
     in_dealer_position = False
     is_all_in = False
-    max_winnings = 0 # Todo: integrate this with the awarding of the pot
+    max_winnings = 0  # Todo: integrate this with the awarding of the pot
 
     def __init__(self, name):
         self.name = name
@@ -353,7 +349,7 @@ class Players:
         except IndexError:  # Applies where there are only two players
             self.dealer_player = self.playing_order[-1]
 
-    def instantiate_all_players(self) -> None: # Todo: write test
+    def instantiate_all_players(self) -> None:  # Todo: write test
         for i in range(1, self.number_of_players + 1):
             setattr(self, f'player{i}', Player(f'player{i}'))
 
@@ -561,8 +557,10 @@ class CardDealer:
     table_cards = []
 
     def __init__(self, number_of_starting_players):
+        assert type(number_of_starting_players) is int
         self.number_of_starting_players = number_of_starting_players
         self.deck = self.generate_cards()
+        print(self.deck)
 
     def generate_cards(self):
         card_templates = itertools.product(range(2, 15), ('H', 'D', 'S', 'C'))
@@ -576,11 +574,16 @@ class CardDealer:
     def deal_pocket_cards_to_player(self, receiving_player: Player) -> None:
         for i in range(2):
             picked_card = self.pick_card()
+            print(f"receiving_player.hand.pocket_cards = {receiving_player.hand.pocket_cards}")
             receiving_player.hand.pocket_cards.append(picked_card)
 
-    # Fixme: Why are so many cards being returned?
     def deal_pocket_cards_to_players(self, receiving_players: Players) -> None:
+        # Todo: Bug: why does each player have pocket_cards before they are dealt to the player?
         for receiving_player in receiving_players.register:
+
+             # I do not know why calling the Players constructor gives pocket cards to players
+            print(f"recieving player = {receiving_players}")
+            print(f"recieving player pocket cards = {receiving_player.hand.pocket_cards}")
             self.deal_pocket_cards_to_player(receiving_player)
 
 

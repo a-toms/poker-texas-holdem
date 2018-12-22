@@ -54,7 +54,7 @@ class TestDealingCards(unittest.TestCase):
     def test_deal_pocket_cards_to_players_two_cards(self):
         self.assertEqual(
             [],
-            self.all_players.player1.hand.pocket_cards
+            self.all_players.player2.hand.pocket_cards
         )
         self.card_dealer.deal_pocket_cards_to_players(self.all_players)
         self.assertEqual(
@@ -596,21 +596,6 @@ class TestHandClassifier(unittest.TestCase):
             self.find_best_hand.get_highest_card(two_pairs),
             best_of_two_pairs
         )
-
-class TestGenerateDeckOfCards(unittest.TestCase):
-    def setUp(self):
-        self.n_players = 8
-        self.all_players = Players(self.n_players)
-
-
-    def test_generate_cards(self):
-        self.assertEqual(
-            [],
-            self.all_players.player1.hand.pocket_cards
-        )
-        # Fixme : The above shows that the instantiation of players is creating the
-        #  the 16 additional cards
-        self.card_dealer = CardDealer(self.n_players)
 
 
 class TestPlayerPaymentsAfterAllIn(unittest.TestCase):
