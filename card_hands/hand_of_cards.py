@@ -8,15 +8,19 @@ logging.basicConfig(level=logging.WARNING)
 """
 TODO:
 
-1. Refactor to create Hand objects
-
+1. Find the winner; say the winner(s); give the pot to the winner(s)
+    Winner may be the last player left or the player(s) with the highest card at the end of the round.
+2. Create game loops that allows players to play multiple hands.
 
 """
 
-# Todo: Refactor to use the term "score" to describe the hierarchical
-#  ordering of hands. The term "score" does not refer to cards' relative
-#  numerical orderings.
+def print_output(func):  # My first decorator!
+    def wrapper(*args):
+        results = func(*args)
+        print(f"output for {func.__name__} :\n{results} ")
+        return results
 
+    return wrapper
 
 class Card:
     ranks_representation = (
@@ -222,25 +226,17 @@ class HandClassifier(HandRanker):
                 yield hand[1]  # Yield only the hand of cards
 
 
+
+
 class Hand(HandClassifier):
 
-    best_hand = []
-    pocket_cards = []
-
-    highest_hand_score = 0
-
     def __init__(self):
-        pass
+        self.pocket_cards = []
+        self.highest_hand_score = 0
+        self.best_hand = []
 
     # Todo: Refactor so that class instance finds the best hand
     #  when new cards are added to the instances, just as a human player would.
-
-    def print_output(func):  # My first decorator!
-        def wrapper(*args):
-            results = func(*args)
-            print(f"output for {func.__name__} :\n{results} ")
-            return results
-        return wrapper
 
     def generate_hand_combinations(self, card_dealer) -> itertools:
         card_pool = self.pocket_cards + card_dealer.table_cards
@@ -302,22 +298,18 @@ class Hand(HandClassifier):
 
 
 class Player:
-    """
-    Contains explicit player actions.
-    """
-    money = 100
-    amount_bet_in_round = 0
-    has_folded_hand = False
-    has_acted_in_round = False
-    in_big_blind_position = False
-    in_small_blind_position = False
-    in_dealer_position = False
-    is_all_in = False
-    max_winnings = 0  # Todo: integrate this with the awarding of the pot
-
     def __init__(self, name):
         self.name = name
         self.hand = Hand()
+        self.money = 100
+        self.amount_bet_in_round = 0
+        self.has_folded_hand = False
+        self.has_acted_in_round = False
+        self.in_big_blind_position = False
+        self.in_small_blind_position = False
+        self.in_dealer_position = False
+        self.is_all_in = False
+        self.max_winnings = 0  # Todo: integrate this with the awarding of the pot
 
     def __repr__(self):
         return f"{self.name} instance"
@@ -329,12 +321,6 @@ class Players:
     Use .register to access the different players in Players.
     """
 
-    highest_round_bet = 0
-    pot = 0
-    small_blind = 20
-    big_blind = 40
-    register = []
-
     def __init__(self, number_of_players):
         self.number_of_players = number_of_players
         self.instantiate_all_players()
@@ -342,6 +328,10 @@ class Players:
         self.playing_order = deque(
             player for player in self.register
         )
+        self.highest_round_bet = 0
+        self.pot = 0
+        self.small_blind = 20
+        self.big_blind = 40
         self.assign_big_blind_player()
         self.assign_small_blind_player()
         try:
@@ -554,36 +544,26 @@ class Players:
 
 
 class CardDealer:
-    table_cards = []
-
     def __init__(self, number_of_starting_players):
-        assert type(number_of_starting_players) is int
+        self.table_cards = []
         self.number_of_starting_players = number_of_starting_players
         self.deck = self.generate_cards()
-        print(self.deck)
 
     def generate_cards(self):
         card_templates = itertools.product(range(2, 15), ('H', 'D', 'S', 'C'))
         return [Card(rank, suit) for rank, suit in card_templates]
 
-    def pick_card(self) -> tuple:  # Todo: write test
+    def pick_card(self) -> Card:  # Todo: write test
         random.shuffle(self.deck)
         return self.deck.pop()
-
 
     def deal_pocket_cards_to_player(self, receiving_player: Player) -> None:
         for i in range(2):
             picked_card = self.pick_card()
-            print(f"receiving_player.hand.pocket_cards = {receiving_player.hand.pocket_cards}")
             receiving_player.hand.pocket_cards.append(picked_card)
 
     def deal_pocket_cards_to_players(self, receiving_players: Players) -> None:
-        # Todo: Bug: why does each player have pocket_cards before they are dealt to the player?
         for receiving_player in receiving_players.register:
-
-             # I do not know why calling the Players constructor gives pocket cards to players
-            print(f"recieving player = {receiving_players}")
-            print(f"recieving player pocket cards = {receiving_player.hand.pocket_cards}")
             self.deal_pocket_cards_to_player(receiving_player)
 
 
@@ -614,7 +594,6 @@ if __name__ == "__main__":
     3 main objects: 1. player; 2. all_players, 3. card_dealer;    
     """
 
-    # Todo: refactor the below to reduce the sprawling dominance of game_round.
     n_of_players = 8
     all_players = Players(n_of_players)
     card_dealer = CardDealer(n_of_players)

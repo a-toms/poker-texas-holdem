@@ -34,7 +34,6 @@ class TestCard(unittest.TestCase):
 
 
 class TestDealingCards(unittest.TestCase):
-    # This does not appears to be tearing down effectively.
 
     def setUp(self):
         n_players = 8
