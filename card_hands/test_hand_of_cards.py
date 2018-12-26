@@ -80,8 +80,66 @@ class TestDealingCards(unittest.TestCase):
             Card
         )
 
+
+
+class TestPlayerCalculateBestHand(unittest.TestCase):
+
+    def setUp(self):
+        n_players = 8
+        self.card_dealer = CardDealer(n_players)
+        self.all_players = Players(n_players)
+        self.player_1_hand = self.all_players.player1.hand
+
+    def test_calculate_best_hand_after_river_card_dealt(self):
+        self.player_1_hand.pocket_cards = [
+            Card(6, 'D'), Card(6, 'H')
+        ]
+        self.card_dealer.table_cards = [
+            Card(6, 'S'), Card(12, 'H'), Card(12, 'D'),
+            Card(12, 'S'), Card(14, 'D')
+        ]
+        # The best hand from player1's pocket cards and the table cards is
+        # a full house with three 12s and two 6s.
+        suit_and_rank = [
+            x.return_rank_and_suit()
+            for x in self.player_1_hand.calculate_best_hand(self.card_dealer)
+        ]
+        self.assertCountEqual(
+            [(12, 'H'), (12, 'D'), (12, 'S'),
+             (6, 'D'), (6, 'H')],
+            suit_and_rank
+        )
+
+    def test_calculate_best_hand_when_only_pocket_cards_dealt(self):
+        self.player_1_hand.pocket_cards = [
+            Card(6, 'D'), Card(6, 'H')
+        ]
+        self.assertCountEqual(
+            self.player_1_hand.calculate_best_hand(self.card_dealer),
+            self.player_1_hand.pocket_cards
+        )
+
+    def test_get_best_hand(self):
+        self.all_players.player1.hand.pocket_cards = [
+            Card(6, 'D'), Card(6, 'H')
+        ]
+        self.card_dealer.table_cards = [
+            Card(6, 'S'), Card(12, 'H'), Card(12, 'D'),
+            Card(12, 'S'), Card(14, 'D')
+        ]
+        # The best hand from player1's pocket cards and the table cards is
+        # a full house with three 12s and two 6s.
+        suit_and_rank = [
+            x.return_rank_and_suit()
+            for x in self.all_players.player1.get_best_hand(self.card_dealer)
+        ]
+        self.assertCountEqual(
+            [(12, 'H'), (12, 'D'), (12, 'S'),
+             (6, 'D'), (6, 'H')],
+            suit_and_rank
+        )
+
 class TestDealingPocketCards(unittest.TestCase):
-        # This does not appears to be tearing down effectively.
 
     def setUp(self):
         n_players = 8
@@ -214,25 +272,8 @@ class TestPlayerHandRanking(unittest.TestCase):
             self.player_1_hand.get_hand_with_highest_card_rank(test_input),
             test_hand_2
         )
-        # I do not
 
-    def test_calculate_best_hand(self):
-        self.player_1_hand.pocket_cards = [Card(6, 'D'), Card(6, 'H')]
-        self.card_dealer.table_cards = [
-            Card(6, 'S'), Card(12, 'H'), Card(12, 'D'), Card(12, 'S'),
-            Card(14, 'D')
-        ]
-        # The best hand from player1's pocket cards and the table cards is
-        # a full house with three 12s and two 6s
-        suit_and_rank = [
-            x.return_rank_and_suit()
-            for x in self.player_1_hand.calculate_best_hand(self.card_dealer)
-        ]
-        self.assertCountEqual(
-            [(12, 'H'), (12, 'D'), (12, 'S'),
-             (6, 'D'), (6, 'H')],
-            suit_and_rank
-        )
+
 
     def tearDown(self):
         self.card_dealer.table_cards = []
