@@ -157,30 +157,23 @@ class HandRanker:
 
 class HandClassifier(HandRanker):
 
-    def get_highest_rank(self, ranked_hands):
-        """Find the highest rank from several hands."""
-        highest_rank = 0
-        for ranked_hand in ranked_hands:
-            if ranked_hand[0] > highest_rank:
-                highest_rank = ranked_hand[0]
-        return highest_rank
 
-    def get_card_numbers_from_cards_in_highest_rank(self, ranked_hands):
-        """Return card numbers from only the hands with the highest rank."""
-        highest_rank = self.get_highest_rank(ranked_hands)
-        hands_with_highest_rank = []
-        for ranked_hand in ranked_hands:
-            if ranked_hand[0] == highest_rank:
-                hands_with_highest_rank.append(
-                    self.get_card_numbers_from_ranked_hand(ranked_hand)
-                )
-        return hands_with_highest_rank
-
-    def get_card_numbers_from_ranked_hand(self, ranked_hand):
-        """Convert a ranked hand to the hand's card numbers."""
-        card_numbers = [card.rank for card in ranked_hand[1]]
-        card_numbers = self.sort_by_frequency_and_size(card_numbers)
-        return card_numbers
+    # def get_card_numbers_from_cards_in_highest_rank(self, ranked_hands):
+    #     """Return card numbers from only the hands with the highest rank."""
+    #     highest_rank = self.get_highest_rank(ranked_hands)
+    #     hands_with_highest_rank = []
+    #     for ranked_hand in ranked_hands:
+    #         if ranked_hand[0] == highest_rank:
+    #             hands_with_highest_rank.append(
+    #                 self.get_card_numbers_from_ranked_hand(ranked_hand)
+    #             )
+    #     return hands_with_highest_rank
+    #
+    # def get_card_numbers_from_ranked_hand(self, ranked_hand):
+    #     """Convert a ranked hand to the hand's card numbers."""
+    #     card_numbers = [card.rank for card in ranked_hand[1]]
+    #     card_numbers = self.sort_by_frequency_and_size(card_numbers)
+    #     return card_numbers
 
     def sort_by_frequency_and_size(self, card_numbers):
         """Sort into descending card number size and descending frequency."""
@@ -190,32 +183,32 @@ class HandClassifier(HandRanker):
         )
         return card_numbers
 
-    def get_highest_card(self, card_numbers):
-        card_numbers = self.filter_out_duplicates(card_numbers)
-        return self.sort_by_frequency_and_size(card_numbers)[0]
+    # def get_highest_card(self, card_numbers):
+    #     card_numbers = self.filter_out_duplicates(card_numbers)
+    #     return self.sort_by_frequency_and_size(card_numbers)[0]
+    #
+    # def filter_out_duplicates(self, iterable):
+    #     filtered = []
+    #     for x in iterable:
+    #         if x not in filtered:
+    #             filtered.append(x)
+    #     return filtered
 
-    def filter_out_duplicates(self, iterable):
-        filtered = []
-        for x in iterable:
-            if x not in filtered:
-                filtered.append(x)
-        return filtered
 
-
-    def get_hands_with_equal_highest_rank(self, ranked_hands):
-        # =Suggest renaming
-        highest_rank = self.get_highest_rank(ranked_hands)
-        highest_ranked_hands = []
-        for i in range(len(ranked_hands)):
-            if ranked_hands[i][0] == highest_rank:
-                highest_ranked_hands.append(ranked_hands[i][1])
-        return highest_ranked_hands
-
-    def get_hands_with_highest_rank(self, ranked_hands):
-        highest_rank = self.get_highest_rank(ranked_hands)
-        for hand in ranked_hands:
-            if hand[0] == highest_rank:
-                yield hand[1]  # Yield only the hand of cards
+    # def get_hands_with_equal_highest_rank(self, ranked_hands):
+    #     # =Suggest renaming
+    #     highest_rank = self.get_highest_rank(ranked_hands)
+    #     highest_ranked_hands = []
+    #     for i in range(len(ranked_hands)):
+    #         if ranked_hands[i][0] == highest_rank:
+    #             highest_ranked_hands.append(ranked_hands[i][1])
+    #     return highest_ranked_hands
+    #
+    # def get_hands_with_highest_rank(self, ranked_hands):
+    #     highest_rank = self.get_highest_rank(ranked_hands)
+    #     for hand in ranked_hands:
+    #         if hand[0] == highest_rank:
+    #             yield hand[1]  # Yield only the hand of cards
 
         # Todo next: Prune the above. I think that a good number of the above
         #  functions are redundant.
@@ -391,7 +384,6 @@ class Players:
               f"is {self.highest_round_bet}.\n"
               )
 
-    # Todo: change to pass in the players still in the hand by order of best hand
     def give_pot_to_winners(self, winners: tuple) -> None:  # Pass in the Player objects
         winnings = self.pot // len(winners)
         for player in winners:
