@@ -177,20 +177,6 @@ class HandClassifier(HandRanker):
                 highest_hand_score = self.rank_hand(hand)
         return highest_hand_score
 
-    @print_output
-    def get_hand_with_highest_card_rank(self, filtered_hands: list) -> list:
-        # Returns
-        current_best_hand = filtered_hands[0]
-        highest_ranks = self.get_card_ranks(filtered_hands[0])
-        for hand in filtered_hands:
-            challenger_ranks = self.get_card_ranks(hand)
-            if self.is_challenger_higher(highest_ranks, challenger_ranks):
-                current_best_hand = hand
-                highest_ranks = challenger_ranks
-        return current_best_hand
-
-    def get_card_ranks(self, hand: list) -> list:
-        return self.sort_by_frequency_and_size([card.rank for card in hand])
 
     # Todo: write test
     def get_all_best_hands(self, raw_hands):
@@ -208,6 +194,20 @@ class HandClassifier(HandRanker):
             )
         ]
         return all_best_hands
+
+    def get_hand_with_highest_card_rank(self, filtered_hands: list) -> list:
+        # Returns
+        current_best_hand = filtered_hands[0]
+        highest_ranks = self.get_card_ranks(filtered_hands[0])
+        for hand in filtered_hands:
+            challenger_ranks = self.get_card_ranks(hand)
+            if self.is_challenger_higher(highest_ranks, challenger_ranks):
+                current_best_hand = hand
+                highest_ranks = challenger_ranks
+        return current_best_hand
+
+    def get_card_ranks(self, hand: list) -> list:
+        return self.sort_by_frequency_and_size([card.rank for card in hand])
 
     # Todo: write test
     @staticmethod
