@@ -102,7 +102,7 @@ class TestPlayerCalculateBestHand(unittest.TestCase):
         # a full house with three 12s and two 6s.
         suit_and_rank = [
             x.return_rank_and_suit()
-            for x in self.player_1_hand.calculate_best_hand(self.card_dealer)
+            for x in self.player_1_hand.calculate_best_hand_for_player(self.card_dealer)
         ]
         self.assertCountEqual(
             [(12, 'H'), (12, 'D'), (12, 'S'),
@@ -115,7 +115,7 @@ class TestPlayerCalculateBestHand(unittest.TestCase):
             Card(6, 'D'), Card(6, 'H')
         ]
         self.assertCountEqual(
-            self.player_1_hand.calculate_best_hand(self.card_dealer),
+            self.player_1_hand.calculate_best_hand_for_player(self.card_dealer),
             self.player_1_hand.pocket_cards
         )
 
@@ -601,15 +601,14 @@ class TestHandClassifier(unittest.TestCase):
         )
 
 
-
-class TestPlayerPaymentsAfterAllIn(unittest.TestCase):
+class TestAllInMaxWinningsForIndividualPlayer(unittest.TestCase):
     def setUp(self):
         self.n_players = 8
         self.all_players = Players(self.n_players)
         self.card_dealer = CardDealer(self.n_players)
 
     def test_get_any_player_that_is_all_in(self):
-        # no player is all_in
+        # No player is all_in
         self.assertEqual(
             (),
             tuple(self.all_players.get_any_player_that_is_all_in())
@@ -622,20 +621,20 @@ class TestPlayerPaymentsAfterAllIn(unittest.TestCase):
             tuple(self.all_players.get_any_player_that_is_all_in())[0]
         )
 
-    def test_set_max_winnings(self):
+    def test_set_max_winnings_for_player(self):
         """
         This tests that an all_in player's max winnings are capped after
         he goes all_in at his highest bet * number of players.
         """
         # Assign bets to players.
         for player in self.all_players.register:
-            player.amount_bet_in_stage = 20
+            player.amount_bet_during_stage = 20
 
         # Assign larger bets to some players.
-        self.all_players.player1.amount_bet_in_stage = 40
-        self.all_players.player2.amount_bet_in_stage = 40
+        self.all_players.player1.amount_bet_during_stage = 40
+        self.all_players.player2.amount_bet_during_stage = 40
         player3 = self.all_players.player3
-        player3.amount_bet_in_stage = 30
+        player3.amount_bet_during_stage = 30
 
         sum_of_bets_for_each_player_equal_or_less_than_all_in_players_bet = 190
 
@@ -646,10 +645,59 @@ class TestPlayerPaymentsAfterAllIn(unittest.TestCase):
             0,
             player3.max_winnings
         )
-        self.all_players.set_max_winnings(player3)
+        self.all_players.set_max_winnings_for_player(player3)
         self.assertEqual(
             sum_of_bets_for_each_player_equal_or_less_than_all_in_players_bet,
             player3.max_winnings
+        )
+
+
+class TestAllInMaxWinningsForAllPlayers(unittest.TestCase):
+
+    def setUp(self):
+        """
+        Player 1 and player 2 are all_in. Player 3 and player 4 are not all_in.
+        Player 3 and player 4 have raised more than the all_in amount.
+        The other players bet 20 and then folded.
+        """
+        self.n_players = 8
+        self.all_players = Players(self.n_players)
+        self.card_dealer = CardDealer(self.n_players)
+        for player in self.all_players.register:
+            player.amount_bet_during_stage = 20
+
+        self.all_players.player1.amount_bet_during_stage = 40
+        self.all_players.player1.is_all_in = True
+        self.all_players.player2.amount_bet_during_stage = 60
+        self.all_players.player2.is_all_in = True
+        self.all_players.player3.amount_bet_during_stage = 80
+        self.all_players.player3.is_all_in = True
+        self.all_players.player4.amount_bet_during_stage = 80
+        self.all_players.player4.is_all_in = False
+        self.all_players.player5.has_folded = True
+        self.all_players.player6.has_folded = True
+        self.all_players.player7.has_folded = True
+        self.all_players.player8.has_folded = True
+
+    def test_set_max_winnings_for_all_in_players_player1(self):
+        self.all_players.set_max_winnings_for_all_in_players()
+        self.assertEqual(
+            (20 * 4) + (40 * 4),
+            self.all_players.player1.max_winnings
+        )
+
+    def test_set_max_winnings_for_all_in_players_player2(self):
+        self.all_players.set_max_winnings_for_all_in_players()
+        self.assertEqual(
+            (20 * 4) + 40 + (60 * 3),
+            self.all_players.player2.max_winnings
+        )
+
+    def test_set_max_winnings_for_all_in_players_player3(self):
+        self.all_players.set_max_winnings_for_all_in_players()
+        self.assertEqual(
+            (20 * 4) + 40 + 60 + (80 * 2),
+            self.all_players.player3.max_winnings
         )
 
 
@@ -705,7 +753,7 @@ class TestPayBlinds(unittest.TestCase):
             self.starting_player_money - self.all_players.big_blind
         )
         self.assertEqual(
-            self.all_players.player3.amount_bet_in_stage,
+            self.all_players.player3.amount_bet_during_stage,
             self.starting_player_amount_bet + self.all_players.big_blind
         )
 
@@ -720,7 +768,7 @@ class TestPayBlinds(unittest.TestCase):
             self.starting_player_money - self.all_players.small_blind
         )
         self.assertEqual(
-            self.all_players.player2.amount_bet_in_stage,
+            self.all_players.player2.amount_bet_during_stage,
             self.starting_player_amount_bet + self.all_players.small_blind
         )
 
@@ -854,7 +902,7 @@ class TestPlayerActions(unittest.TestCase):
 
     def test_call_bet_unsuccessful(self):
         self.player1.money = 40
-        self.player1.amount_bet_in_stage = 0
+        self.player1.amount_bet_during_stage = 0
         self.all_players.highest_stage_bet = 100
         self.assertFalse(self.all_players.call_bet(self.player1))
 
@@ -886,7 +934,7 @@ class TestPlayerHasRemainingActions(unittest.TestCase):
 
     def test_has_remaining_actions_not_yet_bet_enough(self):
         self.all_players.highest_stage_bet = 50
-        self.player1.amount_bet_in_stage = 45
+        self.player1.amount_bet_during_stage = 45
         self.assertTrue(
             self.all_players.has_remaining_actions(self.player1)
         )
@@ -900,8 +948,8 @@ class TestPlayerHasRemainingActions(unittest.TestCase):
         with no raises.
         """
         self.all_players.highest_stage_bet = 50
-        self.player1.amount_bet_in_stage = 50
-        self.player1.has_acted_in_stage = False
+        self.player1.amount_bet_during_stage = 50
+        self.player1.has_acted_during_stage = False
         self.assertTrue(self.all_players.has_remaining_actions(self.player1))
 
     def test_has_remaining_actions_folded_hand(self):
@@ -915,16 +963,23 @@ class TestPlayerHasRemainingActions(unittest.TestCase):
         folded.
         """
         self.all_players.highest_stage_bet = 50
-        self.player1.amount_bet_in_stage = 50
+        self.player1.amount_bet_during_stage = 50
         self.player1.has_folded_hand = False
-        self.player1.has_acted_in_stage = True
+        self.player1.has_acted_during_stage = True
         self.assertFalse(self.all_players.has_remaining_actions(self.player1))
 
     def test_at_least_one_player_must_act(self):
-        self.all_players.player4.has_acted_in_stage = False
+        self.all_players.player1.has_acted_during_stage = False
         self.assertTrue(
             self.all_players.at_least_one_player_must_act
         )
+
+    def test_mark_player_as_having_made_action(self):
+        self.assertFalse(self.all_players.player1.has_acted_during_stage)
+        self.all_players.mark_player_as_having_made_action(
+            self.all_players.player1
+        )
+        self.assertTrue(self.all_players.player1.has_acted_during_stage)
 
 
 class TestPlayerInput(unittest.TestCase):
@@ -942,15 +997,15 @@ class TestResetBettingRecords(unittest.TestCase):
         self.card_dealer = CardDealer(n_players)
         self.player1 = self.all_players.player1
 
-    def test_reset_players_status_at_stage_end_reset_amount_bet_in_stage(self):
-        self.player1.amount_bet_in_stage = 100
+    def test_reset_players_status_at_stage_end_reset_amount_bet_during_stage(self):
+        self.player1.amount_bet_during_stage = 100
         self.all_players.reset_players_status_at_stage_end()
-        self.assertEqual(0, self.player1.amount_bet_in_stage)
+        self.assertEqual(0, self.player1.amount_bet_during_stage)
 
     def test_reset_players_status_at_stage_end_reset_has_acted_marker(self):
-        self.player1.has_acted_in_stage = True
+        self.player1.has_acted_during_stage = True
         self.all_players.reset_players_status_at_stage_end()
-        self.assertFalse(self.player1.has_acted_in_stage)
+        self.assertFalse(self.player1.has_acted_during_stage)
 
     def test_reset_highest_stage_bet(self):
         self.all_players.highest_stage_bet = 100
@@ -1004,6 +1059,31 @@ class TestBoardDealing(unittest.TestCase):
 
     def tearDown(self):
         del self.card_dealer.table_cards[:]
+
+
+class TestGetWinner(unittest.TestCase):
+
+    def setUp(self):
+        n_players = 8
+        self.all_players = Players(n_players)
+        self.card_dealer = CardDealer(n_players)
+
+    def get_any_default_winner_when_more_than_two_players_not_folded(self):
+        self.assertIsNone(self.all_players.get_any_default_winner())
+
+    def get_any_default_winner_when_fewer_than_two_players_not_folded(self):
+        self.all_players.player1.has_folded = True
+        self.all_players.player2.has_folded = True
+        self.all_players.player3.has_folded = True
+        self.all_players.player4.has_folded = True
+        self.all_players.player5.has_folded = True
+        self.all_players.player6.has_folded = True
+        self.all_players.player7.has_folded = True
+        self.assertEqual(
+            self.all_players.player8,
+            self.all_players.get_any_default_winner()
+        )
+
 
 
 if __name__ == '__main__':

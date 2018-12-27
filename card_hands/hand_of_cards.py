@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.WARNING)
 """
 TODO:
 
-1a. Prune hand ranking and classifier classes
+1a. Prune hand ranking and classifier classes COMPLETE
 1. Find the winner; say the winner(s); give the pot to the winner(s)
     Winner may be the last player left or the player(s) with the highest card at the end of the stage.
 2. Create game loops that allows players to play multiple hands.
@@ -19,6 +19,7 @@ The game consists of stages, which consist of stages.
 
 
 """
+
 
 def print_output(func):
     def wrapper(*args):
@@ -146,7 +147,7 @@ class HandRanker:
         get_high_card: 1
     }
 
-    def rank_hand(self, hand: list) -> object:
+    def rank_hand(self, hand: list) -> int:
         for f, rank in self.hand_ranks.items():
             if f(self, hand):
                 return rank
@@ -162,7 +163,74 @@ class HandRanker:
 
 class HandClassifier(HandRanker):
 
-    def sort_by_frequency_and_size(self, numbers):
+    def filter_hands_by_highest_score(self, hands) -> list:
+        high_score = self.get_highest_hand_score(hands)
+        return [
+            hand for hand in hands
+            if self.rank_hand(hand) == high_score
+        ]
+
+    def get_highest_hand_score(self, hands) -> int:
+        highest_hand_score = 0
+        for hand in hands:
+            if self.rank_hand(hand) >= highest_hand_score:
+                highest_hand_score = self.rank_hand(hand)
+        return highest_hand_score
+
+    @print_output
+    def get_hand_with_highest_card_rank(self, filtered_hands: list) -> list:
+        # Returns
+        current_best_hand = filtered_hands[0]
+        highest_ranks = self.get_card_ranks(filtered_hands[0])
+        for hand in filtered_hands:
+            challenger_ranks = self.get_card_ranks(hand)
+            if self.is_challenger_higher(highest_ranks, challenger_ranks):
+                current_best_hand = hand
+                highest_ranks = challenger_ranks
+        return current_best_hand
+
+    def get_card_ranks(self, hand: list) -> list:
+        return self.sort_by_frequency_and_size([card.rank for card in hand])
+
+    # Todo: write test
+    def get_all_best_hands(self, raw_hands):
+        hands_with_highest_score = self.filter_hands_by_highest_score(
+            raw_hands
+        )
+        best_hand = self.get_hand_with_highest_card_rank(
+            hands_with_highest_score
+        )
+        all_best_hands = [
+            hand for hand in hands_with_highest_score
+            if self.is_challenger_equal(
+                best_hand,
+                hand
+            )
+        ]
+        return all_best_hands
+
+    # Todo: write test
+    @staticmethod
+    def is_challenger_higher(current_n: list, challenger_n: list) -> bool:
+        for a, b in zip(current_n, challenger_n):
+            if a > b:
+                return False
+            if b > a:
+                return True
+        return False
+
+    # Todo: write test
+    @staticmethod
+    def is_challenger_equal(current_n: list, challenger_n: list) -> bool:
+        for a, b in zip(current_n, challenger_n):
+            if a > b:
+                return False
+            if b > a:
+                return False
+        return True
+
+    @staticmethod
+    def sort_by_frequency_and_size(numbers):
         """Sort by descending frequency and descending size."""
         numbers.sort(reverse=True)
         numbers = sorted(
@@ -182,44 +250,7 @@ class Hand(HandClassifier):
         card_pool = self.pocket_cards + card_dealer.table_cards
         return list(itertools.combinations(card_pool, r=5))
 
-    def filter_hands_by_highest_score(self, combinations) -> list:
-        high_score = self.get_highest_hand_score(combinations)
-        return [
-            hand for hand in combinations
-            if self.rank_hand(hand) == high_score
-        ]
-
-    def get_highest_hand_score(self, hands) -> int:
-        highest_hand_score = 0
-        for hand in hands:
-            if self.rank_hand(hand) >= highest_hand_score:
-                highest_hand_score = self.rank_hand(hand)
-                self.highest_hand_score = highest_hand_score
-        return highest_hand_score
-
-    @print_output
-    def get_hand_with_highest_card_rank(self, filtered_hands: list) -> list:
-        best_hand = filtered_hands[0]
-        highest_ranks = self.get_card_ranks(filtered_hands[0])
-        for hand in filtered_hands:
-            challenger_ranks = self.get_card_ranks(hand)
-            if self.is_challenger_higher(highest_ranks, challenger_ranks) is True:
-                best_hand = hand
-                highest_ranks = challenger_ranks
-        return best_hand
-
-    def is_challenger_higher(self, current: list, challenger: list) -> bool:
-        for a, b in zip(current, challenger):
-            if a > b:
-                return False
-            if b > a:
-                return True
-        return False
-
-    def get_card_ranks(self, hand: list) -> list:
-        return self.sort_by_frequency_and_size([card.rank for card in hand])
-
-    def calculate_best_hand(self, card_dealer) -> list:
+    def calculate_best_hand_for_player(self, card_dealer) -> list:
         if not card_dealer.table_cards:
             self.best_hand = self.pocket_cards
             return self.best_hand
@@ -241,17 +272,17 @@ class Player:
         self.name = name
         self.hand = Hand()
         self.money = 100
-        self.amount_bet_in_stage = 0
+        self.amount_bet_during_stage = 0
         self.has_folded_hand = False
-        self.has_acted_in_stage = False
+        self.has_acted_during_stage = False
         self.in_big_blind_position = False
         self.in_small_blind_position = False
         self.in_dealer_position = False
         self.is_all_in = False
-        self.max_winnings = 0  # Todo: integrate this with the awarding of the pot
+        self.max_winnings = 0  # Todo: integrate with the awarding of the pot
 
     def get_best_hand(self, card_dealer):
-        return self.hand.calculate_best_hand(card_dealer)
+        return self.hand.calculate_best_hand_for_player(card_dealer)
 
     def __repr__(self):
         return f"{self.name} instance"
@@ -266,7 +297,7 @@ class Players:
     def __init__(self, number_of_players):
         self.number_of_players = number_of_players
         self.instantiate_all_players()
-        self.store_players_in_register()
+        self.register = self.store_players_in_register()
         self.playing_order = deque(
             player for player in self.register
         )
@@ -281,13 +312,12 @@ class Players:
         except IndexError:  # Applies where there are only two players
             self.dealer_player = self.playing_order[-1]
 
-    def instantiate_all_players(self) -> None:  # Todo: write test
+    def instantiate_all_players(self) -> None:
         for i in range(1, self.number_of_players + 1):
             setattr(self, f'player{i}', Player(f'player{i}'))
 
     def store_players_in_register(self):
-        """Creates register of player instances."""
-        self.register = [
+        return [
             value for value in self.__dict__.values()
             if type(value) == Player
                          ]
@@ -306,7 +336,6 @@ class Players:
         self.big_blind_player: Player = self.playing_order[-1]
         self.big_blind_player.in_big_blind_position = True
 
-
     def rotate_playing_order_before_flop(self) -> None:
         """
         Rotates playing order by 2 to begin from the left of the
@@ -316,9 +345,9 @@ class Players:
 
     def pay_blinds(self):
         self.small_blind_player.money -= self.small_blind
-        self.small_blind_player.amount_bet_in_stage += self.small_blind
+        self.small_blind_player.amount_bet_during_stage += self.small_blind
         self.big_blind_player.money -= self.big_blind
-        self.big_blind_player.amount_bet_in_stage += self.big_blind
+        self.big_blind_player.amount_bet_during_stage += self.big_blind
         self.pot += self.big_blind + self.small_blind
         self.highest_stage_bet = self.big_blind
         self.print_blinds_message()
@@ -335,7 +364,7 @@ class Players:
     def print_request(self, active_player: Player) -> None:
         print(f"\n{active_player.name.title()},\n" +
               f"You have {active_player.money} coins currently.\n" +
-              f"You have bet {active_player.amount_bet_in_stage} " +
+              f"You have bet {active_player.amount_bet_during_stage} " +
               f"this stage.\n" +
               f"The highest bet of the stage so far " +
               f"is {self.highest_stage_bet}.\n"
@@ -349,8 +378,8 @@ class Players:
 
     def reset_players_status_at_stage_end(self):
         for player_at_stage_end in self.playing_order:
-            player_at_stage_end.amount_bet_in_stage = 0
-            player_at_stage_end.has_acted_in_stage = False
+            player_at_stage_end.amount_bet_during_stage = 0
+            player_at_stage_end.has_acted_during_stage = False
 
     def reset_highest_stage_bet(self):
         self.highest_stage_bet = 0
@@ -360,72 +389,87 @@ class Players:
             if player.is_all_in:
                 yield player
 
-    def find_max_all_in_players_can_win(self):  # Todo: write test
-        """
-        Run at each stage's end.
-        """
+    def set_max_winnings_for_all_in_players(self):
+        """Run at each stage's end."""
         if self.get_any_player_that_is_all_in() is not None:
             for all_in_player in self.get_any_player_that_is_all_in():
-                self.set_max_winnings(all_in_player)
+                self.set_max_winnings_for_player(all_in_player)
 
-    def set_max_winnings(self, all_in_player: Player) -> None:
-        """
-        Creates an max winnings attribute for an all_in player. This threshold
-        is the all_in player's highest bet * number of players.
-        """
+    def set_max_winnings_for_player(self, all_in_player: Player) -> None:
+        """Creates an max winnings attribute for an all_in player."""
         for other_player in self.register:
-            if other_player.amount_bet_in_stage >= all_in_player.amount_bet_in_stage:
-                all_in_player.max_winnings += all_in_player.amount_bet_in_stage
+            if other_player.amount_bet_during_stage >= all_in_player.amount_bet_during_stage:
+                all_in_player.max_winnings += all_in_player.amount_bet_during_stage
             else:
-                all_in_player.max_winnings += other_player.amount_bet_in_stage
+                all_in_player.max_winnings += other_player.amount_bet_during_stage
 
-
-    # Todo: write tests and add to the below
-    
-    
-    def ask_all_players_for_actions(self, card_dealer) -> None:
+    def ask_all_players_for_actions(self) -> None:
         while self.at_least_one_player_must_act() is True:
             for player in self.playing_order:
                 if self.has_remaining_actions(player) is True:
                     self.get_player_command(player)
                     self.mark_player_as_having_made_action(player)
 
-
-    def get_any_winner_by_default(self):  # Todo: Write test
+    # Todo: write test
+    def get_any_default_winner(self):
         if not self.at_least_two_players_left_in_round():
             return self.find_each_not_folded_player()
         else:
             return None
 
-
-    def at_least_two_players_left_in_round(self): # Todo: Write test
+    # Todo: write test
+    def at_least_two_players_left_in_round(self):
         if len(self.find_each_not_folded_player()) < 2:
             return self.find_each_not_folded_player()
         else:
             return False
 
-    def find_each_not_folded_player(self) -> bool: # Todo: Write test
+    # Todo: write test
+    def get_any_showdown_winner(self, card_dealer) -> list:
+        active_players = self.find_each_not_folded_player()
+        best_hands = self.get_best_hand_of_each_player(
+            active_players, card_dealer
+        )
+        winners = self.identify_players_with_the_best_hands(
+            active_players, best_hands
+        )
+        return winners
+
+    # Todo: write test
+    def find_each_not_folded_player(self) -> list:
         return [
             player for player in self.playing_order
             if player.has_folded_hand is False
         ]
-    
-    
 
-        
+    # Todo: write test
+    def get_best_hand_of_each_active_player(
+            self, active_players, card_dealer) -> list:
+        return [
+            active_player.get_best_hand(card_dealer)
+            for active_player in active_players
+        ]
 
-
-
+    # Todo: write test
+    @staticmethod
+    def identify_players_with_the_best_hands(
+            active_players, best_hands) -> list:
+        players_with_the_best_hands = [
+            active_player
+            for active_player in active_players
+            if active_player.get_best_hand() in best_hands
+        ]
+        return players_with_the_best_hands
 
     def has_remaining_actions(self, player: Player) -> bool:
         if player.has_folded_hand or player.is_all_in is True:
             return False
-        elif player.amount_bet_in_stage == self.highest_stage_bet and player.has_acted_in_stage is True:
+        elif player.amount_bet_during_stage == self.highest_stage_bet and player.has_acted_during_stage is True:
             return False
         else:
             return True
 
-    def at_least_one_player_must_act(self) -> bool:  # Todo: check that test exists
+    def at_least_one_player_must_act(self) -> bool:
         for player in self.register:
             if self.has_remaining_actions(player) is True:
                 return True
@@ -461,25 +505,28 @@ class Players:
         """This will make the player check if there is no higher bet."""
         call_amount = (
                 self.highest_stage_bet -
-                calling_player.amount_bet_in_stage
+                calling_player.amount_bet_during_stage
         )
         if calling_player.money - call_amount < 0:
-            print(f"{calling_player.name.title()} does not have enough money to call")
+            print(
+                f"{calling_player.name.title()} "
+                f"does not have enough money to call")
             return False
         calling_player.money -= call_amount
-        calling_player.amount_bet_in_stage += call_amount
+        calling_player.amount_bet_during_stage += call_amount
         self.pot += call_amount
         print(f"{calling_player.name.title()} called {call_amount}.")
         return True
 
-    def fold_hand(self, folding_player: Player) -> bool:
+    @staticmethod
+    def fold_hand(folding_player: Player) -> bool:
         folding_player.has_folded_hand = True
         print(f"{folding_player.name.title()} folded.")
         return True
 
     def get_amount_to_raise(self, raising_player: Player) -> bool:
         bet_amount: int = int(input("Enter the amount to raise >>\n"))
-        if self.highest_stage_bet > bet_amount + raising_player.amount_bet_in_stage:
+        if self.highest_stage_bet > bet_amount + raising_player.amount_bet_during_stage:
             print(f"Insufficient bet. The bet must be larger to raise. " +
                   f"Try again")
             return False
@@ -490,18 +537,18 @@ class Players:
         else:
             self.place_bet(raising_player, bet_amount)
             print(f"{raising_player.name.title()} raised {bet_amount} " +
-                  f"to bet {raising_player.amount_bet_in_stage} overall.")
+                  f"to bet {raising_player.amount_bet_during_stage} overall.")
             return True
 
     def place_bet(self, raising_player: Player, bet_amount) -> bool:
         raising_player.money -= bet_amount
-        raising_player.amount_bet_in_stage += bet_amount
-        self.highest_stage_bet = raising_player.amount_bet_in_stage
+        raising_player.amount_bet_during_stage += bet_amount
+        self.highest_stage_bet = raising_player.amount_bet_during_stage
         self.pot += bet_amount
         return True
 
     def check_bet(self, checking_player: Player) -> bool:
-        if checking_player.amount_bet_in_stage == self.highest_stage_bet:
+        if checking_player.amount_bet_during_stage == self.highest_stage_bet:
             return True
         else:
             print(
@@ -511,8 +558,9 @@ class Players:
             )
             return False
 
-    def mark_player_as_having_made_action(self, player_who_made_action: Player):
-        player_who_made_action.has_acted_in_stage = True
+    @staticmethod
+    def mark_player_as_having_made_action(player_who_made_action: Player):
+        player_who_made_action.has_acted_during_stage = True
 
 
 class CardDealer:
@@ -521,11 +569,13 @@ class CardDealer:
         self.number_of_starting_players = number_of_starting_players
         self.deck = self.generate_cards()
 
-    def generate_cards(self):
+    @staticmethod
+    def generate_cards():
         card_templates = itertools.product(range(2, 15), ('H', 'D', 'S', 'C'))
         return [Card(rank, suit) for rank, suit in card_templates]
 
-    def pick_card(self) -> Card:  # Todo: write test
+    # Todo: write test
+    def pick_card(self) -> Card:
         random.shuffle(self.deck)
         return self.deck.pop()
 
@@ -557,12 +607,13 @@ class CardDealer:
         print(f"Table cards : \n{self.table_cards}")
         print("______________________\n")
 
+
 class BasicDisplay:
     # Todo: create basic GUI
 
     def print_table(self):
         print(f"Table cards : "
-              f"\n{self.table_cards}")
+              f"\n")  # Refer to table cards
 
     def print_header(self):
         print("________________________________________________\n")
@@ -584,31 +635,29 @@ if __name__ == "__main__":
     card_dealer.deal_pocket_cards_to_players(all_players)
 
     all_players.pay_blinds()
-    all_players.ask_all_players_for_actions(card_dealer)
+    all_players.ask_all_players_for_actions()
     # check for default winner
     all_players.reset_players_status_at_stage_end()
     all_players.reset_highest_stage_bet()
     all_players.rotate_playing_order_before_flop()
 
-
     card_dealer.deal_flop()
     card_dealer.show_table()
-    all_players.ask_all_players_for_actions(card_dealer)
+    all_players.ask_all_players_for_actions()
     # check for default winner
     all_players.reset_players_status_at_stage_end()
     all_players.reset_highest_stage_bet()
 
-
     card_dealer.deal_turn()
     card_dealer.show_table()
-    all_players.ask_all_players_for_actions(card_dealer)
+    all_players.ask_all_players_for_actions()
     # check for default winner
     all_players.reset_players_status_at_stage_end()
     all_players.reset_highest_stage_bet()
 
     card_dealer.deal_river()
     card_dealer.show_table()
-    all_players.ask_all_players_for_actions(card_dealer)
+    all_players.ask_all_players_for_actions()
     # check for default winner
     # find winner
     # Todo: announce winner and pay pot
