@@ -81,7 +81,6 @@ class TestDealingCards(unittest.TestCase):
         )
 
 
-
 class TestPlayerCalculateBestHand(unittest.TestCase):
 
     def setUp(self):
@@ -89,6 +88,7 @@ class TestPlayerCalculateBestHand(unittest.TestCase):
         self.card_dealer = CardDealer(n_players)
         self.all_players = Players(n_players)
         self.player_1_hand = self.all_players.player1.hand
+        self.hand_classifier = HandClassifier()
 
     def test_calculate_best_hand_after_river_card_dealt(self):
         self.player_1_hand.pocket_cards = [
@@ -138,6 +138,75 @@ class TestPlayerCalculateBestHand(unittest.TestCase):
              (6, 'D'), (6, 'H')],
             suit_and_rank
         )
+
+    def test_get_winning_hands(self):
+        hand1_winner = [
+            Card(6, 'H'), Card(6, 'D'), Card(2, 'S'), Card(4, 'D'),
+            Card(5, 'H')
+        ]
+        hand2_winner = [
+            Card(6, 'S'), Card(6, 'C'), Card(2, 'S'), Card(4, 'D'),
+            Card(5, 'H')
+        ]
+        hand3_loser = [
+            Card(7, 'S'), Card(2, 'C'), Card(2, 'S'), Card(4, 'D'),
+            Card(5, 'H')
+        ]
+        combined_hands = [hand1_winner, hand2_winner, hand3_loser]
+        self.assertEqual(
+            [hand1_winner, hand2_winner],
+            self.hand_classifier.get_winning_hands(combined_hands)
+        )
+
+
+class TestGetWinners(unittest.TestCase):
+    def setUp(self):
+        n_players = 8
+        self.card_dealer = CardDealer(n_players)
+        self.all_players = Players(n_players)
+        self.hand_classifier = HandClassifier()
+
+        self.hand1_winner = [
+            Card(6, 'H'), Card(6, 'D')
+        ]
+        self.hand2_winner = [
+            Card(6, 'S'), Card(6, 'C')
+        ]
+        self.hand3_loser = [
+            Card(7, 'S'), Card(3, 'C')
+        ]
+        self.card_dealer.table_cards = [
+            Card(2, 'S'), Card(4, 'D'), Card(5, 'H'), Card(2, 'S'),
+            Card(10, 'D')
+        ]
+        
+        self.all_players.player1.hand.pocket_cards = self.hand1_winner
+        self.all_players.player2.hand.pocket_cards = self.hand2_winner
+        self.all_players.player3.hand.pocket_cards = self.hand3_loser
+        self.all_players.player4.has_folded = True
+        self.all_players.player5.has_folded = True
+        self.all_players.player6.has_folded = True
+        self.all_players.player7.has_folded = True
+        self.all_players.player8.has_folded = True
+
+    def test_get_any_showdown_winner(self):
+        self.assertEqual(
+            [self.all_players.player1, self.all_players.player2],
+            self.all_players.get_any_showdown_winner(
+                self.card_dealer, self.hand_classifier)
+        )
+
+    def test_at_least_two_players_left_in_round(self):
+        self.assertTrue(self.all_players.at_least_two_players_left_in_round())
+
+    def test_get_each_not_folded_player(self):
+        self.assertEqual([
+            self.all_players.player1, self.all_players.player2, 
+            self.all_players.player3
+        ],
+            self.all_players.get_each_not_folded_player()
+        )
+
 
 class TestDealingPocketCards(unittest.TestCase):
 
@@ -579,24 +648,46 @@ class TestHandRanker(unittest.TestCase):
         )
 
 
-class TestHandClassifier(unittest.TestCase):
+class TestComparisonMethods(unittest.TestCase):
 
     def setUp(self):
-        self.find_best_hand = HandClassifier()
+        self.hand_classifier = HandClassifier()
+        self.first = [6, 6, 5, 5, 3]
+        self.second = [6, 6, 5, 5, 2]
+        self.third = [6, 6, 5, 5, 2]
+
+    def test_is_higher(self):
+        self.assertTrue(
+            self.hand_classifier.is_higher(self.second, self.first)
+        )
+        self.assertFalse(
+            self.hand_classifier.is_higher(self.second, self.third)
+        )
+
+    def test_is_equal(self):
+        self.assertTrue(
+            self.hand_classifier.is_equal(self.second, self.third)
+        )
+        self.assertFalse(
+            self.hand_classifier.is_equal(self.first, self.third)
+        )
 
 
+class TestSortByFrequencyAndSize(unittest.TestCase):
+    def setUp(self):
+        self.hand_classifier = HandClassifier()
 
-    def test_get_card_numbers_sorted_by_frequency_and_size_higher_size(self):
+    def test_sort_by_frequency_and_size_higher_size(self):
         card_numbers = [3, 5, 3, 12, 12]
         self.assertEqual(
-            self.find_best_hand.sort_by_frequency_and_size(card_numbers),
+            self.hand_classifier.sort_by_frequency_and_size(card_numbers),
             [12, 12, 3, 3, 5]
         )
 
-    def test_get_card_numbers_sorted_by_frequency_and_size_higher_frequency(self):
+    def test_sort_by_frequency_and_size_higher_frequency(self):
         card_numbers = [14, 14, 2, 2, 2]
         self.assertEqual(
-            self.find_best_hand.sort_by_frequency_and_size(card_numbers),
+            self.hand_classifier.sort_by_frequency_and_size(card_numbers),
             [2, 2, 2, 14, 14]
         )
 
@@ -919,9 +1010,9 @@ class TestFoldHand(unittest.TestCase):
         self.player1 = self.all_players.player1
 
     def test_fold(self):
-        self.assertFalse(self.player1.has_folded_hand)
+        self.assertFalse(self.player1.has_folded)
         self.all_players.fold_hand(self.player1)
-        self.assertTrue(self.player1.has_folded_hand)
+        self.assertTrue(self.player1.has_folded)
 
 
 class TestPlayerHasRemainingActions(unittest.TestCase):
@@ -953,7 +1044,7 @@ class TestPlayerHasRemainingActions(unittest.TestCase):
         self.assertTrue(self.all_players.has_remaining_actions(self.player1))
 
     def test_has_remaining_actions_folded_hand(self):
-        self.player1.has_folded_hand = True
+        self.player1.has_folded = True
         self.assertFalse(self.all_players.has_remaining_actions(self.player1))
 
     def test_has_remaining_actions_player_has_acted_and_matched_bet(self):
@@ -964,7 +1055,7 @@ class TestPlayerHasRemainingActions(unittest.TestCase):
         """
         self.all_players.highest_stage_bet = 50
         self.player1.amount_bet_during_stage = 50
-        self.player1.has_folded_hand = False
+        self.player1.has_folded = False
         self.player1.has_acted_during_stage = True
         self.assertFalse(self.all_players.has_remaining_actions(self.player1))
 
