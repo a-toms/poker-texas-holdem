@@ -139,7 +139,7 @@ class TestPlayerCalculateBestHand(unittest.TestCase):
             suit_and_rank
         )
 
-    def test_get_winning_hands(self):
+    def test_get_winning_hands_from(self):
         hand1_winner = [
             Card(6, 'H'), Card(6, 'D'), Card(2, 'S'), Card(4, 'D'),
             Card(5, 'H')
@@ -155,7 +155,7 @@ class TestPlayerCalculateBestHand(unittest.TestCase):
         combined_hands = [hand1_winner, hand2_winner, hand3_loser]
         self.assertEqual(
             [hand1_winner, hand2_winner],
-            self.hand_classifier.get_winning_hands(combined_hands)
+            self.hand_classifier.get_winning_hands_from(combined_hands)
         )
 
 
@@ -192,8 +192,7 @@ class TestGetWinners(unittest.TestCase):
     def test_get_any_showdown_winner(self):
         self.assertEqual(
             [self.all_players.player1, self.all_players.player2],
-            self.all_players.get_any_showdown_winner(
-                self.card_dealer, self.hand_classifier)
+            self.all_players.get_any_showdown_winner(self.card_dealer)
         )
 
     def test_at_least_two_players_left_in_round(self):
@@ -664,12 +663,12 @@ class TestComparisonMethods(unittest.TestCase):
             self.hand_classifier.is_higher(self.second, self.third)
         )
 
-    def test_is_equal(self):
+    def test_are_equal(self):
         self.assertTrue(
-            self.hand_classifier.is_equal(self.second, self.third)
+            self.hand_classifier.are_equal(self.second, self.third)
         )
         self.assertFalse(
-            self.hand_classifier.is_equal(self.first, self.third)
+            self.hand_classifier.are_equal(self.first, self.third)
         )
 
 
@@ -1152,17 +1151,17 @@ class TestBoardDealing(unittest.TestCase):
         del self.card_dealer.table_cards[:]
 
 
-class TestGetWinner(unittest.TestCase):
+class TestGetDefaultWinners(unittest.TestCase):
 
     def setUp(self):
         n_players = 8
         self.all_players = Players(n_players)
         self.card_dealer = CardDealer(n_players)
 
-    def get_any_default_winner_when_more_than_two_players_not_folded(self):
+    def test_get_any_default_winner_when_more_than_two_players_not_folded(self):
         self.assertIsNone(self.all_players.get_any_default_winner())
 
-    def get_any_default_winner_when_fewer_than_two_players_not_folded(self):
+    def test_get_any_default_winner_when_fewer_than_two_players_not_folded(self):
         self.all_players.player1.has_folded = True
         self.all_players.player2.has_folded = True
         self.all_players.player3.has_folded = True
@@ -1171,9 +1170,54 @@ class TestGetWinner(unittest.TestCase):
         self.all_players.player6.has_folded = True
         self.all_players.player7.has_folded = True
         self.assertEqual(
-            self.all_players.player8,
+            [self.all_players.player8],
             self.all_players.get_any_default_winner()
         )
+
+
+class TestGetShowdownWinners(unittest.TestCase):
+
+    def setUp(self):
+        n_of_players = 8
+        self.all_players = Players(n_of_players)
+        self.card_dealer = CardDealer(n_of_players)
+        self.hand_judge = HandClassifier
+
+    def test_get_any_showdown_winner_following_gameplay(self):
+        self.card_dealer.deal_pocket_cards_to_players(self.all_players)
+        self.all_players.pay_blinds()
+
+        self.all_players.call_bet(self.all_players.player1)
+        self.all_players.call_bet(self.all_players.player2)
+        self.all_players.call_bet(self.all_players.player3)
+        self.all_players.call_bet(self.all_players.player4)
+        self.all_players.call_bet(self.all_players.player5)
+        self.all_players.call_bet(self.all_players.player6)
+        self.all_players.call_bet(self.all_players.player7)
+        self.all_players.call_bet(self.all_players.player8)
+
+        self.all_players.reset_players_status_at_stage_end()
+        self.all_players.reset_highest_stage_bet()
+        self.all_players.rotate_playing_order_before_flop()
+
+        self.card_dealer.deal_flop()
+        self.all_players.call_bet(self.all_players.player1)
+        self.all_players.call_bet(self.all_players.player2)
+        self.all_players.call_bet(self.all_players.player3)
+        self.all_players.call_bet(self.all_players.player4)
+        self.all_players.call_bet(self.all_players.player5)
+        self.all_players.call_bet(self.all_players.player6)
+        self.all_players.call_bet(self.all_players.player7)
+        self.all_players.call_bet(self.all_players.player8)
+
+        self.all_players.reset_players_status_at_stage_end()
+        self.all_players.reset_highest_stage_bet()
+
+        self.assertIsNotNone(
+            self.all_players.get_any_showdown_winner(self.card_dealer)
+        )
+
+
 
 
 
