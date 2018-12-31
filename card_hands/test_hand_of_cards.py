@@ -190,6 +190,14 @@ class TestGetWinners(unittest.TestCase):
         self.all_players.player7.has_folded = True
         self.all_players.player8.has_folded = True
 
+    def test_set_winning_players_based_on_winning_hands(self):
+        self.assertEqual(
+            [self.all_players.player1, self.all_players.player2],
+            self.all_players.set_winning_players_based_on_winning_hands(
+                self.card_dealer
+            )
+        )
+
     def test_get_any_showdown_winner(self):
         self.assertEqual(
             [self.all_players.player1, self.all_players.player2],

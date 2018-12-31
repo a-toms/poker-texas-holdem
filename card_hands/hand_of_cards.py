@@ -2,15 +2,11 @@ import itertools
 from collections import deque
 import random
 import logging
+import time
 
 logging.basicConfig(level=logging.WARNING)
 
 """
-TODO:
-
-2a. Consider separating the module into multiple modules by class to ease navigation.
-
-3. Create game loops that allows players to play multiple hands.
 
 Nomenclature:
 The game consists of stages, which consist of stages.
@@ -85,9 +81,9 @@ class HandRanker:
         Check if a straight exists if the ace is treated as a low ace.
         hand is an iterable of Card instances.
         """
-        low_ace, high_ace = 1, 14
+        low_ace_n, high_ace_n = 1, 14
         card_numbers = set([card.rank for card in hand])
-        card_numbers = [low_ace if n == high_ace else n for n in card_numbers]
+        card_numbers = [low_ace_n if n == high_ace_n else n for n in card_numbers]
         card_numbers.sort()
         high_card, low_card = card_numbers[-1], card_numbers[0]
         if len(card_numbers) == 5 and high_card - low_card == 4:
@@ -349,7 +345,6 @@ class Players:
 
     def print_blinds_message(self):
         print(
-            f""
             f"The big blind player, {self.big_blind_player.name.title()}, "
             f"paid the big blind of {self.big_blind}.\n" +
             f"The small blind player, {self.small_blind_player.name.title()}, "
@@ -392,10 +387,10 @@ class Players:
             else:
                 all_in_player.max_winnings += other_player.amount_bet_during_stage
 
-    def ask_all_players_for_actions(self) -> None:
-        while self.at_least_one_player_must_act() is True:
+    def ask_all_players_for_actions(self):
+        while self.at_least_one_player_must_act():
             for player in self.playing_order:
-                if self.has_remaining_actions(player) is True:
+                if self.has_remaining_actions(player):
                     self.get_player_command(player)
                     self.mark_player_as_having_made_action(player)
 
@@ -412,7 +407,7 @@ class Players:
             return True
 
     def get_any_showdown_winner(self, card_dealer) -> list:
-        return self.get_players_with_winning_hands(card_dealer)
+        return self.set_winning_players_based_on_winning_hands(card_dealer)
 
     def get_each_not_folded_player(self) -> list:
         return [
@@ -420,20 +415,19 @@ class Players:
             if player.has_folded is False
         ]
 
-    def get_players_with_winning_hands(self, card_dealer) -> list:
+    def set_winning_players_based_on_winning_hands(self, card_dealer) -> list:
         active_players = self.get_each_not_folded_player()
         players_best_hands = [
             active_player.get_best_hand(card_dealer)
             for active_player in active_players
         ]
-        winners = [
+        self.winning_players = [
             active_player
             for active_player in active_players
             if active_player.get_best_hand(card_dealer)
             in self.hand_classifier.get_winning_hands_from(players_best_hands)
         ]
-        self.winning_players = winners
-        return winners
+        return self.winning_players
 
     def give_pot_to_winners(self):
         for winning_player in self.winning_players:
@@ -445,6 +439,16 @@ class Players:
             if winnings > winning_player.max_winnings:
                 return winning_player.max_winnings
         return winnings
+
+    def print_winning_players(self):
+        if len(self.winning_players) == 1:
+            print(f"The winning player is {self.winning_players[0].name}")
+        else:
+            print("The winning players are ")
+            for counter, winning_player in enumerate(self.winning_players):
+                print(f"{winning_player.name}, ")
+                if counter == len(self.winning_players) - 1:
+                    print("and")
 
     def has_remaining_actions(self, player: Player) -> bool:
         if player.has_folded or player.is_all_in is True:
@@ -462,10 +466,10 @@ class Players:
                 return True
         return False
 
-    def get_player_command(self, player: Player) -> None:
+    def get_player_command(self, player: Player):
         action = self.get_player_input(player)
-        valid_command_exists = self.perform_player_command(action, player)
-        if valid_command_exists is False:
+        valid_command = self.perform_player_command(action, player)
+        if valid_command is False:
             self.get_player_command(player)
 
     def get_player_input(self, player: Player) -> str:
@@ -549,6 +553,11 @@ class Players:
     def mark_player_as_having_made_action(player_who_made_action: Player):
         player_who_made_action.has_acted_during_stage = True
 
+    def print_players_money(self):
+        print("Player money:")
+        for player in self.register:
+            print(f"{player.name} has £{player.money}")
+
 
 class CardDealer:
     def __init__(self, number_of_starting_players):
@@ -564,7 +573,6 @@ class CardDealer:
     def pick_card(self) -> Card:
         random.shuffle(self.deck)
         return self.deck.pop()
-
 
     def deal_pocket_cards_to_player(self, receiving_player: Player) -> None:
         for i in range(2):
@@ -612,42 +620,95 @@ class BasicDisplay:
         print(f"{player.hand.pocket_cards} | *FILLER* | *FILLER* | *FILLER* ")
 
 
+class Game():
+    def __init__(self, number_of_players):
+        self.n_players = number_of_players
+        self.all_players = Players(self.n_players)
+        self.card_dealer = CardDealer(self.n_players)
+        self.hand_classifier = HandClassifier
+
+    def run_pre_flop_events(self):
+        self.card_dealer.deal_pocket_cards_to_players(self.all_players)
+        self.all_players.pay_blinds()
+        self.all_players.ask_all_players_for_actions()
+        if self.all_players.get_any_default_winner() is not None:
+            return
+        self.all_players.reset_players_status_at_stage_end()
+        self.all_players.reset_highest_stage_bet()
+        self.all_players.rotate_playing_order_before_flop()
+
+    def run_flop_events(self):
+        self.card_dealer.deal_flop()
+        self.card_dealer.show_table()
+        self.all_players.ask_all_players_for_actions()
+        if self.all_players.get_any_default_winner() is not None:
+            return # Todo: integrate default winner to game loop
+        self.all_players.reset_players_status_at_stage_end()
+        self.all_players.reset_highest_stage_bet()
+
+    def run_turn_events(self):
+        self.card_dealer.deal_turn()
+        self.card_dealer.show_table()
+        self.all_players.ask_all_players_for_actions()
+        if self.all_players.get_any_default_winner() is not None:
+            return
+        self.all_players.reset_players_status_at_stage_end()
+        self.all_players.reset_highest_stage_bet()
+
+    def run_river_events(self):
+        self.card_dealer.deal_river()
+        self.card_dealer.show_table()
+        self.all_players.ask_all_players_for_actions()
+        self.all_players.get_any_default_winner()
+        self.all_players.get_any_showdown_winner(self.card_dealer)
+        self.all_players.print_winning_players()
+        self.all_players.give_pot_to_winners()
+
+    def post_round_events(self):
+        self.all_players.print_players_money()
+        self.ask_if_you_want_to_continue_game()
+
+    def ask_if_you_want_to_continue_game(self):
+        print("Preparing for new round.Press X to end the game")
+        if self.you_want_to_continue_game():
+            # Todo: continue
+            print("restart game")
+        else:
+            print("end poker game")
+
+    @staticmethod
+    def you_want_to_continue_game():
+        seconds_left = 5
+        while time.sleep(5):
+            print(seconds_left)
+            if input():
+                return False
+            seconds_left -= 1
+        return True
+
+    def run_game(self):
+        self.run_pre_flop_events()
+        self.run_flop_events()
+        self.run_turn_events()
+        self.run_river_events()
+        self.post_round_events()
+
+    # todo: add ability to play another round
+
+    # todo: show ASCII pocket cards on each player's turn
+
+    # todo: check that each player has more than two big blinds before the round starts
+
+    # todo: add settings first page and settings option after each round
+    #  - state the number of players, starting stake for each player, player names
+    #  - add ability for players to drop out
+
+
+
 
 if __name__ == "__main__":
     """
     3 main objects: 1. player; 2. all_players, 3. card_dealer;    
     """
+    Game(8).run_game()
 
-    n_of_players = 8
-    all_players = Players(n_of_players)
-    card_dealer = CardDealer(n_of_players)
-    hand_judge = HandClassifier
-
-    card_dealer.deal_pocket_cards_to_players(all_players)
-    all_players.pay_blinds()
-    all_players.ask_all_players_for_actions()
-    all_players.get_any_default_winner()
-    all_players.reset_players_status_at_stage_end()
-    all_players.reset_highest_stage_bet()
-    all_players.rotate_playing_order_before_flop()
-
-    card_dealer.deal_flop()
-    card_dealer.show_table()
-    all_players.ask_all_players_for_actions()
-    all_players.get_any_default_winner()
-    all_players.reset_players_status_at_stage_end()
-    all_players.reset_highest_stage_bet()
-
-    card_dealer.deal_turn()
-    card_dealer.show_table()
-    all_players.ask_all_players_for_actions()
-    all_players.get_any_default_winner()
-    all_players.reset_players_status_at_stage_end()
-    all_players.reset_highest_stage_bet()
-
-    card_dealer.deal_river()
-    card_dealer.show_table()
-    all_players.ask_all_players_for_actions()
-    all_players.get_any_default_winner()
-    winners = all_players.get_any_showdown_winner(card_dealer)
-    print(winners)
