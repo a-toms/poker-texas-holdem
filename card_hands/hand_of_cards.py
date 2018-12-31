@@ -8,9 +8,6 @@ logging.basicConfig(level=logging.WARNING)
 """
 TODO:
 
-1. Find the winner; say the winner(s); give the pot to the winner(s)
-    Winner may be the last player left or the player(s) with the highest card at the end of the stage.
-
 2a. Consider separating the module into multiple modules by class to ease navigation.
 
 3. Create game loops that allows players to play multiple hands.
@@ -275,7 +272,7 @@ class Player:
         self.in_small_blind_position = False
         self.in_dealer_position = False
         self.is_all_in = False
-        self.max_winnings = 0  # Todo: integrate with the awarding of the pot
+        self.max_winnings = 0
 
     def get_best_hand(self, card_dealer):
         return self.hand.calculate_best_hand_for_player(card_dealer)
@@ -304,6 +301,7 @@ class Players:
         self.assign_big_blind_player()
         self.assign_small_blind_player()
         self.hand_classifier = HandClassifier()
+        self.winning_players = []
         try:
             self.dealer_player = self.playing_order[-3]
         except IndexError:  # Applies where there are only two players
@@ -367,8 +365,6 @@ class Players:
               f"is {self.highest_stage_bet}.\n"
               )
 
-
-
     def reset_players_status_at_stage_end(self):
         for player_at_stage_end in self.playing_order:
             player_at_stage_end.amount_bet_during_stage = 0
@@ -430,20 +426,25 @@ class Players:
             active_player.get_best_hand(card_dealer)
             for active_player in active_players
         ]
-        winning_hands = self.hand_classifier.get_winning_hands_from(players_best_hands)
         winners = [
             active_player
             for active_player in active_players
-            if active_player.get_best_hand(card_dealer) in winning_hands
+            if active_player.get_best_hand(card_dealer)
+            in self.hand_classifier.get_winning_hands_from(players_best_hands)
         ]
+        self.winning_players = winners
         return winners
 
-    # todo: update
-    def give_pot_to_winners(self, winners):
-        winnings = self.pot // len(winners)
-        for player in winners:
-            self.__dict__[player].money += winnings
-        self.pot = 0
+    def give_pot_to_winners(self):
+        for winning_player in self.winning_players:
+            winning_player.money += self.calculate_winnings_for(winning_player)
+
+    def calculate_winnings_for(self, winning_player: Player):
+        winnings = self.pot // len(self.winning_players)
+        if winning_player.max_winnings != 0:
+            if winnings > winning_player.max_winnings:
+                return winning_player.max_winnings
+        return winnings
 
     def has_remaining_actions(self, player: Player) -> bool:
         if player.has_folded or player.is_all_in is True:
@@ -560,7 +561,6 @@ class CardDealer:
         card_templates = itertools.product(range(2, 15), ('H', 'D', 'S', 'C'))
         return [Card(rank, suit) for rank, suit in card_templates]
 
-    # Todo: write test
     def pick_card(self) -> Card:
         random.shuffle(self.deck)
         return self.deck.pop()
@@ -637,20 +637,17 @@ if __name__ == "__main__":
     all_players.get_any_default_winner()
     all_players.reset_players_status_at_stage_end()
     all_players.reset_highest_stage_bet()
+
+    card_dealer.deal_turn()
+    card_dealer.show_table()
+    all_players.ask_all_players_for_actions()
+    all_players.get_any_default_winner()
+    all_players.reset_players_status_at_stage_end()
+    all_players.reset_highest_stage_bet()
+
+    card_dealer.deal_river()
+    card_dealer.show_table()
+    all_players.ask_all_players_for_actions()
+    all_players.get_any_default_winner()
     winners = all_players.get_any_showdown_winner(card_dealer)
     print(winners)
-
-    # card_dealer.deal_turn()
-    # card_dealer.show_table()
-    # all_players.ask_all_players_for_actions()
-    # all_players.get_any_default_winner()
-    # all_players.reset_players_status_at_stage_end()
-    # all_players.reset_highest_stage_bet()
-    #
-    # card_dealer.deal_river()
-    # card_dealer.show_table()
-    # all_players.ask_all_players_for_actions()
-    # all_players.get_any_default_winner()
-    # winners = all_players.get_any_showdown_winner(card_dealer)
-    # print(winners)
-    # Todo: announce winner and pay pot

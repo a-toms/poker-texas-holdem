@@ -47,6 +47,7 @@ class TestDealingCards(unittest.TestCase):
 
     def test_pick_card(self):
         card = self.card_dealer.pick_card()
+        self.assertIs(Card, type(card))
         self.assertIn(card.rank, self.numbers)
         self.assertIn(card.suit, self.suites)
 
@@ -214,7 +215,6 @@ class TestDealingPocketCards(unittest.TestCase):
         self.card_dealer = CardDealer(n_players)
         self.all_players = Players(n_players)
 
-
     def test_deal_pocket_cards_to_players_dealt_two_cards(self):
         self.card_dealer.deal_pocket_cards_to_player(self.all_players.player1)
         self.assertEqual(
@@ -341,10 +341,6 @@ class TestPlayerHandRanking(unittest.TestCase):
             test_hand_2
         )
 
-
-
-    def tearDown(self):
-        self.card_dealer.table_cards = []
 
 
 class TestHandRankingSystem(unittest.TestCase):
@@ -894,17 +890,18 @@ class TestPayingPotToWinners(unittest.TestCase):
 
     def test_give_pot_to_winners(self):
         self.all_players.pot = 500
-        winners = ('player1', 'player2')
+        self.all_players.winning_players = [
+            self.all_players.player1, self.all_players.player2
+        ]
         self.assertEqual(
             self.all_players.player1.money,
             100
         )
-        self.all_players.give_pot_to_winners(winners)
+        self.all_players.give_pot_to_winners()
         self.assertEqual(
             self.all_players.player1.money,
             350
         )
-        self.assertTrue(self.all_players.pot == 0)
 
 
 class TestPlayingOrder(unittest.TestCase):
@@ -1147,9 +1144,6 @@ class TestBoardDealing(unittest.TestCase):
             len(self.card_dealer.table_cards)
         )
 
-    def tearDown(self):
-        del self.card_dealer.table_cards[:]
-
 
 class TestGetDefaultWinners(unittest.TestCase):
 
@@ -1216,9 +1210,6 @@ class TestGetShowdownWinners(unittest.TestCase):
         self.assertIsNotNone(
             self.all_players.get_any_showdown_winner(self.card_dealer)
         )
-
-
-
 
 
 if __name__ == '__main__':
