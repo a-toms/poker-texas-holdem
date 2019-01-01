@@ -14,13 +14,11 @@ The game consists of stages, which consist of stages.
 
 """
 
-
 def print_output(func):
     def wrapper(*args):
         results = func(*args)
         print(f"output for {func.__name__} :\n{results} ")
         return results
-
     return wrapper
 
 
@@ -228,7 +226,7 @@ class HandClassifier(HandRanker):
         return numbers
 
 
-class Hand(HandClassifier):  # Todo: Amalgamate Player and Hand
+class Hand(HandClassifier):  # Todo: Consider amalgamating Player and Hand
 
     def __init__(self):
         self.pocket_cards = []
@@ -279,7 +277,6 @@ class Player:
 
 class Players:
     """
-    Includes functions that apply to multiple players
     Use .register to access the different players in Players.
     """
 
@@ -394,11 +391,13 @@ class Players:
                     self.get_player_command(player)
                     self.mark_player_as_having_made_action(player)
 
-    def get_any_default_winner(self):
+    def is_there_any_default_winner(self):
         if not self.at_least_two_players_left_in_round():
-            return self.get_each_not_folded_player()
-        else:
-            return None
+            return True
+
+    def set_any_default_winner(self):
+        assert self.at_least_two_players_left_in_round() is False
+        self.winning_players = self.get_each_not_folded_player()
 
     def at_least_two_players_left_in_round(self) -> bool:
         if len(self.get_each_not_folded_player()) < 2:
@@ -631,8 +630,10 @@ class Game():
         self.card_dealer.deal_pocket_cards_to_players(self.all_players)
         self.all_players.pay_blinds()
         self.all_players.ask_all_players_for_actions()
-        if self.all_players.get_any_default_winner() is not None:
-            return
+        if self.all_players.is_there_any_default_winner() is True:
+            self.all_players.set_any_default_winner()
+            self.all_players.give_pot_to_winners()
+            return "end round"
         self.all_players.reset_players_status_at_stage_end()
         self.all_players.reset_highest_stage_bet()
         self.all_players.rotate_playing_order_before_flop()
@@ -641,8 +642,10 @@ class Game():
         self.card_dealer.deal_flop()
         self.card_dealer.show_table()
         self.all_players.ask_all_players_for_actions()
-        if self.all_players.get_any_default_winner() is not None:
-            return # Todo: integrate default winner to game loop
+        if self.all_players.is_there_any_default_winner() is True:
+            self.all_players.set_any_default_winner()
+            self.all_players.give_pot_to_winners()
+            return "end round"
         self.all_players.reset_players_status_at_stage_end()
         self.all_players.reset_highest_stage_bet()
 
@@ -650,8 +653,10 @@ class Game():
         self.card_dealer.deal_turn()
         self.card_dealer.show_table()
         self.all_players.ask_all_players_for_actions()
-        if self.all_players.get_any_default_winner() is not None:
-            return
+        if self.all_players.is_there_any_default_winner() is True:
+            self.all_players.set_any_default_winner()
+            self.all_players.give_pot_to_winners()
+            return "end round"
         self.all_players.reset_players_status_at_stage_end()
         self.all_players.reset_highest_stage_bet()
 
@@ -659,50 +664,61 @@ class Game():
         self.card_dealer.deal_river()
         self.card_dealer.show_table()
         self.all_players.ask_all_players_for_actions()
-        self.all_players.get_any_default_winner()
+        if self.all_players.is_there_any_default_winner() is True:
+            self.all_players.set_any_default_winner()
+            self.all_players.give_pot_to_winners()
+            return "end round"
         self.all_players.get_any_showdown_winner(self.card_dealer)
         self.all_players.print_winning_players()
         self.all_players.give_pot_to_winners()
 
-    def post_round_events(self):
+    @staticmethod
+    def you_want_to_continue_game():
+        seconds = 10
+        while time.sleep(seconds):
+            print(seconds)
+            if input():
+                return False
+            seconds -= 1
+        return True
+
+    def run_round(self):
+        if self.run_pre_flop_events() == "end round":
+            return
+        if self.run_flop_events() == "end round":
+            return
+        if self.run_turn_events() == "end round":
+            return
+        self.run_river_events()
+
+    def run_game(self):
+        self.run_round()
+        self.run_post_round_events()
+
+    def run_post_round_events(self):
         self.all_players.print_players_money()
         self.ask_if_you_want_to_continue_game()
 
     def ask_if_you_want_to_continue_game(self):
         print("Preparing for new round.Press X to end the game")
         if self.you_want_to_continue_game():
-            # Todo: continue
             print("restart game")
         else:
             print("end poker game")
 
-    @staticmethod
-    def you_want_to_continue_game():
-        seconds_left = 5
-        while time.sleep(5):
-            print(seconds_left)
-            if input():
-                return False
-            seconds_left -= 1
-        return True
 
-    def run_game(self):
-        self.run_pre_flop_events()
-        self.run_flop_events()
-        self.run_turn_events()
-        self.run_river_events()
-        self.post_round_events()
-
-    # todo: add ability to play another round
-
-    # todo: show ASCII pocket cards on each player's turn
+    # todo: show ASCII pocket cards on each player's turn.
+    # Do not spend much time building a user interface for the native application.
+    #  The interface will be displayed on a web app.
 
     # todo: check that each player has more than two big blinds before the round starts
+
+
+    # todo: check that check for any default winners handles all ins
 
     # todo: add settings first page and settings option after each round
     #  - state the number of players, starting stake for each player, player names
     #  - add ability for players to drop out
-
 
 
 

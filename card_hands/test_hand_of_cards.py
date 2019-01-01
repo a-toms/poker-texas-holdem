@@ -1160,10 +1160,10 @@ class TestGetDefaultWinners(unittest.TestCase):
         self.all_players = Players(n_players)
         self.card_dealer = CardDealer(n_players)
 
-    def test_get_any_default_winner_when_more_than_two_players_not_folded(self):
-        self.assertIsNone(self.all_players.get_any_default_winner())
+    def test_is_there_any_default_winner_when_more_than_two_players_not_folded(self):
+        self.assertIsNone(self.all_players.is_there_any_default_winner())
 
-    def test_get_any_default_winner_when_fewer_than_two_players_not_folded(self):
+    def test_set_any_default_winner_when_fewer_than_two_players_not_folded(self):
         self.all_players.player1.has_folded = True
         self.all_players.player2.has_folded = True
         self.all_players.player3.has_folded = True
@@ -1171,9 +1171,10 @@ class TestGetDefaultWinners(unittest.TestCase):
         self.all_players.player5.has_folded = True
         self.all_players.player6.has_folded = True
         self.all_players.player7.has_folded = True
+        self.all_players.set_any_default_winner()
         self.assertEqual(
             [self.all_players.player8],
-            self.all_players.get_any_default_winner()
+            self.all_players.winning_players
         )
 
 
