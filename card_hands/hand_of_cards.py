@@ -264,8 +264,7 @@ class Hand(HandClassifier):  # Todo: Consider amalgamating Player and Hand
     def print_best_hand(self):
         print(self.hand_cards)
 
-    def print_pocket_cards(self):
-        print(self.pocket_cards)
+
 
 
 class Player:
@@ -287,6 +286,9 @@ class Player:
 
     def __repr__(self):
         return f"{self.name} instance"
+
+    def print_pocket_cards(self):
+        print(f"pocket cards -> {self.hand.pocket_cards}")
 
 
 class Players:
@@ -370,6 +372,8 @@ class Players:
               f"The highest bet of the stage so far " +
               f"is {self.highest_stage_bet}.\n"
               )
+
+
 
     def reset_players_status_at_stage_end(self):
         for player_at_stage_end in self.playing_order:
@@ -485,32 +489,55 @@ class Players:
                 return True
         return False
 
+    # todo: write test
     def get_player_command(self, player: Player):
-        action = self.get_input(player)
-        is_command_valid = self.perform_command(player, action)
-        if is_command_valid is False:
+        command = self.get_command(player)
+        command_is_valid = self.is_command_valid(command, player)
+        if command_is_valid:
+            self.perform_command(player, command)
+        else:
+            self.print_that_command_is_invalid()
             self.get_player_command(player)
 
-    def get_input(self, player: Player) -> str:
+    def get_command(self, player: Player):  # Todo: refactor to reduce func's side effects
         self.print_request(player)
-        command = input(
+        player.print_pocket_cards()  # Todo: consider refactoring more functions to be monadic like this
+        command = int(input(
             "Would you like to check (0), call (1), raise (2), " +
-            "or fold (3)? Enter command >>\n\n")
+            "or fold (3)? Enter command >>\n\n"))
         return command
 
-# Todo: refactor this. Return either function or bool.
-    def perform_command(self, command: str, active_player: Player):
-        if command is '0':
-            return self.check_bet(active_player)
-        elif command is '1':
-            return self.call_bet(active_player)
-        elif command is '2':
-            return self.get_amount_to_raise(active_player)
-        elif command is '3':
-            return self.fold_hand(active_player)
-        else:
-            print("Your command is invalid.\n")
+
+    # fixme: the below function is failing and lacks tests.
+    def perform_command(self, active_player: Player, command: int):
+        player_options = {
+            0: self.check_bet,
+            1: self.call_bet,
+            2: self.get_amount_to_raise,
+            3: self.fold_hand
+        }
+        return player_options[command](active_player)
+
+
+    # todo: write test
+    def print_that_command_is_invalid(self):
+        print("Your command is invalid.\n")
+
+    def is_command_valid(self, command: int, active_player: Player):
+        if command not in [0, 1, 2, 3]:
             return False
+        player_options = {
+            0: self.check_bet,
+            1: self.call_bet,
+            2: self.get_amount_to_raise,
+            3: self.fold_hand
+        }
+
+        #fixme: assign the outputs of the player_options
+        if player_options[command](active_player) is 'valid action':
+            return False
+        return True
+
 
     def call_bet(self, calling_player: Player) -> bool:
         """This will make the player check if there is no higher bet."""
