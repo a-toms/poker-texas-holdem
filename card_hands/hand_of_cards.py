@@ -375,7 +375,8 @@ class Players:
         )
 
     def print_request(self, active_player: Player):
-        print(f"\n{active_player.name.title()},\n" +
+        print("----")
+        print(f"{active_player.name.title()},\n" +
               f"You have {active_player.money} coins currently.\n" +
               f"You have bet {active_player.amount_bet_during_stage} " +
               f"this stage.\n" +
@@ -524,7 +525,7 @@ class Players:
     def print_command_is_invalid(self):
         print("Your command is invalid.\n")
 
-    # fixme: the below seems deficient
+    # fixme: the below is deficient
     def is_command_valid(self, command: int, active_player: Player):
         if command not in [0, 1, 2, 3]:
             return False
@@ -563,19 +564,27 @@ class Players:
         return True
 
     def get_amount_to_raise(self, raising_player: Player) -> bool:
-        bet_amount: int = int(input("Enter the amount to raise >>\n"))
-        if self.highest_stage_bet > bet_amount + raising_player.amount_bet_during_stage:
-            print(f"Insufficient bet. The bet must be larger to raise. " +
-                  f"Try again")
-            return False
+        bet_amount = int(
+            input(
+                f"Enter the amount to raise above {self.highest_stage_bet}\n"
+                f"(The highest bet during this stage is {self.highest_stage_bet})"
+                f" >>\n"
+            )
+        )
+        bet_amount += self.highest_stage_bet
+        bet_amount -= raising_player.amount_bet_during_stage
         if raising_player.money - bet_amount < 0:
-            print(f"Invalid bet. " +
-                  f"{raising_player.name.title()} does not have enough money.")
+            print(
+                f"Invalid bet. " +
+                f"{raising_player.name.title()} does not have enough money."
+            )
             return False
         else:
             self.place_bet(raising_player, bet_amount)
-            print(f"{raising_player.name.title()} raised {bet_amount} " +
-                  f"to bet {raising_player.amount_bet_during_stage} overall.")
+            print(
+                f"{raising_player.name.title()} " +
+                f"bet {raising_player.amount_bet_during_stage}"
+            )
             return True
 
     def place_bet(self, raising_player: Player, bet_amount) -> bool:
