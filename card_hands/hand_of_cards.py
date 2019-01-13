@@ -625,7 +625,6 @@ class CardDealer:
         self.table_cards = []
         self.deck = self.generate_cards()
 
-    # todo: write test
     def reset_for_new_round(self):
         self.table_cards = []
 
@@ -668,22 +667,6 @@ class CardDealer:
         print(f"Table cards : \n{self.table_cards}")
         print("______________________\n")
 
-
-class BasicDisplay:
-    # Create basic GUI
-
-    def print_table(self):
-        print(f"Table cards : "
-              f"\n")  # Refer to table cards
-
-    def print_header(self):
-        print("________________________________________________\n")
-        print("| Pocket Cards | Bet | Status | Position |")
-
-    def print_player_stats(self, player):
-        print(f"{player.hand.pocket_cards} | *FILLER* | *FILLER* | *FILLER* ")
-
-
 class Game():
     def __init__(self, number_of_players):
         self.n_players = number_of_players
@@ -691,9 +674,8 @@ class Game():
         self.card_dealer = CardDealer()
         self.hand_classifier = HandClassifier()
 
-
     # Todo: write test
-    def get_events_for_round(self):
+    def execute_round_events(self):
         self.all_players.ask_all_players_for_actions()
         if self.all_players.is_there_any_default_winner() is True:
             self.all_players.set_any_default_winner()
@@ -706,26 +688,26 @@ class Game():
     def run_pre_flop_events(self):
         self.card_dealer.deal_pocket_cards_to_players(self.all_players)
         self.all_players.pay_blinds()
-        if self.get_events_for_round() == "end round":
+        if self.execute_round_events() == "end round":
             return "end round"
         self.all_players.rotate_playing_order_before_flop()
 
     def run_flop_events(self):
         self.card_dealer.deal_flop()
         self.card_dealer.show_table()
-        if self.get_events_for_round() == "end round":
+        if self.execute_round_events() == "end round":
             return "end round"
 
     def run_turn_events(self):
         self.card_dealer.deal_turn()
         self.card_dealer.show_table()
-        if self.get_events_for_round():
+        if self.execute_round_events():
             return "end round"
 
     def run_river_events(self):
         self.card_dealer.deal_river()
         self.card_dealer.show_table()
-        if self.get_events_for_round() == "end round":
+        if self.execute_round_events() == "end round":
             return "end round"
         self.all_players.get_any_showdown_winner(self.card_dealer)
         self.all_players.print_winning_players()
