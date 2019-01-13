@@ -512,9 +512,8 @@ class Players:
     # todo: write test
     def get_player_command(self, player: Player):
         command = self.get_command(player)
-        command_is_valid = self.is_command_valid(command, player)
-        if command_is_valid:
-            self.perform_command(player, command)
+        if self.is_command_valid(command, player) is True:
+            pass  # Todo: this is not good. Refactor this.
         else:
             self.print_that_command_is_invalid()
             self.get_player_command(player)
@@ -537,7 +536,6 @@ class Players:
             3: self.fold_hand
         }
         return player_options[command](active_player)
-
 
     # todo: write test
     def print_that_command_is_invalid(self):
@@ -610,7 +608,7 @@ class Players:
             return True
         else:
             print(
-                f"Invalid action. {checking_player.name.title()}" +
+                f"Invalid action. {checking_player.name.title()} " +
                 "must match the highest current bet of " +
                 f"{self.highest_stage_bet} to check"
             )
