@@ -652,7 +652,7 @@ class CardDealer:
         print("______________________\n")
 
 
-class Game():
+class Game:
     def __init__(self, number_of_players):
         self.n_players = number_of_players
         self.all_players = Players(self.n_players)
@@ -717,7 +717,7 @@ class Game():
             return
         self.run_river_events()
 
-    def run_game(self):
+    def play_game(self):
         self.run_round()
         self.run_post_round_events()
 
@@ -732,4 +732,4 @@ class Game():
 
 
 if __name__ == "__main__":
-    Game(3).run_game()
+    Game(3).play_game()
