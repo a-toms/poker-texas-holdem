@@ -273,6 +273,7 @@ class Player:
         self.hand = Hand()
         self.money = 100
         self.amount_bet_during_stage = 0
+        self.amount_bet_during_round = 0
         self.has_folded = False
         self.has_acted_during_stage = False
         self.in_big_blind_position = False
@@ -280,6 +281,8 @@ class Player:
         self.in_dealer_position = False
         self.is_all_in = False
         self.max_winnings = 0
+
+        #todo: add amount_bet_in_round and create max threshold based on it.
 
     def get_best_hand(self, card_dealer):
         return self.hand.calculate_best_hand_for_player(card_dealer)
@@ -290,6 +293,16 @@ class Player:
     def print_pocket_cards(self):
         print(f"pocket cards -> {self.hand.pocket_cards}")
 
+    def reset_for_new_round(self):
+        self.amount_bet_during_stage = 0
+        self.amount_bet_during_round = 0
+        self.has_folded = False
+        self.has_acted_during_stage = False
+        self.in_big_blind_position = False
+        self.in_small_blind_position = False
+        self.in_dealer_position = False
+        self.is_all_in = False
+        self.max_winnings = 0
 
 class Players:
     """
@@ -315,6 +328,15 @@ class Players:
             self.dealer_player = self.playing_order[-3]
         except IndexError:  # Applies where there are only two players
             self.dealer_player = self.playing_order[-1]
+
+    # todo: write test
+    def reset_for_new_round(self):
+        self.playing_order.rotate(1)
+        self.highest_stage_bet = 0
+        self.pot = 0
+        self.assign_big_blind_player()
+        self.assign_small_blind_player()
+        self.winning_players = []
 
     def instantiate_all_players(self) -> None:
         for i in range(1, self.number_of_players + 1):
@@ -372,8 +394,6 @@ class Players:
               f"The highest bet of the stage so far " +
               f"is {self.highest_stage_bet}.\n"
               )
-
-
 
     def reset_players_status_at_stage_end(self):
         for player_at_stage_end in self.playing_order:
@@ -607,10 +627,13 @@ class Players:
 
 
 class CardDealer:
-    def __init__(self, number_of_starting_players):
+    def __init__(self):
         self.table_cards = []
-        self.number_of_starting_players = number_of_starting_players
         self.deck = self.generate_cards()
+
+    # todo: write test
+    def reset_for_new_round(self):
+        self.table_cards = []
 
     @staticmethod
     def generate_cards():
@@ -671,12 +694,12 @@ class Game():
     def __init__(self, number_of_players):
         self.n_players = number_of_players
         self.all_players = Players(self.n_players)
-        self.card_dealer = CardDealer(self.n_players)
-        self.hand_classifier = HandClassifier
+        self.card_dealer = CardDealer()
+        self.hand_classifier = HandClassifier()
 
-    def run_pre_flop_events(self):
-        self.card_dealer.deal_pocket_cards_to_players(self.all_players)
-        self.all_players.pay_blinds()
+
+    # Todo: write test
+    def get_events_for_round(self):
         self.all_players.ask_all_players_for_actions()
         if self.all_players.is_there_any_default_winner() is True:
             self.all_players.set_any_default_winner()
@@ -685,41 +708,31 @@ class Game():
             return "end round"
         self.all_players.reset_players_status_at_stage_end()
         self.all_players.reset_highest_stage_bet()
+
+    def run_pre_flop_events(self):
+        self.card_dealer.deal_pocket_cards_to_players(self.all_players)
+        self.all_players.pay_blinds()
+        if self.get_events_for_round() == "end round":
+            return
         self.all_players.rotate_playing_order_before_flop()
 
     def run_flop_events(self):
         self.card_dealer.deal_flop()
         self.card_dealer.show_table()
-        self.all_players.ask_all_players_for_actions()
-        if self.all_players.is_there_any_default_winner() is True:
-            self.all_players.print_winning_players()
-            self.all_players.set_any_default_winner()
-            self.all_players.give_pot_to_winners()
-            return "end round"
-        self.all_players.reset_players_status_at_stage_end()
-        self.all_players.reset_highest_stage_bet()
+        if self.get_events_for_round() == "end round":
+            return
 
     def run_turn_events(self):
         self.card_dealer.deal_turn()
         self.card_dealer.show_table()
-        self.all_players.ask_all_players_for_actions()
-        if self.all_players.is_there_any_default_winner() is True:
-            self.all_players.set_any_default_winner()
-            self.all_players.print_winning_players()
-            self.all_players.give_pot_to_winners()
-            return "end round"
-        self.all_players.reset_players_status_at_stage_end()
-        self.all_players.reset_highest_stage_bet()
+        if self.get_events_for_round() == "end round":
+            return
 
     def run_river_events(self):
         self.card_dealer.deal_river()
         self.card_dealer.show_table()
-        self.all_players.ask_all_players_for_actions()
-        if self.all_players.is_there_any_default_winner() is True:
-            self.all_players.set_any_default_winner()
-            self.all_players.print_winning_players()
-            self.all_players.give_pot_to_winners()
-            return "end round"
+        if self.get_events_for_round() == "end round":
+            return
         self.all_players.get_any_showdown_winner(self.card_dealer)
         self.all_players.print_winning_players()
         self.all_players.give_pot_to_winners()
@@ -757,12 +770,9 @@ class Game():
         print("restart game")
 
 
-
-
-
 if __name__ == "__main__":
     """
     3 main objects: 1. player; 2. all_players, 3. card_dealer;    
     """
-    Game(8).run_game()
+    Game(3).run_game()
 

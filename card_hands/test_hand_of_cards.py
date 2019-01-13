@@ -37,7 +37,7 @@ class TestDealingCards(unittest.TestCase):
 
     def setUp(self):
         n_players = 8
-        self.card_dealer = CardDealer(n_players)
+        self.card_dealer = CardDealer()
         self.all_players = Players(n_players)
         self.suites = ('H', 'C', 'S', 'D')
         self.numbers = [i for i in range(2, 15)]
@@ -86,7 +86,7 @@ class TestPlayerCalculateBestHand(unittest.TestCase):
 
     def setUp(self):
         n_players = 8
-        self.card_dealer = CardDealer(n_players)
+        self.card_dealer = CardDealer()
         self.all_players = Players(n_players)
         self.player_1_hand = self.all_players.player1.hand
         self.hand_classifier = HandClassifier()
@@ -163,7 +163,7 @@ class TestPlayerCalculateBestHand(unittest.TestCase):
 class TestGetWinners(unittest.TestCase):
     def setUp(self):
         n_players = 8
-        self.card_dealer = CardDealer(n_players)
+        self.card_dealer = CardDealer()
         self.all_players = Players(n_players)
         self.hand_classifier = HandClassifier()
 
@@ -220,7 +220,7 @@ class TestDealingPocketCards(unittest.TestCase):
 
     def setUp(self):
         n_players = 8
-        self.card_dealer = CardDealer(n_players)
+        self.card_dealer = CardDealer()
         self.all_players = Players(n_players)
 
     def test_deal_pocket_cards_to_players_dealt_two_cards(self):
@@ -235,7 +235,7 @@ class TestPlayerHandCreation(unittest.TestCase):
 
     def setUp(self):
         n_players = 8
-        self.card_dealer = CardDealer(n_players)
+        self.card_dealer = CardDealer()
         self.all_players = Players(n_players)
 
     def test_player_creates_hand_object(self):
@@ -268,7 +268,7 @@ class TestPlayerHandRanking(unittest.TestCase):
 
     def setUp(self):
         n_players = 8
-        self.card_dealer = CardDealer(n_players)
+        self.card_dealer = CardDealer()
         self.all_players = Players(n_players)
         self.card_dealer.table_cards = [
             Card(3, "H"), Card(2, "H"), Card(6, "H"),
@@ -699,7 +699,7 @@ class TestAllInMaxWinningsForIndividualPlayer(unittest.TestCase):
     def setUp(self):
         self.n_players = 8
         self.all_players = Players(self.n_players)
-        self.card_dealer = CardDealer(self.n_players)
+        self.card_dealer = CardDealer()
 
     def test_get_any_player_that_is_all_in(self):
         # No player is all_in
@@ -756,7 +756,7 @@ class TestAllInMaxWinningsForAllPlayers(unittest.TestCase):
         """
         self.n_players = 8
         self.all_players = Players(self.n_players)
-        self.card_dealer = CardDealer(self.n_players)
+        self.card_dealer = CardDealer()
         for player in self.all_players.register:
             player.amount_bet_during_stage = 20
 
@@ -800,7 +800,7 @@ class TestRegisterOfPlayers(unittest.TestCase):
     def setUp(self):
         n_players = 8
         self.all_players = Players(n_players)
-        self.card_dealer = CardDealer(n_players)
+        self.card_dealer = CardDealer()
 
     def test_store_players_in_register(self):
         self.assertEqual(
@@ -815,7 +815,7 @@ class TestPayBlinds(unittest.TestCase):
     def setUp(self):
         n_players = 3
         self.all_players = Players(n_players)
-        self.card_dealer = CardDealer(n_players)
+        self.card_dealer = CardDealer()
         self.starting_player_money = 100
         self.starting_player_amount_bet = 0
         self.all_players.big_blind = 20
@@ -893,7 +893,7 @@ class TestPayingPotToWinners(unittest.TestCase):
     def setUp(self):
         n_players = 8
         self.all_players = Players(n_players)
-        self.card_dealer = CardDealer(n_players)
+        self.card_dealer = CardDealer()
         self.all_players.player1.money = 100
 
     def test_give_pot_to_winners(self):
@@ -917,7 +917,7 @@ class TestPlayingOrder(unittest.TestCase):
     def setUp(self):
         n_players = 8
         self.all_players = Players(n_players)
-        self.card_dealer = CardDealer(n_players)
+        self.card_dealer = CardDealer()
         self.starting_player_money = 100
         self.starting_player_amount_bet = 0
         self.all_players.big_blind = 20
@@ -979,7 +979,7 @@ class TestPlayerActions(unittest.TestCase):
     def setUp(self):
         n_players = 8
         self.all_players = Players(n_players)
-        self.card_dealer = CardDealer(n_players)
+        self.card_dealer = CardDealer()
         self.player1 = self.all_players.player1
         self.all_players.big_blind = 20
         self.all_players.small_blind = 10
@@ -1007,7 +1007,7 @@ class TestFoldHand(unittest.TestCase):
     def setUp(self):
         n_players = 8
         self.all_players = Players(n_players)
-        self.card_dealer = CardDealer(n_players)
+        self.card_dealer = CardDealer()
         self.starting_player_amount_bet = 0
         self.all_players.big_blind = 20
         self.all_players.small_blind = 10
@@ -1024,7 +1024,7 @@ class TestPlayerHasRemainingActions(unittest.TestCase):
     def setUp(self):
         n_players = 8
         self.all_players = Players(n_players)
-        self.card_dealer = CardDealer(n_players)
+        self.card_dealer = CardDealer()
         self.player1 = self.all_players.player1
 
     def test_has_remaining_actions_not_yet_bet_enough(self):
@@ -1089,7 +1089,7 @@ class TestResetBettingRecords(unittest.TestCase):
     def setUp(self):
         n_players = 3
         self.all_players = Players(n_players)
-        self.card_dealer = CardDealer(n_players)
+        self.card_dealer = CardDealer()
         self.player1 = self.all_players.player1
 
     def test_reset_players_status_at_stage_end_reset_amount_bet_during_stage(self):
@@ -1116,7 +1116,7 @@ class TestBoardDealing(unittest.TestCase):
     def setUp(self):
         n_players = 8
         self.all_players = Players(n_players)
-        self.card_dealer = CardDealer(n_players)
+        self.card_dealer = CardDealer()
         self.rank = tuple(range(2, 15))
         self.suit = ('H', 'D', 'S', 'C')
 
@@ -1158,7 +1158,7 @@ class TestGetDefaultWinners(unittest.TestCase):
     def setUp(self):
         n_players = 8
         self.all_players = Players(n_players)
-        self.card_dealer = CardDealer(n_players)
+        self.card_dealer = CardDealer()
 
     def test_is_there_any_default_winner_when_more_than_two_players_not_folded(self):
         self.assertIsNone(self.all_players.is_there_any_default_winner())
@@ -1183,7 +1183,7 @@ class TestGetShowdownWinners(unittest.TestCase):
     def setUp(self):
         n_of_players = 8
         self.all_players = Players(n_of_players)
-        self.card_dealer = CardDealer(n_of_players)
+        self.card_dealer = CardDealer()
         self.hand_judge = HandClassifier
 
     def test_get_any_showdown_winner_following_gameplay(self):
@@ -1219,6 +1219,55 @@ class TestGetShowdownWinners(unittest.TestCase):
         self.assertIsNotNone(
             self.all_players.get_any_showdown_winner(self.card_dealer)
         )
+
+
+class TestResetForNewRound(unittest.TestCase):
+    def setUp(self):
+        n_of_players = 8
+        self.all_players = Players(n_of_players)
+        self.card_dealer = CardDealer()
+        self.hand_judge = HandClassifier
+        self.card_dealer.deal_pocket_cards_to_players(self.all_players)
+        self.all_players.pay_blinds()
+
+        self.all_players.call_bet(self.all_players.player1)
+        self.all_players.call_bet(self.all_players.player2)
+        self.all_players.call_bet(self.all_players.player3)
+        self.all_players.call_bet(self.all_players.player4)
+        self.all_players.call_bet(self.all_players.player5)
+        self.all_players.call_bet(self.all_players.player6)
+        self.all_players.call_bet(self.all_players.player7)
+        self.all_players.call_bet(self.all_players.player8)
+
+        self.all_players.reset_players_status_at_stage_end()
+        self.all_players.reset_highest_stage_bet()
+        self.all_players.rotate_playing_order_before_flop()
+
+        self.card_dealer.deal_flop()
+        self.all_players.call_bet(self.all_players.player1)
+        self.all_players.call_bet(self.all_players.player2)
+        self.all_players.call_bet(self.all_players.player3)
+        self.all_players.call_bet(self.all_players.player4)
+        self.all_players.call_bet(self.all_players.player5)
+        self.all_players.call_bet(self.all_players.player6)
+        self.all_players.call_bet(self.all_players.player7)
+        self.all_players.call_bet(self.all_players.player8)
+
+        self.all_players.reset_players_status_at_stage_end()
+        self.all_players.reset_highest_stage_bet()
+        self.all_players.get_any_showdown_winner(self.card_dealer)
+
+    def test_card_dealer_reset_for_new_round(self):
+        self.assertNotEqual(
+            [],
+            self.card_dealer.table_cards
+        )
+        self.card_dealer.reset_for_new_round()
+        self.assertEqual(
+            [],
+            self.card_dealer.table_cards
+        )
+
 
 
 if __name__ == '__main__':
