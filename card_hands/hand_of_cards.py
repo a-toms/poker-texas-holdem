@@ -15,19 +15,6 @@ The game consists of stages, which consist of stages.
 """
 
 
-# todo: show ASCII pocket cards on each player's turn.
-# Do not spend much time building a user interface for the native application.
-#  The interface will be displayed on a web app.
-
-# todo: check that each player has more than two big blinds before the round starts
-
-# todo: check that check for any default winners handles all ins
-
-# todo: add settings first page and settings option after each round
-#  - state the number of players, starting stake for each player, player names
-#  - add ability for players to drop out
-
-
 def print_output(func):
     def wrapper(*args):
         results = func(*args)
@@ -641,8 +628,7 @@ class CardDealer:
         for i in range(2):
             picked_card = self.pick_card()
             receiving_player.hand.pocket_cards.append(picked_card)
-            print(receiving_player.name)
-            print(receiving_player.hand.pocket_cards)
+
 
     def deal_pocket_cards_to_players(self, receiving_players: Players) -> None:
         for receiving_player in receiving_players.register:
