@@ -535,7 +535,6 @@ class Players:
             return self.get_command(player)
         return command
 
-
     def print_command_is_invalid(self):
         print("Your command is invalid.\n")
 
@@ -708,26 +707,26 @@ class Game():
         self.card_dealer.deal_pocket_cards_to_players(self.all_players)
         self.all_players.pay_blinds()
         if self.get_events_for_round() == "end round":
-            return
+            return "end round"
         self.all_players.rotate_playing_order_before_flop()
 
     def run_flop_events(self):
         self.card_dealer.deal_flop()
         self.card_dealer.show_table()
         if self.get_events_for_round() == "end round":
-            return
+            return "end round"
 
     def run_turn_events(self):
         self.card_dealer.deal_turn()
         self.card_dealer.show_table()
-        if self.get_events_for_round() == "end round":
-            return
+        if self.get_events_for_round():
+            return "end round"
 
     def run_river_events(self):
         self.card_dealer.deal_river()
         self.card_dealer.show_table()
         if self.get_events_for_round() == "end round":
-            return
+            return "end round"
         self.all_players.get_any_showdown_winner(self.card_dealer)
         self.all_players.print_winning_players()
         self.all_players.give_pot_to_winners()
