@@ -227,7 +227,7 @@ class HandClassifier(HandRanker):
         return numbers
 
 
-class Hand(HandClassifier):  # Todo: Consider amalgamating Player and Hand
+class Hand(HandClassifier):
 
     def __init__(self):
         self.pocket_cards = []
@@ -252,8 +252,6 @@ class Hand(HandClassifier):  # Todo: Consider amalgamating Player and Hand
         print(self.hand_cards)
 
 
-
-
 class Player:
     def __init__(self, name):
         self.name = name
@@ -268,7 +266,6 @@ class Player:
         self.in_dealer_position = False
         self.is_all_in = False
         self.max_winnings = 0
-
         #todo: add amount_bet_in_round and create max threshold based on it.
 
     def get_best_hand(self, card_dealer):
@@ -399,12 +396,14 @@ class Players:
             if player.is_all_in:
                 yield player
 
+    #todo: update for round bet
     def set_max_winnings_for_all_in_players(self):
         """Run at each stage's end."""
         if self.get_any_player_that_is_all_in() is not None:
             for all_in_player in self.get_any_player_that_is_all_in():
                 self.set_max_winnings_for_player(all_in_player)
 
+    # todo: update for round bet
     def set_max_winnings_for_player(self, all_in_player):
         """Creates an max winnings attribute for an all_in player.
         :type all_in_player: Player
@@ -629,7 +628,6 @@ class CardDealer:
             picked_card = self.pick_card()
             receiving_player.hand.pocket_cards.append(picked_card)
 
-
     def deal_pocket_cards_to_players(self, receiving_players: Players) -> None:
         for receiving_player in receiving_players.register:
             self.deal_pocket_cards_to_player(receiving_player)
@@ -648,10 +646,11 @@ class CardDealer:
     def deal_river(self):
         self.deal_card_to_table()
 
-    def show_table(self):  # Basic
+    def show_table(self):
         print("______________________\n")
         print(f"Table cards : \n{self.table_cards}")
         print("______________________\n")
+
 
 class Game():
     def __init__(self, number_of_players):
@@ -733,8 +732,4 @@ class Game():
 
 
 if __name__ == "__main__":
-    """
-    3 main objects: 1. player; 2. all_players, 3. card_dealer;    
-    """
     Game(3).run_game()
-

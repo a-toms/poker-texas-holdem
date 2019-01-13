@@ -350,7 +350,6 @@ class TestPlayerHandRanking(unittest.TestCase):
         )
 
 
-
 class TestHandRankingSystem(unittest.TestCase):
     def setUp(self):
         self.ranker = HandRanker()
@@ -1277,8 +1276,6 @@ class TestResetForNewRound(unittest.TestCase):
             self.all_players.player1.has_folded
         )
 
-    #def test_players_reset_for_new_round(self):
-    # todo: write test
 
 
 
