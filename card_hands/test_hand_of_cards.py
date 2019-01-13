@@ -816,7 +816,9 @@ class TestPayBlinds(unittest.TestCase):
         n_players = 3
         self.all_players = Players(n_players)
         self.card_dealer = CardDealer()
-        self.starting_player_money = 100
+        self.starting_player_money = 200
+        for player in self.all_players.register:
+            player.money = self.starting_player_money
         self.starting_player_amount_bet = 0
         self.all_players.big_blind = 20
         self.all_players.small_blind = 10
@@ -1267,6 +1269,16 @@ class TestResetForNewRound(unittest.TestCase):
             [],
             self.card_dealer.table_cards
         )
+
+    def test_player_reset_for_new_round(self):
+        self.all_players.player1.reset_for_new_round()
+        self.assertEqual(
+            False,
+            self.all_players.player1.has_folded
+        )
+
+    #def test_players_reset_for_new_round(self):
+    # todo: write test
 
 
 

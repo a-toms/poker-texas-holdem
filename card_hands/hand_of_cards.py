@@ -271,7 +271,7 @@ class Player:
     def __init__(self, name):
         self.name = name
         self.hand = Hand()
-        self.money = 100
+        self.money = 1000
         self.amount_bet_during_stage = 0
         self.amount_bet_during_round = 0
         self.has_folded = False
@@ -331,14 +331,18 @@ class Players:
 
     # todo: write test
     def reset_for_new_round(self):
-        self.playing_order.rotate(1)
+        self.rotate_playing_order()
         self.highest_stage_bet = 0
         self.pot = 0
         self.assign_big_blind_player()
         self.assign_small_blind_player()
         self.winning_players = []
 
-    def instantiate_all_players(self) -> None:
+    # todo: write test
+    def rotate_playing_order(self):
+        self.playing_order.rotate(1)
+
+    def instantiate_all_players(self):
         for i in range(1, self.number_of_players + 1):
             setattr(self, f'player{i}', Player(f'player{i}'))
 
@@ -348,21 +352,21 @@ class Players:
             if type(value) == Player
         ]
 
-    def assign_small_blind_player(self) -> None:
+    def assign_small_blind_player(self):
         """
         The small blind is second-last pre-flop and first post-flop.
         """
         self.small_blind_player: Player = self.playing_order[-2]
         self.small_blind_player.in_small_blind_position = True
 
-    def assign_big_blind_player(self) -> None:
+    def assign_big_blind_player(self):
         """
         The big blind is last to act pre-flop and second to act post flop.
         """
         self.big_blind_player: Player = self.playing_order[-1]
         self.big_blind_player.in_big_blind_position = True
 
-    def rotate_playing_order_before_flop(self) -> None:
+    def rotate_playing_order_before_flop(self):
         """
         Rotates playing order by 2 to begin from the left of the
         dealer player.
@@ -386,7 +390,7 @@ class Players:
             f"paid the small blind of {self.small_blind}.\n"
         )
 
-    def print_request(self, active_player: Player) -> None:
+    def print_request(self, active_player: Player):
         print(f"\n{active_player.name.title()},\n" +
               f"You have {active_player.money} coins currently.\n" +
               f"You have bet {active_player.amount_bet_during_stage} " +
@@ -512,35 +516,30 @@ class Players:
     # todo: write test
     def get_player_command(self, player: Player):
         command = self.get_command(player)
-        if self.is_command_valid(command, player) is True:
-            pass  # Todo: this is not good. Refactor this.
+        if self.is_command_valid(command, player) is True: # Todo: this is not good. Refactor this.
+            pass
         else:
-            self.print_that_command_is_invalid()
+            self.print_command_is_invalid()
             self.get_player_command(player)
 
     def get_command(self, player: Player):  # Todo: refactor to reduce func's side effects
         self.print_request(player)
         player.print_pocket_cards()  # Todo: consider refactoring more functions to be monadic like this
-        command = int(input(
-            "Would you like to check (0), call (1), raise (2), " +
-            "or fold (3)? Enter command >>\n\n"))
+        try:
+            command = int(input(
+                "Would you like to check (0), call (1), raise (2), " +
+                "or fold (3)? Enter command >>\n\n")
+            )
+        except ValueError:
+            self.print_command_is_invalid()
+            return self.get_command(player)
         return command
 
 
-    # fixme: the below function is failing and lacks tests.
-    def perform_command(self, active_player: Player, command: int):
-        player_options = {
-            0: self.check_bet,
-            1: self.call_bet,
-            2: self.get_amount_to_raise,
-            3: self.fold_hand
-        }
-        return player_options[command](active_player)
-
-    # todo: write test
-    def print_that_command_is_invalid(self):
+    def print_command_is_invalid(self):
         print("Your command is invalid.\n")
 
+    # fixme: the below seems deficient
     def is_command_valid(self, command: int, active_player: Player):
         if command not in [0, 1, 2, 3]:
             return False
@@ -550,8 +549,6 @@ class Players:
             2: self.get_amount_to_raise,
             3: self.fold_hand
         }
-
-        #fixme: assign the outputs of the player_options
         if player_options[command](active_player) is 'valid action':
             return False
         return True
