@@ -410,11 +410,11 @@ class Players:
         :type all_in_player: Player
         """
         for other_player in self.register:
-            if (other_player.amount_bet_during_stage >= all_in_player.amount_bet_during_stage
+            if (other_player.amount_bet_during_round >= all_in_player.amount_bet_during_round
             ):
-                all_in_player.max_winnings += all_in_player.amount_bet_during_stage
+                all_in_player.max_winnings += all_in_player.amount_bet_during_round
             else:
-                all_in_player.max_winnings += other_player.amount_bet_during_stage
+                all_in_player.max_winnings += other_player.amount_bet_during_round
 
     # Todo: Refactor the below. The below is not an attractive function. Consider breaking it down.
     def ask_all_players_for_actions(self):
@@ -532,13 +532,12 @@ class Players:
         player_options = {
             0: self.check_bet,
             1: self.call_bet,
-            2: self.get_amount_to_raise,
+            2: self.raise_bet,
             3: self.fold_hand
         }
         if player_options[command](active_player) is 'valid action':
             return False
         return True
-
 
     def call_bet(self, calling_player: Player) -> bool:
         """This will make the player check if there is no higher bet."""
@@ -553,6 +552,7 @@ class Players:
             return False
         calling_player.money -= call_amount
         calling_player.amount_bet_during_stage += call_amount
+        calling_player.amount_bet_during_round += call_amount
         self.pot += call_amount
         print(f"{calling_player.name.title()} called {call_amount}.")
         return True
@@ -563,7 +563,8 @@ class Players:
         print(f"{folding_player.name.title()} folded.")
         return True
 
-    def get_amount_to_raise(self, raising_player: Player) -> bool:
+    # todo: write test
+    def raise_bet(self, raising_player: Player) -> bool:
         bet_amount = int(
             input(
                 f"Enter the amount to raise above {self.highest_stage_bet}\n"
@@ -573,6 +574,8 @@ class Players:
         )
         bet_amount += self.highest_stage_bet
         bet_amount -= raising_player.amount_bet_during_stage
+
+        # todo: refactor this
         if raising_player.money - bet_amount < 0:
             print(
                 f"Invalid bet. " +
@@ -590,6 +593,7 @@ class Players:
     def place_bet(self, raising_player: Player, bet_amount) -> bool:
         raising_player.money -= bet_amount
         raising_player.amount_bet_during_stage += bet_amount
+        raising_player.amount_bet_during_round += bet_amount
         self.highest_stage_bet = raising_player.amount_bet_during_stage
         self.pot += bet_amount
         return True
@@ -741,4 +745,4 @@ class Game:
 
 
 if __name__ == "__main__":
-    Game(3).play_game()
+    Game(4).play_game()

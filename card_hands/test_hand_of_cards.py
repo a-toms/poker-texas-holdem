@@ -721,13 +721,13 @@ class TestAllInMaxWinningsForIndividualPlayer(unittest.TestCase):
         """
         # Assign bets to players.
         for player in self.all_players.register:
-            player.amount_bet_during_stage = 20
+            player.amount_bet_during_round = 20
 
         # Assign larger bets to some players.
-        self.all_players.player1.amount_bet_during_stage = 40
-        self.all_players.player2.amount_bet_during_stage = 40
+        self.all_players.player1.amount_bet_during_round = 40
+        self.all_players.player2.amount_bet_during_round = 40
         player3 = self.all_players.player3
-        player3.amount_bet_during_stage = 30
+        player3.amount_bet_during_round = 30
 
         sum_of_bets_for_each_player_equal_or_less_than_all_in_players_bet = 190
 
@@ -757,15 +757,15 @@ class TestAllInMaxWinningsForAllPlayers(unittest.TestCase):
         self.all_players = Players(self.n_players)
         self.card_dealer = CardDealer()
         for player in self.all_players.register:
-            player.amount_bet_during_stage = 20
+            player.amount_bet_during_round = 20
 
-        self.all_players.player1.amount_bet_during_stage = 40
+        self.all_players.player1.amount_bet_during_round = 40
         self.all_players.player1.is_all_in = True
-        self.all_players.player2.amount_bet_during_stage = 60
+        self.all_players.player2.amount_bet_during_round = 60
         self.all_players.player2.is_all_in = True
-        self.all_players.player3.amount_bet_during_stage = 80
+        self.all_players.player3.amount_bet_during_round = 80
         self.all_players.player3.is_all_in = True
-        self.all_players.player4.amount_bet_during_stage = 80
+        self.all_players.player4.amount_bet_during_round = 80
         self.all_players.player4.is_all_in = False
         self.all_players.player5.has_folded = True
         self.all_players.player6.has_folded = True
