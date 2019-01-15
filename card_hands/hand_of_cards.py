@@ -395,15 +395,15 @@ class Players:
 
     def get_any_player_that_is_all_in(self):
         for player in self.register:
-            if player.is_all_in:
+            if player.money == 0:
+                player.is_all_in = True
                 yield player
 
     #todo: update for round bet
     def set_max_winnings_for_all_in_players(self):
         """Run at each stage's end."""
-        if self.get_any_player_that_is_all_in() is not None:
-            for all_in_player in self.get_any_player_that_is_all_in():
-                self.set_max_winnings_for_player(all_in_player)
+        for all_in_player in self.get_any_player_that_is_all_in():
+            self.set_max_winnings_for_player(all_in_player)
 
     # todo: update for round bet
     def set_max_winnings_for_player(self, all_in_player):
@@ -411,8 +411,7 @@ class Players:
         :type all_in_player: Player
         """
         for other_player in self.register:
-            if (other_player.amount_bet_during_round >= all_in_player.amount_bet_during_round
-            ):
+            if (other_player.amount_bet_during_round >= all_in_player.amount_bet_during_round):
                 all_in_player.max_winnings += all_in_player.amount_bet_during_round
             else:
                 all_in_player.max_winnings += other_player.amount_bet_during_round

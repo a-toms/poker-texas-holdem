@@ -701,18 +701,24 @@ class TestAllInMaxWinningsForIndividualPlayer(unittest.TestCase):
         self.card_dealer = CardDealer()
 
     def test_get_any_player_that_is_all_in(self):
+        self.all_players.player8.money = 100
         # No player is all_in
         self.assertEqual(
             (),
             tuple(self.all_players.get_any_player_that_is_all_in())
         )
-
-        # player8 is all_in
-        self.all_players.player8.is_all_in = True
+        # player8 has bet all of his money
+        self.all_players.player8.money = 0
+        # player8 is now all in
         self.assertEqual(
             self.all_players.player8,
             tuple(self.all_players.get_any_player_that_is_all_in())[0]
         )
+
+
+
+
+
 
     def test_set_max_winnings_for_player(self):
         """
@@ -760,13 +766,13 @@ class TestAllInMaxWinningsForAllPlayers(unittest.TestCase):
             player.amount_bet_during_round = 20
 
         self.all_players.player1.amount_bet_during_round = 40
-        self.all_players.player1.is_all_in = True
+        self.all_players.player1.money = 0
         self.all_players.player2.amount_bet_during_round = 60
-        self.all_players.player2.is_all_in = True
+        self.all_players.player2.money = 0
         self.all_players.player3.amount_bet_during_round = 80
-        self.all_players.player3.is_all_in = True
+        self.all_players.player3.money = 0
         self.all_players.player4.amount_bet_during_round = 80
-        self.all_players.player4.is_all_in = False
+        self.all_players.player4.money = 0
         self.all_players.player5.has_folded = True
         self.all_players.player6.has_folded = True
         self.all_players.player7.has_folded = True
@@ -1291,6 +1297,8 @@ class TestResetForNewRound(unittest.TestCase):
             0,
             self.all_players.player1.max_winnings
         )
+
+
 
 
 if __name__ == '__main__':
