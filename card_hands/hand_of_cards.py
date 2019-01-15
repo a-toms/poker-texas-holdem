@@ -581,7 +581,7 @@ class Players:
                 f"Invalid bet. " +
                 f"{raising_player.name.title()} does not have enough money."
             )
-            return False
+            return self.raise_bet(raising_player)
         else:
             self.place_bet(raising_player, bet_amount)
             print(
