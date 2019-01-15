@@ -12,6 +12,7 @@ Nomenclature:
 The game consists of stages, which consist of stages.
 
 
+1. Solve get_commands bug.
 """
 
 

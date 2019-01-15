@@ -1269,14 +1269,28 @@ class TestResetForNewRound(unittest.TestCase):
             self.card_dealer.table_cards
         )
 
-    def test_player_reset_for_new_round(self):
+    def test_players_reset_for_new_round(self):
         self.all_players.player1.reset_for_new_round()
+
+        # Check each player attribute that func resets.
+        self.assertFalse(self.all_players.player1.has_folded)
+        self.assertFalse(self.all_players.player1.has_acted_during_stage)
+        self.assertFalse(self.all_players.player1.in_big_blind_position)
+        self.assertFalse(self.all_players.player1.in_small_blind_position)
+        self.assertFalse(self.all_players.player1.in_dealer_position)
+        self.assertFalse(self.all_players.player1.is_all_in)
         self.assertEqual(
-            False,
-            self.all_players.player1.has_folded
+            0,
+            self.all_players.player1.amount_bet_during_stage
         )
-
-
+        self.assertEqual(
+            0,
+            self.all_players.player1.amount_bet_during_round
+        )
+        self.assertEqual(
+            0,
+            self.all_players.player1.max_winnings
+        )
 
 
 if __name__ == '__main__':
