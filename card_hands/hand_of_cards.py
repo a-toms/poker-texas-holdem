@@ -278,6 +278,16 @@ class Player:
     def print_pocket_cards(self):
         print(f"pocket cards -> {self.hand.pocket_cards}")
 
+    def print_request(self):
+        print("----")
+        print(f"{self.name.title()},\n" +
+              f"You have {self.money} coins currently.\n" +
+              f"You have bet {self.amount_bet_during_stage} " +
+              f"this stage.\n" +
+              f"The highest bet of the stage so far " +
+              f"is {self.highest_stage_bet}.\n"
+              )
+
     def reset_for_new_round(self):
         self.amount_bet_during_stage = 0
         self.amount_bet_during_round = 0
@@ -374,15 +384,7 @@ class Players:
             f"paid the small blind of {self.small_blind}.\n"
         )
 
-    def print_request(self, active_player: Player):
-        print("----")
-        print(f"{active_player.name.title()},\n" +
-              f"You have {active_player.money} coins currently.\n" +
-              f"You have bet {active_player.amount_bet_during_stage} " +
-              f"this stage.\n" +
-              f"The highest bet of the stage so far " +
-              f"is {self.highest_stage_bet}.\n"
-              )
+
 
     def reset_players_status_at_stage_end(self):
         for player_at_stage_end in self.playing_order:
@@ -404,7 +406,7 @@ class Players:
         for all_in_player in self.get_any_player_that_is_all_in():
             self.set_max_winnings_for_player(all_in_player)
 
-    # todo: update for round bet
+
     def set_max_winnings_for_player(self, all_in_player):
         """Creates an max winnings attribute for an all_in player.
         :type all_in_player: Player
@@ -415,7 +417,7 @@ class Players:
             else:
                 all_in_player.max_winnings += other_player.amount_bet_during_round
 
-    # Todo: Refactor the below. The below is not an attractive function. Consider breaking it down.
+
     def ask_all_players_for_actions(self):
         while self.at_least_one_player_must_act():
             for player in self.playing_order:
@@ -502,14 +504,15 @@ class Players:
     # todo: write test
     def get_player_command(self, player: Player):
         command = self.get_command(player)
-        if self.is_command_valid(command, player) is True: # Todo: this is not good. Refactor this.
+        if self.is_command_valid(command, player) is True:
             pass
         else:
             self.print_command_is_invalid()
             self.get_player_command(player)
 
+# Use mock
     def get_command(self, player: Player):  # Todo: refactor to reduce func's side effects
-        self.print_request(player)
+        player.print_request()
         player.print_pocket_cards()  # Todo: consider refactoring more functions to be monadic like this
         try:
             command = int(input(
@@ -534,7 +537,7 @@ class Players:
             2: self.raise_bet,
             3: self.fold_hand
         }
-        if player_options[command](active_player) is 'valid action':
+        if player_options[command](active_player) is 'invalid action':
             return False
         return True
 
@@ -548,13 +551,13 @@ class Players:
             print(
                 f"{calling_player.name.title()} "
                 f"does not have enough money to call")
-            return False
+            return 'invalid action'
         calling_player.money -= call_amount
         calling_player.amount_bet_during_stage += call_amount
         calling_player.amount_bet_during_round += call_amount
         self.pot += call_amount
         print(f"{calling_player.name.title()} called {call_amount}.")
-        return True
+        return 'valid action'
 
     @staticmethod
     def fold_hand(folding_player: Player) -> bool:
@@ -573,7 +576,6 @@ class Players:
         )
         bet_amount += self.highest_stage_bet
         bet_amount -= raising_player.amount_bet_during_stage
-
         # todo: refactor this
         if raising_player.money - bet_amount < 0:
             print(
@@ -587,7 +589,7 @@ class Players:
                 f"{raising_player.name.title()} " +
                 f"bet {raising_player.amount_bet_during_stage}"
             )
-            return True
+            return 'valid'
 
     def place_bet(self, raising_player: Player, bet_amount) -> bool:
         raising_player.money -= bet_amount
@@ -599,14 +601,14 @@ class Players:
 
     def check_bet(self, checking_player: Player) -> bool:
         if checking_player.amount_bet_during_stage == self.highest_stage_bet:
-            return True
+            return 'valid action'
         else:
             print(
                 f"Invalid action. {checking_player.name.title()} " +
                 "must match the highest current bet of " +
                 f"{self.highest_stage_bet} to check"
             )
-            return False
+            return 'invalid action'
 
     @staticmethod
     def mark_player_as_having_made_action(player_who_made_action: Player):
