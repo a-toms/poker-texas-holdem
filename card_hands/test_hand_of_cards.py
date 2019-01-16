@@ -981,6 +981,16 @@ class TestPlayingOrder(unittest.TestCase):
             self.all_players.playing_order[0]
         )
 
+    def test_rotate_playing_order(self):
+        self.assertEqual(
+            self.all_players.player1,
+            self.all_players.playing_order[0]
+        )
+        self.all_players.rotate_playing_order()
+        self.assertEqual(
+            self.all_players.player1,
+            self.all_players.playing_order[1]
+        )
 
 class TestPlayerActions(unittest.TestCase):
     def setUp(self):

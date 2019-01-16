@@ -314,7 +314,6 @@ class Players:
         except IndexError:  # Applies where there are only two players
             self.dealer_player = self.playing_order[-1]
 
-    # todo: write test
     def reset_for_new_round(self):
         self.rotate_playing_order()
         self.highest_stage_bet = 0
@@ -323,7 +322,7 @@ class Players:
         self.assign_small_blind_player()
         self.winning_players = []
 
-    # todo: write test
+
     def rotate_playing_order(self):
         self.playing_order.rotate(1)
 
