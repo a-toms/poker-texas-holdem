@@ -527,7 +527,8 @@ class Players:
     def print_command_is_invalid(self):
         print("Your command is invalid.\n")
 
-    # fixme: the below is deficient
+    # fixme: the below is deficient.
+    # todo: write test
     def is_command_valid(self, command: int, active_player: Player):
         if command not in [0, 1, 2, 3]:
             return False

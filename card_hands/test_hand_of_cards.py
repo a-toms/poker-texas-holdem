@@ -1001,22 +1001,33 @@ class TestPlayerActions(unittest.TestCase):
         self.all_players.big_blind = 20
         self.all_players.small_blind = 10
 
+    def test_call_big_blind_valid(self):
+        self.all_players.pay_blinds()
+        self.assertEqual(
+            'valid action',
+            self.all_players.call_bet(self.player1)
+        )
+
     def test_call_big_blind_successful(self):
         self.all_players.pay_blinds()
         start_money = self.player1.money
-        self.all_players.call_bet(self.player1)
-        post_call_money = self.player1.money
-        self.assertLess(post_call_money, start_money)
         self.assertEqual(
-            start_money - post_call_money,
-            self.all_players.big_blind
+            'valid action',
+            self.all_players.call_bet(self.player1)
+        )
+        self.assertEqual(
+            self.player1.money,
+            start_money - 20,
         )
 
     def test_call_bet_unsuccessful(self):
         self.player1.money = 40
         self.player1.amount_bet_during_stage = 0
         self.all_players.highest_stage_bet = 100
-        self.assertFalse(self.all_players.call_bet(self.player1))
+        self.assertEqual(
+            'invalid action',
+            self.all_players.call_bet(self.player1)
+        )
 
 
 class TestFoldHand(unittest.TestCase):
