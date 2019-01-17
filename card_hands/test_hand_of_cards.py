@@ -428,8 +428,13 @@ class TestHandRankingSystem(unittest.TestCase):
         )
 
     def test_flush(self):
-        self.assertEqual(self.ranker.get_flush(ExampleHands.test_flush), 'C')
-        self.assertIsNone(self.ranker.get_flush(ExampleHands.test_no_flush))
+        self.assertEqual(
+            self.ranker.get_flush(ExampleHands.test_flush),
+            'C'
+        )
+        self.assertIsNone(
+            self.ranker.get_flush(ExampleHands.test_no_flush)
+        )
 
     def test_straight_flush(self):
         straight_flush_cards = self.ranker.get_straight_flush(ExampleHands.test_straight_flush)
