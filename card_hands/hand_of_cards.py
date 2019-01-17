@@ -505,13 +505,15 @@ class Players:
     def get_player_command(self, player: Player):
         command = self.get_command(player)
         if self.is_command_valid(command, player) is True:
-            pass
+            self.execute_command(command, player)
         else:
             self.print_command_is_invalid()
             self.get_player_command(player)
 
 # Use mock
     def get_command(self, player: Player):  # Todo: refactor to reduce func's side effects
+
+        # fixme **
         player.print_request()
         player.print_pocket_cards()  # Todo: consider refactoring more functions to be monadic like this
         try:
@@ -532,15 +534,16 @@ class Players:
     def is_command_valid(self, command: int, active_player: Player):
         if command not in [0, 1, 2, 3]:
             return False
+        return True
+
+    def execute_command(self, command, active_player):
         player_options = {
             0: self.check_bet,
             1: self.call_bet,
             2: self.raise_bet,
             3: self.fold_hand
         }
-        if player_options[command](active_player) is 'invalid action':
-            return False
-        return True
+        player_options[command](self, active_player)
 
     def call_bet(self, calling_player: Player) -> bool:
         """This will make the player check if there is no higher bet."""
