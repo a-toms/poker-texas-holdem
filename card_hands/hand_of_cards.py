@@ -278,14 +278,12 @@ class Player:
     def print_pocket_cards(self):
         print(f"pocket cards -> {self.hand.pocket_cards}")
 
-    def print_request(self):
+    def print_status(self):
         print("----")
         print(f"{self.name.title()},\n" +
               f"You have {self.money} coins currently.\n" +
               f"You have bet {self.amount_bet_during_stage} " +
-              f"this stage.\n" +
-              f"The highest bet of the stage so far " +
-              f"is {self.highest_stage_bet}.\n"
+              f"this stage.\n"
               )
 
     def reset_for_new_round(self):
@@ -512,9 +510,7 @@ class Players:
 
 # Use mock
     def get_command(self, player: Player):  # Todo: refactor to reduce func's side effects
-
-        # fixme **
-        player.print_request()
+        player.print_status()
         player.print_pocket_cards()  # Todo: consider refactoring more functions to be monadic like this
         try:
             command = int(input(
@@ -529,7 +525,6 @@ class Players:
     def print_command_is_invalid(self):
         print("Your command is invalid.\n")
 
-    # fixme: the below is deficient.
     # todo: write test
     def is_command_valid(self, command: int, active_player: Player):
         if command not in [0, 1, 2, 3]:
@@ -543,7 +538,7 @@ class Players:
             2: self.raise_bet,
             3: self.fold_hand
         }
-        player_options[command](self, active_player)
+        player_options[command](active_player)
 
     def call_bet(self, calling_player: Player) -> bool:
         """This will make the player check if there is no higher bet."""

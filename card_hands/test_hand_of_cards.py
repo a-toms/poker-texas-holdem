@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import patch
 
 
-class TestCard(unittest.TestCase):
+class TestCardCreation(unittest.TestCase):
 
     def setUp(self):
         self.card = Card(14, 'D')
@@ -160,7 +160,7 @@ class TestPlayerCalculateBestHand(unittest.TestCase):
         )
 
 
-class TestGetWinners(unittest.TestCase):
+class TestFindPlayersWithTheWinningHands(unittest.TestCase):
     def setUp(self):
         n_players = 8
         self.card_dealer = CardDealer()
@@ -655,7 +655,7 @@ class TestHandRanker(unittest.TestCase):
         )
 
 
-class TestComparisonMethods(unittest.TestCase):
+class TestHandComparisonMethods(unittest.TestCase):
 
     def setUp(self):
         self.hand_classifier = HandClassifier()
@@ -719,11 +719,6 @@ class TestAllInMaxWinningsForIndividualPlayer(unittest.TestCase):
             self.all_players.player8,
             tuple(self.all_players.get_any_player_that_is_all_in())[0]
         )
-
-
-
-
-
 
     def test_set_max_winnings_for_player(self):
         """
@@ -900,7 +895,7 @@ class TestPayBlinds(unittest.TestCase):
         )
 
 
-class TestPayingPotToWinners(unittest.TestCase):
+class TestPayPotToWinners(unittest.TestCase):
 
     def setUp(self):
         n_players = 8
@@ -924,7 +919,7 @@ class TestPayingPotToWinners(unittest.TestCase):
         )
 
 
-class TestPlayingOrder(unittest.TestCase):
+class TestPlayingOrderAndRotation(unittest.TestCase):
 
     def setUp(self):
         n_players = 8
@@ -997,7 +992,8 @@ class TestPlayingOrder(unittest.TestCase):
             self.all_players.playing_order[1]
         )
 
-class TestPlayerActions(unittest.TestCase):
+
+class TestCallHand(unittest.TestCase):
     def setUp(self):
         n_players = 8
         self.all_players = Players(n_players)
@@ -1118,7 +1114,7 @@ class TestPlayerInput(unittest.TestCase):
         self.assertEqual(input(), 'y')
 
 
-class TestResetBettingRecords(unittest.TestCase):
+class TestResetBettingRecordsAtEndOfStage(unittest.TestCase):
     def setUp(self):
         n_players = 3
         self.all_players = Players(n_players)
@@ -1144,7 +1140,7 @@ class TestResetBettingRecords(unittest.TestCase):
         )
 
 
-class TestBoardDealing(unittest.TestCase):
+class TestDealingTableCards(unittest.TestCase):
 
     def setUp(self):
         n_players = 8
@@ -1323,8 +1319,6 @@ class TestResetForNewRound(unittest.TestCase):
             0,
             self.all_players.player1.max_winnings
         )
-
-
 
 
 if __name__ == '__main__':
