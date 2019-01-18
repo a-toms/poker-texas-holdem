@@ -267,7 +267,6 @@ class Player:
         self.in_dealer_position = False
         self.is_all_in = False
         self.max_winnings = 0
-        #todo: add amount_bet_in_round and create max threshold based on it.
 
     def get_best_hand(self, card_dealer):
         return self.hand.calculate_best_hand_for_player(card_dealer)
@@ -296,6 +295,7 @@ class Player:
         self.in_dealer_position = False
         self.is_all_in = False
         self.max_winnings = 0
+
 
 class Players:
     """
@@ -329,7 +329,6 @@ class Players:
         self.assign_big_blind_player()
         self.assign_small_blind_player()
         self.winning_players = []
-
 
     def rotate_playing_order(self):
         self.playing_order.rotate(1)
@@ -381,8 +380,6 @@ class Players:
             f"The small blind player, {self.small_blind_player.name.title()}, "
             f"paid the small blind of {self.small_blind}.\n"
         )
-
-
 
     def reset_players_status_at_stage_end(self):
         for player_at_stage_end in self.playing_order:
@@ -499,17 +496,15 @@ class Players:
                 return True
         return False
 
-    # todo: write test
     def get_player_command(self, player: Player):
         command = self.get_command(player)
-        if self.is_command_valid(command, player) is True:
+        if self.is_command_valid(command) is True:
             self.execute_command(command, player)
         else:
             self.print_command_is_invalid()
             self.get_player_command(player)
 
-# Use mock
-    def get_command(self, player: Player):  # Todo: refactor to reduce func's side effects
+    def get_command(self, player: Player):
         player.print_status()
         player.print_pocket_cards()  # Todo: consider refactoring more functions to be monadic like this
         try:
@@ -525,8 +520,8 @@ class Players:
     def print_command_is_invalid(self):
         print("Your command is invalid.\n")
 
-    # todo: write test
-    def is_command_valid(self, command: int, active_player: Player):
+    @staticmethod
+    def is_command_valid(command: int):
         if command not in [0, 1, 2, 3]:
             return False
         return True
@@ -540,7 +535,7 @@ class Players:
         }
         player_options[command](active_player)
 
-    def call_bet(self, calling_player: Player) -> bool:
+    def call_bet(self, calling_player: Player) -> str:
         """This will make the player check if there is no higher bet."""
         call_amount = (
                 self.highest_stage_bet -

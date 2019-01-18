@@ -1255,7 +1255,6 @@ class TestResetForNewRound(unittest.TestCase):
         n_of_players = 8
         self.all_players = Players(n_of_players)
         self.card_dealer = CardDealer()
-        self.hand_judge = HandClassifier
         self.card_dealer.deal_pocket_cards_to_players(self.all_players)
         self.all_players.pay_blinds()
 
@@ -1320,6 +1319,38 @@ class TestResetForNewRound(unittest.TestCase):
             self.all_players.player1.max_winnings
         )
 
+
+class TestGetAndExecutePlayerCommands(unittest.TestCase):
+
+    def setUp(self):
+        n_of_players = 8
+        self.all_players = Players(n_of_players)
+
+        self.big_blind_amount = 500
+        self.all_players.big_blind = self.big_blind_amount
+        self.starting_player_money = 2000
+        for player in self.all_players.register:
+            player.money = self.starting_player_money
+
+        self.card_dealer = CardDealer()
+        self.card_dealer.deal_pocket_cards_to_players(self.all_players)
+        self.all_players.pay_blinds()
+
+    def test_is_command_valid(self):
+        self.assertTrue(self.all_players.is_command_valid(1))
+        self.assertFalse(self.all_players.is_command_valid(5))
+
+    def test_execute_command(self):
+        # Test executing a call command
+        self.assertEqual(
+            self.starting_player_money,
+            self.all_players.player1.money
+        )
+        self.all_players.execute_command(1, self.all_players.player1)
+        self.assertEqual(
+            self.starting_player_money - self.big_blind_amount,
+            self.all_players.player1.money
+        )
 
 if __name__ == '__main__':
     unittest.main()
