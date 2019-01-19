@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import patch
 
 
-class TestCard(unittest.TestCase):
+class TestCardCreation(unittest.TestCase):
 
     def setUp(self):
         self.card = Card(14, 'D')
@@ -160,7 +160,7 @@ class TestPlayerCalculateBestHand(unittest.TestCase):
         )
 
 
-class TestGetWinners(unittest.TestCase):
+class TestFindPlayersWithTheWinningHands(unittest.TestCase):
     def setUp(self):
         n_players = 8
         self.card_dealer = CardDealer()
@@ -350,7 +350,6 @@ class TestPlayerHandRanking(unittest.TestCase):
         )
 
 
-
 class TestHandRankingSystem(unittest.TestCase):
     def setUp(self):
         self.ranker = HandRanker()
@@ -429,8 +428,13 @@ class TestHandRankingSystem(unittest.TestCase):
         )
 
     def test_flush(self):
-        self.assertEqual(self.ranker.get_flush(ExampleHands.test_flush), 'C')
-        self.assertIsNone(self.ranker.get_flush(ExampleHands.test_no_flush))
+        self.assertEqual(
+            self.ranker.get_flush(ExampleHands.test_flush),
+            'C'
+        )
+        self.assertIsNone(
+            self.ranker.get_flush(ExampleHands.test_no_flush)
+        )
 
     def test_straight_flush(self):
         straight_flush_cards = self.ranker.get_straight_flush(ExampleHands.test_straight_flush)
@@ -651,7 +655,7 @@ class TestHandRanker(unittest.TestCase):
         )
 
 
-class TestComparisonMethods(unittest.TestCase):
+class TestHandComparisonMethods(unittest.TestCase):
 
     def setUp(self):
         self.hand_classifier = HandClassifier()
@@ -702,14 +706,15 @@ class TestAllInMaxWinningsForIndividualPlayer(unittest.TestCase):
         self.card_dealer = CardDealer()
 
     def test_get_any_player_that_is_all_in(self):
+        self.all_players.player8.money = 100
         # No player is all_in
         self.assertEqual(
             (),
             tuple(self.all_players.get_any_player_that_is_all_in())
         )
-
-        # player8 is all_in
-        self.all_players.player8.is_all_in = True
+        # player8 has bet all of his money
+        self.all_players.player8.money = 0
+        # player8 is now all in
         self.assertEqual(
             self.all_players.player8,
             tuple(self.all_players.get_any_player_that_is_all_in())[0]
@@ -722,13 +727,13 @@ class TestAllInMaxWinningsForIndividualPlayer(unittest.TestCase):
         """
         # Assign bets to players.
         for player in self.all_players.register:
-            player.amount_bet_during_stage = 20
+            player.amount_bet_during_round = 20
 
         # Assign larger bets to some players.
-        self.all_players.player1.amount_bet_during_stage = 40
-        self.all_players.player2.amount_bet_during_stage = 40
+        self.all_players.player1.amount_bet_during_round = 40
+        self.all_players.player2.amount_bet_during_round = 40
         player3 = self.all_players.player3
-        player3.amount_bet_during_stage = 30
+        player3.amount_bet_during_round = 30
 
         sum_of_bets_for_each_player_equal_or_less_than_all_in_players_bet = 190
 
@@ -758,16 +763,16 @@ class TestAllInMaxWinningsForAllPlayers(unittest.TestCase):
         self.all_players = Players(self.n_players)
         self.card_dealer = CardDealer()
         for player in self.all_players.register:
-            player.amount_bet_during_stage = 20
+            player.amount_bet_during_round = 20
 
-        self.all_players.player1.amount_bet_during_stage = 40
-        self.all_players.player1.is_all_in = True
-        self.all_players.player2.amount_bet_during_stage = 60
-        self.all_players.player2.is_all_in = True
-        self.all_players.player3.amount_bet_during_stage = 80
-        self.all_players.player3.is_all_in = True
-        self.all_players.player4.amount_bet_during_stage = 80
-        self.all_players.player4.is_all_in = False
+        self.all_players.player1.amount_bet_during_round = 40
+        self.all_players.player1.money = 0
+        self.all_players.player2.amount_bet_during_round = 60
+        self.all_players.player2.money = 0
+        self.all_players.player3.amount_bet_during_round = 80
+        self.all_players.player3.money = 0
+        self.all_players.player4.amount_bet_during_round = 80
+        self.all_players.player4.money = 0
         self.all_players.player5.has_folded = True
         self.all_players.player6.has_folded = True
         self.all_players.player7.has_folded = True
@@ -816,7 +821,9 @@ class TestPayBlinds(unittest.TestCase):
         n_players = 3
         self.all_players = Players(n_players)
         self.card_dealer = CardDealer()
-        self.starting_player_money = 100
+        self.starting_player_money = 200
+        for player in self.all_players.register:
+            player.money = self.starting_player_money
         self.starting_player_amount_bet = 0
         self.all_players.big_blind = 20
         self.all_players.small_blind = 10
@@ -888,7 +895,7 @@ class TestPayBlinds(unittest.TestCase):
         )
 
 
-class TestPayingPotToWinners(unittest.TestCase):
+class TestPayPotToWinners(unittest.TestCase):
 
     def setUp(self):
         n_players = 8
@@ -912,7 +919,7 @@ class TestPayingPotToWinners(unittest.TestCase):
         )
 
 
-class TestPlayingOrder(unittest.TestCase):
+class TestPlayingOrderAndRotation(unittest.TestCase):
 
     def setUp(self):
         n_players = 8
@@ -974,8 +981,19 @@ class TestPlayingOrder(unittest.TestCase):
             self.all_players.playing_order[0]
         )
 
+    def test_rotate_playing_order(self):
+        self.assertEqual(
+            self.all_players.player1,
+            self.all_players.playing_order[0]
+        )
+        self.all_players.rotate_playing_order()
+        self.assertEqual(
+            self.all_players.player1,
+            self.all_players.playing_order[1]
+        )
 
-class TestPlayerActions(unittest.TestCase):
+
+class TestCallBet(unittest.TestCase):
     def setUp(self):
         n_players = 8
         self.all_players = Players(n_players)
@@ -988,18 +1006,60 @@ class TestPlayerActions(unittest.TestCase):
         self.all_players.pay_blinds()
         start_money = self.player1.money
         self.all_players.call_bet(self.player1)
-        post_call_money = self.player1.money
-        self.assertLess(post_call_money, start_money)
         self.assertEqual(
-            start_money - post_call_money,
-            self.all_players.big_blind
+            start_money - self.all_players.big_blind,
+            self.all_players.player1.money
         )
 
-    def test_call_bet_unsuccessful(self):
+    def test_call_bet_with_all_of_remaining_money(self):
         self.player1.money = 40
         self.player1.amount_bet_during_stage = 0
         self.all_players.highest_stage_bet = 100
-        self.assertFalse(self.all_players.call_bet(self.player1))
+        pot_before_call = self.all_players.pot
+        self.all_players.call_bet(self.player1)
+        self.assertEqual(
+            pot_before_call + 40,
+            self.all_players.pot
+        )
+        self.assertEqual(
+            0,
+            self.player1.money
+        )
+
+
+class TestRaiseBet(unittest.TestCase):
+
+    def setUp(self):
+        n_players = 8
+        self.all_players = Players(n_players)
+        self.card_dealer = CardDealer()
+        self.starting_player_amount_bet = 0
+        self.all_players.big_blind = 20
+        self.all_players.small_blind = 10
+
+    def test_place_bet(self):
+        bet_sum = 50
+        pot_before_bet = self.all_players.pot
+        self.all_players.place_bet(
+            self.all_players.player1,
+            bet_sum
+        )
+        self.assertEqual(
+            50,
+            self.all_players.player1.amount_bet_during_round
+        )
+        self.assertEqual(
+            50,
+            self.all_players.player1.amount_bet_during_stage
+        )
+        self.assertEqual(
+            bet_sum,
+            self.all_players.highest_stage_bet
+        )
+        self.assertEqual(
+            pot_before_bet + bet_sum,
+            self.all_players.pot
+        )
 
 
 class TestFoldHand(unittest.TestCase):
@@ -1085,7 +1145,7 @@ class TestPlayerInput(unittest.TestCase):
         self.assertEqual(input(), 'y')
 
 
-class TestResetBettingRecords(unittest.TestCase):
+class TestResetBettingRecordsAtEndOfStage(unittest.TestCase):
     def setUp(self):
         n_players = 3
         self.all_players = Players(n_players)
@@ -1111,7 +1171,7 @@ class TestResetBettingRecords(unittest.TestCase):
         )
 
 
-class TestBoardDealing(unittest.TestCase):
+class TestDealingTableCards(unittest.TestCase):
 
     def setUp(self):
         n_players = 8
@@ -1138,18 +1198,31 @@ class TestBoardDealing(unittest.TestCase):
             self.card_dealer.table_cards[0].suit in self.suit
         )
 
-    def test_deal_card_to_table_deals_card(self):
+    def test_deal_board_turn_deal_card(self):
         self.assertEqual(self.card_dealer.table_cards, [])
-        self.card_dealer.deal_card_to_table()
-        self.assertTrue(
-            self.card_dealer.table_cards[0].rank in self.rank
-        )
-        self.assertTrue(
-            self.card_dealer.table_cards[0].suit in self.suit
+        self.card_dealer.deal_flop()
+        self.card_dealer.deal_turn()
+        self.assertEqual(
+            4,
+            len(self.card_dealer.table_cards)
         )
         self.assertEqual(
-            1,
+            Card,
+            type(self.card_dealer.table_cards[3]),
+        )
+
+    def test_deal_board_turn_deal_card(self):
+        self.assertEqual(self.card_dealer.table_cards, [])
+        self.card_dealer.deal_flop()
+        self.card_dealer.deal_turn()
+        self.card_dealer.deal_river()
+        self.assertEqual(
+            5,
             len(self.card_dealer.table_cards)
+        )
+        self.assertEqual(
+            Card,
+            type(self.card_dealer.table_cards[4])
         )
 
 
@@ -1226,7 +1299,6 @@ class TestResetForNewRound(unittest.TestCase):
         n_of_players = 8
         self.all_players = Players(n_of_players)
         self.card_dealer = CardDealer()
-        self.hand_judge = HandClassifier
         self.card_dealer.deal_pocket_cards_to_players(self.all_players)
         self.all_players.pay_blinds()
 
@@ -1268,6 +1340,61 @@ class TestResetForNewRound(unittest.TestCase):
             self.card_dealer.table_cards
         )
 
+    def test_players_reset_for_new_round(self):
+        self.all_players.player1.reset_for_new_round()
+
+        # Check each player attribute that func resets.
+        self.assertFalse(self.all_players.player1.has_folded)
+        self.assertFalse(self.all_players.player1.has_acted_during_stage)
+        self.assertFalse(self.all_players.player1.in_big_blind_position)
+        self.assertFalse(self.all_players.player1.in_small_blind_position)
+        self.assertFalse(self.all_players.player1.in_dealer_position)
+        self.assertFalse(self.all_players.player1.is_all_in)
+        self.assertEqual(
+            0,
+            self.all_players.player1.amount_bet_during_stage
+        )
+        self.assertEqual(
+            0,
+            self.all_players.player1.amount_bet_during_round
+        )
+        self.assertEqual(
+            0,
+            self.all_players.player1.max_winnings
+        )
+
+
+class TestGetAndExecutePlayerCommands(unittest.TestCase):
+
+    def setUp(self):
+        n_of_players = 8
+        self.all_players = Players(n_of_players)
+
+        self.big_blind_amount = 500
+        self.all_players.big_blind = self.big_blind_amount
+        self.starting_player_money = 2000
+        for player in self.all_players.register:
+            player.money = self.starting_player_money
+
+        self.card_dealer = CardDealer()
+        self.card_dealer.deal_pocket_cards_to_players(self.all_players)
+        self.all_players.pay_blinds()
+
+    def test_is_input_valid(self):
+        self.assertTrue(self.all_players.input_is_valid(1))
+        self.assertFalse(self.all_players.input_is_valid(5))
+
+    def test_execute_command(self):
+        # Test executing a call command
+        self.assertEqual(
+            self.starting_player_money,
+            self.all_players.player1.money
+        )
+        self.all_players.execute_command(1, self.all_players.player1)
+        self.assertEqual(
+            self.starting_player_money - self.big_blind_amount,
+            self.all_players.player1.money
+        )
 
 
 if __name__ == '__main__':
