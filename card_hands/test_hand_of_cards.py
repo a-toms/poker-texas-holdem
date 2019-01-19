@@ -1167,18 +1167,31 @@ class TestDealingTableCards(unittest.TestCase):
             self.card_dealer.table_cards[0].suit in self.suit
         )
 
-    def test_deal_card_to_table_deals_card(self):
+    def test_deal_board_turn_deal_card(self):
         self.assertEqual(self.card_dealer.table_cards, [])
-        self.card_dealer.deal_card_to_table()
-        self.assertTrue(
-            self.card_dealer.table_cards[0].rank in self.rank
-        )
-        self.assertTrue(
-            self.card_dealer.table_cards[0].suit in self.suit
+        self.card_dealer.deal_flop()
+        self.card_dealer.deal_turn()
+        self.assertEqual(
+            4,
+            len(self.card_dealer.table_cards)
         )
         self.assertEqual(
-            1,
+            Card,
+            type(self.card_dealer.table_cards[3]),
+        )
+
+    def test_deal_board_turn_deal_card(self):
+        self.assertEqual(self.card_dealer.table_cards, [])
+        self.card_dealer.deal_flop()
+        self.card_dealer.deal_turn()
+        self.card_dealer.deal_river()
+        self.assertEqual(
+            5,
             len(self.card_dealer.table_cards)
+        )
+        self.assertEqual(
+            Card,
+            type(self.card_dealer.table_cards[4])
         )
 
 

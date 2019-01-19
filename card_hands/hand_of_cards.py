@@ -1,19 +1,7 @@
 import itertools
 from collections import deque
 import random
-import logging
 import time
-
-logging.basicConfig(level=logging.WARNING)
-
-"""
-
-Nomenclature:
-The game consists of stages, which consist of stages.
-
-
-1. Solve get_commands bug.
-"""
 
 
 def print_output(func):
@@ -81,7 +69,8 @@ class HandRanker:
         Check if a straight exists if the ace is treated as a low ace.
         hand is an iterable of Card instances.
         """
-        low_ace_n, high_ace_n = 1, 14
+        low_ace_n = 1
+        high_ace_n = 14
         card_numbers = set([card.rank for card in hand])
         card_numbers = [low_ace_n if n == high_ace_n else n for n in card_numbers]
         card_numbers.sort()
@@ -533,7 +522,7 @@ class Players:
             2: self.raise_bet,
             3: self.fold_hand
         }
-        player_options[command](active_player)
+        return player_options[command](active_player)
 
     def call_bet(self, calling_player: Player) -> str:
         """This will make the player check if there is no higher bet."""
@@ -640,19 +629,19 @@ class CardDealer:
         for receiving_player in receiving_players.register:
             self.deal_pocket_cards_to_player(receiving_player)
 
-    def deal_card_to_table(self):
+    def __deal_card_to_table(self):
         card = self.pick_card()
         self.table_cards.append(card)
 
     def deal_flop(self):
         for i in range(3):
-            self.deal_card_to_table()
+            self.__deal_card_to_table()
 
     def deal_turn(self):
-        self.deal_card_to_table()
+        self.__deal_card_to_table()
 
     def deal_river(self):
-        self.deal_card_to_table()
+        self.__deal_card_to_table()
 
     def show_table(self):
         print("______________________\n")
@@ -740,4 +729,4 @@ class Game:
 
 
 if __name__ == "__main__":
-    Game(4).play_game()
+    Game(3).play_game()
