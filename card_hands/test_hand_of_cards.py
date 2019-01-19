@@ -1027,6 +1027,41 @@ class TestCallBet(unittest.TestCase):
         )
 
 
+class TestRaiseBet(unittest.TestCase):
+
+    def setUp(self):
+        n_players = 8
+        self.all_players = Players(n_players)
+        self.card_dealer = CardDealer()
+        self.starting_player_amount_bet = 0
+        self.all_players.big_blind = 20
+        self.all_players.small_blind = 10
+
+    def test_place_bet(self):
+        bet_sum = 50
+        pot_before_bet = self.all_players.pot
+        self.all_players.place_bet(
+            self.all_players.player1,
+            bet_sum
+        )
+        self.assertEqual(
+            50,
+            self.all_players.player1.amount_bet_during_round
+        )
+        self.assertEqual(
+            50,
+            self.all_players.player1.amount_bet_during_stage
+        )
+        self.assertEqual(
+            bet_sum,
+            self.all_players.highest_stage_bet
+        )
+        self.assertEqual(
+            pot_before_bet + bet_sum,
+            self.all_players.pot
+        )
+
+
 class TestFoldHand(unittest.TestCase):
 
     def setUp(self):

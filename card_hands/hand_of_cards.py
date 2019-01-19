@@ -357,13 +357,19 @@ class Players:
         self.playing_order.rotate(2)
 
     def pay_blinds(self):
-        self.small_blind_player.money -= self.small_blind
-        self.small_blind_player.amount_bet_during_stage += self.small_blind
-        self.big_blind_player.money -= self.big_blind
-        self.big_blind_player.amount_bet_during_stage += self.big_blind
+        self.__pay_small_blind()
+        self.__pay_big_blind()
         self.pot += self.big_blind + self.small_blind
         self.highest_stage_bet = self.big_blind
         self.print_blinds_message()
+
+    def __pay_small_blind(self):
+        self.small_blind_player.money -= self.small_blind
+        self.small_blind_player.amount_bet_during_stage += self.small_blind
+
+    def __pay_big_blind(self):
+        self.big_blind_player.money -= self.big_blind
+        self.big_blind_player.amount_bet_during_stage += self.big_blind
 
     def print_blinds_message(self):
         print(
@@ -387,12 +393,10 @@ class Players:
                 player.is_all_in = True
                 yield player
 
-    #todo: update for round bet
     def set_max_winnings_for_all_in_players(self):
         """Run at each stage's end."""
         for all_in_player in self.get_any_player_that_is_all_in():
             self.set_max_winnings_for_player(all_in_player)
-
 
     def set_max_winnings_for_player(self, all_in_player):
         """Creates an max winnings attribute for an all_in player.
@@ -403,7 +407,6 @@ class Players:
                 all_in_player.max_winnings += all_in_player.amount_bet_during_round
             else:
                 all_in_player.max_winnings += other_player.amount_bet_during_round
-
 
     def ask_all_players_for_actions(self):
         while self.at_least_one_player_must_act():
@@ -491,7 +494,7 @@ class Players:
 
     def get_player_command(self, player):
         command = self.get_command(player)
-        if self.command_is_valid(command):
+        if self.input_is_valid(command):
             if self.execute_command(command, player) is False:  # I don't like this. What is a good way to improve this?
                 self.get_player_command(player)
         else:
@@ -517,7 +520,7 @@ class Players:
         print("Your command is invalid.\n")
 
     @staticmethod
-    def command_is_valid(command) -> bool:
+    def input_is_valid(command) -> bool:
         if command not in [0, 1, 2, 3]:
             return False
         return True
@@ -560,17 +563,28 @@ class Players:
         folding_player.has_folded = True
         print(f"{folding_player.name.title()} folded.")
 
-    def raise_bet(self, raising_player: Player) -> bool:
-        proposed_bet_amount = int(
+    def raise_bet(self, player) -> bool:
+        proposed_bet_amount = self.get_amount_to_raise(player)
+        if self.is_bet_valid(player, proposed_bet_amount):
+            self.place_bet(player, proposed_bet_amount)
+            return True
+        else:
+            return False
+
+    def get_amount_to_raise(self, raising_player):
+        bet_amount = int(
             input(
                 f"Enter the amount to raise above {self.highest_stage_bet}\n"
                 f"(The highest bet during this stage is {self.highest_stage_bet})"
                 f" >>\n"
             )
         )
-        proposed_bet_amount += self.highest_stage_bet
-        proposed_bet_amount -= raising_player.amount_bet_during_stage
-        if raising_player.money - proposed_bet_amount < 0:
+        bet_amount += self.highest_stage_bet - raising_player.amount_bet_during_stage
+        return bet_amount
+
+    @staticmethod
+    def is_bet_valid(raising_player, bet_amount):
+        if raising_player.money - bet_amount < 0:
             print(
                 f"Invalid bet. " +
                 f"{raising_player.name.title()} does not have enough money."
@@ -578,13 +592,13 @@ class Players:
             return False
         return True
 
-    def place_bet(self, raising_player: Player, bet_amount) -> bool:
+    def place_bet(self, raising_player: Player, bet_amount):
         raising_player.money -= bet_amount
         raising_player.amount_bet_during_stage += bet_amount
         raising_player.amount_bet_during_round += bet_amount
         self.highest_stage_bet = raising_player.amount_bet_during_stage
         self.pot += bet_amount
-        return True
+        print(f"{raising_player.name.title()} bet {bet_amount}.")
 
     def check_bet(self, checking_player: Player) -> bool:
         if checking_player.amount_bet_during_stage == self.highest_stage_bet:
