@@ -993,7 +993,7 @@ class TestPlayingOrderAndRotation(unittest.TestCase):
         )
 
 
-class TestCallHand(unittest.TestCase):
+class TestCallBet(unittest.TestCase):
     def setUp(self):
         n_players = 8
         self.all_players = Players(n_players)
@@ -1002,32 +1002,28 @@ class TestCallHand(unittest.TestCase):
         self.all_players.big_blind = 20
         self.all_players.small_blind = 10
 
-    def test_call_big_blind_valid(self):
-        self.all_players.pay_blinds()
-        self.assertEqual(
-            'valid action',
-            self.all_players.call_bet(self.player1)
-        )
-
     def test_call_big_blind_successful(self):
         self.all_players.pay_blinds()
         start_money = self.player1.money
+        self.all_players.call_bet(self.player1)
         self.assertEqual(
-            'valid action',
-            self.all_players.call_bet(self.player1)
-        )
-        self.assertEqual(
-            self.player1.money,
-            start_money - 20,
+            start_money - self.all_players.big_blind,
+            self.all_players.player1.money
         )
 
-    def test_call_bet_unsuccessful(self):
+    def test_call_bet_with_all_of_remaining_money(self):
         self.player1.money = 40
         self.player1.amount_bet_during_stage = 0
         self.all_players.highest_stage_bet = 100
+        pot_before_call = self.all_players.pot
+        self.all_players.call_bet(self.player1)
         self.assertEqual(
-            'invalid action',
-            self.all_players.call_bet(self.player1)
+            pot_before_call + 40,
+            self.all_players.pot
+        )
+        self.assertEqual(
+            0,
+            self.player1.money
         )
 
 
@@ -1349,9 +1345,9 @@ class TestGetAndExecutePlayerCommands(unittest.TestCase):
         self.card_dealer.deal_pocket_cards_to_players(self.all_players)
         self.all_players.pay_blinds()
 
-    def test_is_command_valid(self):
-        self.assertTrue(self.all_players.is_command_valid(1))
-        self.assertFalse(self.all_players.is_command_valid(5))
+    def test_is_input_valid(self):
+        self.assertTrue(self.all_players.input_is_valid(1))
+        self.assertFalse(self.all_players.input_is_valid(5))
 
     def test_execute_command(self):
         # Test executing a call command
@@ -1364,6 +1360,7 @@ class TestGetAndExecutePlayerCommands(unittest.TestCase):
             self.starting_player_money - self.big_blind_amount,
             self.all_players.player1.money
         )
+
 
 if __name__ == '__main__':
     unittest.main()

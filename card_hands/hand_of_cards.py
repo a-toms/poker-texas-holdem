@@ -257,6 +257,9 @@ class Player:
         self.is_all_in = False
         self.max_winnings = 0
 
+
+    # Perhaps add a class instance of to replace all_players.highest_stage_bet
+
     def get_best_hand(self, card_dealer):
         return self.hand.calculate_best_hand_for_player(card_dealer)
 
@@ -461,7 +464,8 @@ class Players:
 
     def print_winning_players(self):
         if len(self.winning_players) == 1:
-            print(f"The winning player is {self.winning_players[0].name}")
+            print(f"The winning player is {self.winning_players[0].name.title()}")
+            print(f"{self.winning_players[0].name.title()} won {self.pot}.")
         else:
             print("The winning players are ")
             for counter, winning_player in enumerate(self.winning_players):
@@ -485,22 +489,25 @@ class Players:
                 return True
         return False
 
-    def get_player_command(self, player: Player):
+    def get_player_command(self, player):
         command = self.get_command(player)
-        if self.is_command_valid(command) is True:
-            self.execute_command(command, player)
+        if self.command_is_valid(command):
+            if self.execute_command(command, player) is False:  # I don't like this. What is a good way to improve this?
+                self.get_player_command(player)
         else:
             self.print_command_is_invalid()
             self.get_player_command(player)
 
-    def get_command(self, player: Player):
+    def get_command(self, player):
         player.print_status()
-        player.print_pocket_cards()  # Todo: consider refactoring more functions to be monadic like this
+        player.print_pocket_cards()
         try:
-            command = int(input(
-                "Would you like to check (0), call (1), raise (2), " +
-                "or fold (3)? Enter command >>\n\n")
+            command = int(
+                input(
+                    "Would you like to check (0), call (1), raise (2), " +
+                    "or fold (3)? Enter command >>\n\n")
             )
+
         except ValueError:
             self.print_command_is_invalid()
             return self.get_command(player)
@@ -510,12 +517,12 @@ class Players:
         print("Your command is invalid.\n")
 
     @staticmethod
-    def is_command_valid(command: int):
+    def command_is_valid(command) -> bool:
         if command not in [0, 1, 2, 3]:
             return False
         return True
 
-    def execute_command(self, command, active_player):
+    def execute_command(self, command, active_player) -> bool:
         player_options = {
             0: self.check_bet,
             1: self.call_bet,
@@ -530,49 +537,46 @@ class Players:
                 self.highest_stage_bet -
                 calling_player.amount_bet_during_stage
         )
-        if calling_player.money - call_amount < 0:
+        if calling_player.money - call_amount > 0:
+            calling_player.amount_bet_during_stage += call_amount
+            calling_player.amount_bet_during_round += call_amount
+            self.pot += call_amount
+            calling_player.money -= call_amount
+            print(
+                f"{calling_player.name.title()} called {call_amount}."
+            )
+        else:
+            calling_player.amount_bet_during_stage += calling_player.money
+            calling_player.amount_bet_during_round += calling_player.money
+            self.pot += calling_player.money
+            calling_player.money = 0
             print(
                 f"{calling_player.name.title()} "
-                f"does not have enough money to call")
-            return 'invalid action'
-        calling_player.money -= call_amount
-        calling_player.amount_bet_during_stage += call_amount
-        calling_player.amount_bet_during_round += call_amount
-        self.pot += call_amount
-        print(f"{calling_player.name.title()} called {call_amount}.")
-        return 'valid action'
+                f"calls by going all in"
+            )
 
     @staticmethod
-    def fold_hand(folding_player: Player) -> bool:
+    def fold_hand(folding_player):
         folding_player.has_folded = True
         print(f"{folding_player.name.title()} folded.")
-        return True
 
-    # todo: write test
     def raise_bet(self, raising_player: Player) -> bool:
-        bet_amount = int(
+        proposed_bet_amount = int(
             input(
                 f"Enter the amount to raise above {self.highest_stage_bet}\n"
                 f"(The highest bet during this stage is {self.highest_stage_bet})"
                 f" >>\n"
             )
         )
-        bet_amount += self.highest_stage_bet
-        bet_amount -= raising_player.amount_bet_during_stage
-        # todo: refactor this
-        if raising_player.money - bet_amount < 0:
+        proposed_bet_amount += self.highest_stage_bet
+        proposed_bet_amount -= raising_player.amount_bet_during_stage
+        if raising_player.money - proposed_bet_amount < 0:
             print(
                 f"Invalid bet. " +
                 f"{raising_player.name.title()} does not have enough money."
             )
-            return self.raise_bet(raising_player)
-        else:
-            self.place_bet(raising_player, bet_amount)
-            print(
-                f"{raising_player.name.title()} " +
-                f"bet {raising_player.amount_bet_during_stage}"
-            )
-            return 'valid'
+            return False
+        return True
 
     def place_bet(self, raising_player: Player, bet_amount) -> bool:
         raising_player.money -= bet_amount
@@ -584,14 +588,14 @@ class Players:
 
     def check_bet(self, checking_player: Player) -> bool:
         if checking_player.amount_bet_during_stage == self.highest_stage_bet:
-            return 'valid action'
+            return True
         else:
             print(
                 f"Invalid action. {checking_player.name.title()} " +
                 "must match the highest current bet of " +
                 f"{self.highest_stage_bet} to check"
             )
-            return 'invalid action'
+            return False
 
     @staticmethod
     def mark_player_as_having_made_action(player_who_made_action: Player):
@@ -656,7 +660,6 @@ class Game:
         self.card_dealer = CardDealer()
         self.hand_classifier = HandClassifier()
 
-    # Todo: write test
     def execute_round_events(self):
         self.all_players.ask_all_players_for_actions()
         if self.all_players.is_there_any_default_winner() is True:
