@@ -67,7 +67,7 @@ class HandRanker:
     def get_straight_with_low_ace(self, hand):
         """
         Check if a straight exists if the ace is treated as a low ace.
-        hand is an iterable of Card instances.
+        Hand is an iterable of Card instances.
         """
         low_ace_n = 1
         high_ace_n = 14
