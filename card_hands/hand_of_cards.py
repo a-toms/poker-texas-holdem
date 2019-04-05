@@ -67,7 +67,7 @@ class HandRanker:
     def get_straight_with_low_ace(self, hand):
         """
         Check if a straight exists if the ace is treated as a low ace.
-        hand is an iterable of Card instances.
+        Hand is an iterable of Card instances.
         """
         low_ace_n = 1
         high_ace_n = 14
@@ -134,6 +134,7 @@ class HandRanker:
         for f, rank in self.hand_ranks.items():
             if f(self, hand):
                 return rank
+        return -1
 
     def rank_hands(self, hands):
         """Get each hand and assign it a rank."""
@@ -221,10 +222,9 @@ class Hand(HandClassifier):
 
     def __init__(self):
         self.pocket_cards = []
-        self.highest_hand_score = 0
         self.hand_cards = []
 
-    def generate_hand_combinations(self, card_dealer) -> itertools:
+    def generate_hand_combinations(self, card_dealer) -> list:
         card_pool = self.pocket_cards + card_dealer.table_cards
         return list(itertools.combinations(card_pool, r=5))
 
@@ -233,13 +233,17 @@ class Hand(HandClassifier):
             self.hand_cards = self.pocket_cards
             return self.hand_cards
         else:
-            combinations = self.generate_hand_combinations(card_dealer)
+            combinations: list = self.generate_hand_combinations(card_dealer)
             filtered = self.filter_hands_by_highest_score(combinations)
             self.hand_cards = self.get_hand_with_highest_card_rank(filtered)
             return self.hand_cards
 
     def print_best_hand(self):
         print(self.hand_cards)
+
+    def reset_for_new_round(self):
+        self.pocket_cards = []
+        self.hand_cards = []
 
 
 class Player:
@@ -256,9 +260,6 @@ class Player:
         self.in_dealer_position = False
         self.is_all_in = False
         self.max_winnings = 0
-
-
-    # Perhaps add a class instance of to replace all_players.highest_stage_bet
 
     def get_best_hand(self, card_dealer):
         return self.hand.calculate_best_hand_for_player(card_dealer)
@@ -278,6 +279,7 @@ class Player:
               )
 
     def reset_for_new_round(self):
+        self.hand.reset_for_new_round()
         self.amount_bet_during_stage = 0
         self.amount_bet_during_round = 0
         self.has_folded = False
@@ -534,7 +536,7 @@ class Players:
         }
         return player_options[command](active_player)
 
-    def call_bet(self, calling_player: Player) -> str:
+    def call_bet(self, calling_player: Player) -> bool:
         """This will make the player check if there is no higher bet."""
         call_amount = (
                 self.highest_stage_bet -
@@ -626,9 +628,6 @@ class CardDealer:
         self.table_cards = []
         self.deck = self.generate_cards()
 
-    def reset_for_new_round(self):
-        self.table_cards = []
-
     @staticmethod
     def generate_cards():
         card_templates = itertools.product(range(2, 15), ('H', 'D', 'S', 'C'))
@@ -666,6 +665,9 @@ class CardDealer:
         print(f"Table cards : \n{self.table_cards}")
         print("______________________\n")
 
+    def reset_for_new_round(self):
+        self.table_cards = []
+
 
 class Game:
     def __init__(self, number_of_players):
@@ -673,6 +675,19 @@ class Game:
         self.all_players = Players(self.n_players)
         self.card_dealer = CardDealer()
         self.hand_classifier = HandClassifier()
+
+    def play_game(self):
+        self.play_round()
+        self.run_post_round_events()
+
+    def play_round(self):
+        if self.run_pre_flop_events() == "end round":
+            return
+        if self.run_flop_events() == "end round":
+            return
+        if self.run_turn_events() == "end round":
+            return
+        self.run_river_events()
 
     def execute_round_events(self):
         self.all_players.ask_all_players_for_actions()
@@ -712,37 +727,30 @@ class Game:
         self.all_players.print_winning_players()
         self.all_players.give_pot_to_winners()
 
+    def run_post_round_events(self):
+        self.all_players.print_players_money()
+        if self.do_you_want_to_play_another_round() is True:
+            self.prepare_new_round()
+            self.play_game()
+        else:
+            print("Game finished.")
+            self.all_players.print_players_money()
+
+    def prepare_new_round(self):
+        print("Preparing for new round")
+        self.all_players.reset_for_new_round()
+        self.card_dealer.reset_for_new_round()
+
+
     @staticmethod
-    def you_want_to_continue_game():
+    def do_you_want_to_play_another_round():
         seconds = 5
         while time.sleep(seconds):
             print(seconds)
-            if input():
+            if input("Press x to end the game").upper() == 'X':
                 return False
             seconds -= 1
         return True
-
-    def run_round(self):
-        if self.run_pre_flop_events() == "end round":
-            return
-        if self.run_flop_events() == "end round":
-            return
-        if self.run_turn_events() == "end round":
-            return
-        self.run_river_events()
-
-    def play_game(self):
-        self.run_round()
-        self.run_post_round_events()
-
-    def run_post_round_events(self):
-        self.all_players.print_players_money()
-        self.ask_if_you_want_to_continue_game()
-
-    def ask_if_you_want_to_continue_game(self):
-        print("Preparing for new round.Press X to end the game")
-        self.you_want_to_continue_game()
-        print("restart game")
 
 
 if __name__ == "__main__":
